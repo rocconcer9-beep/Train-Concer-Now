@@ -297,7 +297,7 @@ export default function App() {
     <div style={S.wrap}>
       <style>{cfStyle}</style>
       <div style={{padding:"2.5rem 1.25rem 1.5rem",textAlign:"center"}}>
-        <img src="/logo.png" alt="Train Concer Now" style={{width:220,maxWidth:"85%",margin:"0 auto 16px",display:"block"}}/>
+        <img src="/logotcn.PNG" alt="Train Concer Now" style={{width:220,maxWidth:"85%",margin:"0 auto 16px",display:"block"}}/>
         <div style={{fontSize:13,color:T.textSecondary}}>Qui ets avui?</div>
       </div>
       <div style={{padding:"0 1.25rem 2rem"}}>
