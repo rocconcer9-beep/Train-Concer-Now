@@ -209,6 +209,7 @@ const [clientDraft, setClientDraft] = useState(null);
 
   // Standard client
   const [stdCompleted, setStdCompleted] = useState({});
+  const [clientViewTab, setClientViewTab] = useState("entrenament");
 
   useEffect(()=>{loadData();},[]);
 
@@ -619,75 +620,169 @@ const [clientDraft, setClientDraft] = useState(null);
           </div>
           {!esAccesDirecte&&<button style={S.btnSecondary} onClick={()=>setMode("select")}>Sortir</button>}
         </div>
-        {/* Day selector */}
-        <div style={{display:"flex",gap:6,padding:"0.85rem 1.25rem 0.5rem",overflowX:"auto"}}>
-          {DAYS.map((d,i)=>{
-            const hasEx=(data.routines[selClient]?.[d]?.length||0)>0;
-            const active=selDay===d;
+{/* Pestanyes vista client */}
+<div style={{display:"flex",borderBottom:`1px solid ${T.border}`,padding:"0 1.25rem"}}>
+  {[["entrenament","🏋️ Entrenament"],["perfil","👤 Perfil"]].map(([tab,label])=>(
+    <button key={tab} onClick={()=>setClientViewTab(tab)}
+      style={{padding:"10px 16px",fontSize:13,cursor:"pointer",background:"none",border:"none",
+        borderBottom:`2px solid ${clientViewTab===tab?T.accent:"transparent"}`,
+        color:clientViewTab===tab?T.accent:T.textSecondary,
+        fontWeight:clientViewTab===tab?500:400,marginBottom:-1,transition:"all 0.15s"}}>
+      {label}
+    </button>
+  ))}
+</div>
+
+{clientViewTab==="entrenament"&&(
+  <>
+    {/* Day selector */}
+    <div style={{display:"flex",gap:6,padding:"0.85rem 1.25rem 0.5rem",overflowX:"auto"}}>
+      {DAYS.map((d,i)=>{
+        const hasEx=(data.routines[selClient]?.[d]?.length||0)>0;
+        const active=selDay===d;
+        return (
+          <div key={d} style={{textAlign:"center",flexShrink:0}}>
+            <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1px solid ${active?T.accent:hasEx?cc.border:T.border}`,background:active?T.accent:T.card,color:active?T.bg:hasEx?cc.text:T.textMuted,cursor:"pointer",fontSize:12,fontWeight:active?500:400}}>
+              {DAYS_SHORT[i]}
+            </button>
+            {hasEx&&!active&&<div style={{width:4,height:4,borderRadius:"50%",background:T.accent,margin:"3px auto 0"}}/>}
+            {d===TODAY&&<div style={{fontSize:9,color:T.accent,marginTop:2}}>avui</div>}
+          </div>
+        );
+      })}
+    </div>
+    <div style={S.sec}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+        <div>
+          <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>{selDay}</div>
+          {selDay===TODAY&&<div style={{fontSize:12,color:T.accent,fontWeight:500}}>Avui</div>}
+        </div>
+        {dayExs.length>0&&(
+          <div style={{textAlign:"right"}}>
+            <div style={{fontSize:12,color:T.textSecondary,marginBottom:4}}>{dc}/{dayExs.length}</div>
+            <ProgressBar value={dc} total={dayExs.length}/>
+          </div>
+        )}
+      </div>
+      {dayExs.length===0?(
+        <div style={{textAlign:"center",padding:"3rem 0",color:T.textSecondary}}>
+          <div style={{fontSize:40,marginBottom:12}}>🛋️</div>
+          <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4}}>Dia de descans</div>
+          <div style={{fontSize:13}}>Descansa i recupera energia</div>
+        </div>
+      ):(
+        <>
+          {dayExs.map((ex,i)=>{
+            const done=isStdDone(selClient,selDay,ex.id);
             return (
-              <div key={d} style={{textAlign:"center",flexShrink:0}}>
-                <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1px solid ${active?T.accent:hasEx?cc.border:T.border}`,background:active?T.accent:T.card,color:active?T.bg:hasEx?cc.text:T.textMuted,cursor:"pointer",fontSize:12,fontWeight:active?500:400}}>
-                  {DAYS_SHORT[i]}
-                </button>
-                {hasEx&&!active&&<div style={{width:4,height:4,borderRadius:"50%",background:T.accent,margin:"3px auto 0"}}/>}
-                {d===TODAY&&<div style={{fontSize:9,color:T.accent,marginTop:2}}>avui</div>}
+              <div key={ex.id} style={{...S.card,opacity:done?0.5:1}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
+                  <button onClick={()=>toggleStdDone(selClient,selDay,ex.id)} style={{width:26,height:26,borderRadius:"50%",border:`2px solid ${done?T.accent:T.border}`,background:done?T.accent:T.card2,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.2s"}}>
+                    {done&&<svg viewBox="0 0 16 16" width="14" height="14"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                  </button>
+                  <div style={{fontWeight:500,fontSize:14,color:done?T.textMuted:T.textPrimary,textDecoration:done?"line-through":"none"}}>{i+1}. {ex.name}</div>
+                </div>
+                <div style={{paddingLeft:36,display:"flex",gap:5,flexWrap:"wrap"}}>
+                  <span style={S.tag("purple")}>{ex.sets} sèries</span>
+                  <span style={S.tag("green")}>{ex.reps} reps</span>
+                  {ex.weight&&<span style={S.tag()}>{ex.weight}</span>}
+                  {ex.notes&&<div style={{fontSize:12,color:T.textSecondary,marginTop:6,width:"100%"}}>💬 {ex.notes}</div>}
+                </div>
               </div>
             );
           })}
-        </div>
-        <div style={S.sec}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-            <div>
-              <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>{selDay}</div>
-              {selDay===TODAY&&<div style={{fontSize:12,color:T.accent,fontWeight:500}}>Avui</div>}
+          {dc===dayExs.length&&dayExs.length>0&&(
+            <div style={{background:T.greenBg,border:`1px solid ${T.greenBorder}`,borderRadius:14,padding:"1.25rem",textAlign:"center"}}>
+              <div style={{fontSize:32,marginBottom:6}}>🎉</div>
+              <div style={{fontWeight:500,color:T.green}}>Entrenament completat!</div>
             </div>
-            {dayExs.length>0&&(
-              <div style={{textAlign:"right"}}>
-                <div style={{fontSize:12,color:T.textSecondary,marginBottom:4}}>{dc}/{dayExs.length}</div>
-                <ProgressBar value={dc} total={dayExs.length}/>
-              </div>
-            )}
-          </div>
-          {dayExs.length===0?(
-            <div style={{textAlign:"center",padding:"3rem 0",color:T.textSecondary}}>
-              <div style={{fontSize:40,marginBottom:12}}>🛋️</div>
-              <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4}}>Dia de descans</div>
-              <div style={{fontSize:13}}>Descansa i recupera energia</div>
-            </div>
-          ):(
-            <>
-              {dayExs.map((ex,i)=>{
-                const done=isStdDone(selClient,selDay,ex.id);
-                return (
-                  <div key={ex.id} style={{...S.card,opacity:done?0.5:1}}>
-                    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
-                      <button onClick={()=>toggleStdDone(selClient,selDay,ex.id)} style={{width:26,height:26,borderRadius:"50%",border:`2px solid ${done?T.accent:T.border}`,background:done?T.accent:T.card2,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.2s"}}>
-                        {done&&<svg viewBox="0 0 16 16" width="14" height="14"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                      </button>
-                      <div style={{fontWeight:500,fontSize:14,color:done?T.textMuted:T.textPrimary,textDecoration:done?"line-through":"none"}}>{i+1}. {ex.name}</div>
-                    </div>
-                    <div style={{paddingLeft:36,display:"flex",gap:5,flexWrap:"wrap"}}>
-                      <span style={S.tag("purple")}>{ex.sets} sèries</span>
-                      <span style={S.tag("green")}>{ex.reps} reps</span>
-                      {ex.weight&&<span style={S.tag()}>{ex.weight}</span>}
-                      {ex.notes&&<div style={{fontSize:12,color:T.textSecondary,marginTop:6,width:"100%"}}>💬 {ex.notes}</div>}
-                    </div>
-                  </div>
-                );
-              })}
-              {dc===dayExs.length&&dayExs.length>0&&(
-                <div style={{background:T.greenBg,border:`1px solid ${T.greenBorder}`,borderRadius:14,padding:"1.25rem",textAlign:"center"}}>
-                  <div style={{fontSize:32,marginBottom:6}}>🎉</div>
-                  <div style={{fontWeight:500,color:T.green}}>Entrenament completat!</div>
-                </div>
-              )}
-            </>
           )}
-        </div>
-      </div>
-    );
-  }
+        </>
+      )}
+    </div>
+  </>
+)}
 
+{clientViewTab==="perfil"&&(()=>{
+  const fields=[
+    {key:"age",label:"Edat",placeholder:"Ex. 28"},
+    {key:"level",label:"Nivell",type:"select",options:["principiant","intermedi","avançat"]},
+    {key:"place",label:"Lloc d'entrenament",type:"select",options:["gimnàs","casa","exterior","pista","altre"]},
+    {key:"material",label:"Material disponible",placeholder:"Ex. manuelles, goma..."},
+    {key:"startDate",label:"Data d'inici",placeholder:"Ex. 01/01/2025"},
+    {key:"injuries",label:"Lesions prèvies",placeholder:"Ex. genoll dret..."},
+    {key:"currentPain",label:"Dolor actual",placeholder:"Ex. cap / lumbar..."},
+    {key:"avoidEx",label:"Exercicis a evitar",placeholder:"Ex. sentadilla profunda..."},
+    {key:"likes",label:"Exercicis que li agraden",placeholder:"Ex. rem, dominades..."},
+    {key:"dislikes",label:"Exercicis que no li agraden",placeholder:"Ex. burpees..."},
+    {key:"coachNotes",label:"Notes internes",placeholder:"Notes privades de l'entrenador..."},
+  ];
+  const saveClientData=()=>{
+    const nd={...data,clients:data.clients.map(c=>c.id===selClient?{...c,...clientDraft}:c)};
+    updateData(nd);setEditingClient(false);
+  };
+  return (
+    <div style={S.sec}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>El meu perfil</div>
+        {!editingClient
+          ?<button style={{...S.btnSecondary,fontSize:12}} onClick={()=>{setClientDraft({...client});setEditingClient(true);}}>Editar</button>
+          :<div style={{display:"flex",gap:8}}>
+            <button style={{...S.btnSecondary,fontSize:12}} onClick={()=>setEditingClient(false)}>Cancel·lar</button>
+            <button style={{...S.btnPrimary,width:"auto",padding:"6px 14px",fontSize:12}} onClick={saveClientData}>Guardar</button>
+          </div>
+        }
+      </div>
+      <div style={{...S.card,marginBottom:12}}>
+        <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Dades bàsiques</div>
+        <div style={{marginBottom:8}}>
+          <label style={S.lbl}>Nom complet</label>
+          {editingClient?<input style={S.inp} value={clientDraft?.name||""} onChange={e=>setClientDraft(p=>({...p,name:e.target.value}))}/>
+            :<div style={{fontSize:14,color:T.textPrimary,fontWeight:500}}>{client?.name}</div>}
+        </div>
+        <div style={{marginBottom:8}}>
+          <label style={S.lbl}>Objectiu principal</label>
+          {editingClient?<input style={S.inp} value={clientDraft?.goal||""} onChange={e=>setClientDraft(p=>({...p,goal:e.target.value}))}/>
+            :<div style={{fontSize:13,color:T.textPrimary}}>{client?.goal||"—"}</div>}
+        </div>
+        {fields.slice(0,5).map(f=>(
+          <div key={f.key} style={{marginBottom:8}}>
+            <label style={S.lbl}>{f.label}</label>
+            {editingClient
+              ?f.type==="select"
+                ?<select style={S.inp} value={clientDraft?.[f.key]||""} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}>
+                  {f.options.map(o=><option key={o} value={o}>{o}</option>)}
+                </select>
+                :<input style={S.inp} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>
+              :<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"—"}</div>}
+          </div>
+        ))}
+      </div>
+      <div style={{...S.card,marginBottom:12}}>
+        <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Salut i limitacions</div>
+        {fields.slice(5,8).map(f=>(
+          <div key={f.key} style={{marginBottom:8}}>
+            <label style={S.lbl}>{f.label}</label>
+            {editingClient?<input style={S.inp} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>
+              :<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"—"}</div>}
+          </div>
+        ))}
+      </div>
+      <div style={S.card}>
+        <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Preferències i notes</div>
+        {fields.slice(8).map(f=>(
+          <div key={f.key} style={{marginBottom:8}}>
+            <label style={S.lbl}>{f.label}</label>
+            {editingClient?<textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>
+              :<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"—"}</div>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+})()}
+
+</div>
   // ══════════════════════════════════════════════════════════════════════════
   // ── ADMIN ─────────────────────────────────────────────────────────────────
   const routine=getIgnasiRoutine();
