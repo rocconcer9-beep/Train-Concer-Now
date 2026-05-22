@@ -745,13 +745,6 @@ const [clientDraft, setClientDraft] = useState(null);
             </button>
           ))}
         </div>
-        {(adminClient===2?[["routine","Rutina"],["history","Historial"]]:[["dades","Dades"],["routine","Entrenaments"],["history","Historial"]]).map(([tab,label])=>(
-          <button key={tab} onClick={()=>{setAdminTab(tab);if(tab==="history")loadClientHistory(adminClient);}}
-            style={{padding:"10px 16px",fontSize:13,cursor:"pointer",background:"none",border:"none",borderBottom:`2px solid ${adminTab===tab?T.accent:"transparent"}`,color:adminTab===tab?T.accent:T.textSecondary,fontWeight:adminTab===tab?500:400,marginBottom:-1,transition:"all 0.15s"}}>
-            {label}
-          </button>
-        ))}
-      </div>
 
 {/* Dades tab */}
 {adminTab==="dades"&&adminClient!==2&&(()=>{
