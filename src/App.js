@@ -272,7 +272,7 @@ const esAccesDirecte = !!urlClient; // eslint-disable-line no-unused-vars
   const saveIgnasiExEdit = () => {const r=getIgnasiRoutine();const blocks=r.blocks.map(b=>({...b,exercises:b.exercises.map(e=>e.id===editingIgnasiEx.id?editingIgnasiEx:e)}));updateIgnasiRoutine({...r,blocks});setEditingIgnasiEx(null);};
   const deleteIgnasiEx = (blockId,exId) => {const r=getIgnasiRoutine();const blocks=r.blocks.map(b=>b.id===blockId?{...b,exercises:b.exercises.filter(e=>e.id!==exId)}:b);updateIgnasiRoutine({...r,blocks});};
   const addIgnasiEx = (blockId) => {if(!newIgnasiEx.name)return;const r=getIgnasiRoutine();const blocks=r.blocks.map(b=>b.id===blockId?{...b,exercises:[...b.exercises,{...newIgnasiEx,id:Date.now().toString()}]}:b);updateIgnasiRoutine({...r,blocks});setNewIgnasiEx({name:"",sets:2,reps:10,unit:"reps",notes:"",icon:"dumbbell"});setShowAddIgnasiEx(null);};
-  const saveBlockEdit = () => {const r=getIgnasiRoutine();const blocks=r.blocks.map(b=>b.id===editingBlock.id?{...b,title:editingBlock.title,rounds:editingBlock.rounds,rest:editingBlock.rest}:b);updateIgnasiRoutine({...r,blocks});setEditingBlock(null);};
+  const saveBlockEdit = () => {const r=getIgnasiRoutine();const blocks=r.blocks.map(b=>b.id===editingBlock.id?{...b,title:editingBlock.title,rounds:parseInt(editingBlock.rounds)||2,rest:editingBlock.rest}:b);updateIgnasiRoutine({...r,blocks});setEditingBlock(null);};
 
   // Standard helpers
   const toggleStdDone = (cid,day,exId) => {const key=`${cid}-${day}-${exId}`;const u={...stdCompleted,[key]:!stdCompleted[key]};setStdCompleted(u);persistStdCompleted(u);};
