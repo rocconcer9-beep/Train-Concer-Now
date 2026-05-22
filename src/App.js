@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { db } from "./firebase";
-import { ref, set, get, push, onValue } from "firebase/database";
+import { ref, set, get } from "firebase/database";
 
 const DAYS = ["Dilluns","Dimarts","Dimecres","Dijous","Divendres","Dissabte","Diumenge"];
 const DAYS_SHORT = ["L","M","X","J","V","S","D"];
