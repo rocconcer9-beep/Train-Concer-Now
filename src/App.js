@@ -754,7 +754,7 @@ const [clientDraft, setClientDraft] = useState(null);
       </div>
 
 {/* Dades tab */}
-{adminTab==="dades"&&adminClient!==2&&(()=>{
+{adminTab==="dades"&&adminClient!==2?(()=>{
   const client=data.clients.find(c=>c.id===adminClient);
   const ci=data.clients.findIndex(c=>c.id===adminClient);
   void cClr(ci);
@@ -849,7 +849,7 @@ const [clientDraft, setClientDraft] = useState(null);
       </div>
     </div>
   );
-})()}
+})():null}
       {/* History tab */}
       {adminTab==="history"&&(()=>{
         const history=clientHistories[adminClient];
