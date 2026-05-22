@@ -757,7 +757,7 @@ const [clientDraft, setClientDraft] = useState(null);
 {adminTab==="dades"&&adminClient!==2&&(()=>{
   const client=data.clients.find(c=>c.id===adminClient);
   const ci=data.clients.findIndex(c=>c.id===adminClient);
-  const color=cClr(ci);
+  void cClr(ci);
   const fields=[
     {key:"age",label:"Edat",placeholder:"Ex. 28"},
     {key:"level",label:"Nivell",type:"select",options:["principiant","intermedi","avançat"]},
