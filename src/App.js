@@ -164,7 +164,10 @@ const FormCard = ({children, style={}}) => (
 );
 
 // ══════════════════════════════════════════════════════════════════════════════
-export default function App({ clienteInicial = null }) {
+export default function App() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlClient = urlParams.get("client");
+  const clienteInicial = urlClient ? parseInt(urlClient) : null;
   const [mode, setMode] = useState(clienteInicial ? "client" : "select");
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
@@ -925,52 +928,5 @@ export default function App({ clienteInicial = null }) {
         </div>
       )}
     </div>
-  );
-}
-function ClientDirecte() {
-  const { clientId } = useParams();
-  const id = parseInt(clientId);
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    window.storage.get("fitcoach-data2", true)
-      .then(r => setData(r ? JSON.parse(r.value) : DEFAULT_DATA))
-      .catch(() => setData(DEFAULT_DATA))
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) return (
-    <div style={{...S.wrap,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
-      <div style={{textAlign:"center"}}>
-        <div style={{width:48,height:48,border:`3px solid ${T.border}`,borderTop:`3px solid ${T.accent}`,borderRadius:"50%",margin:"0 auto 16px",animation:"spin 0.8s linear infinite"}}/>
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-        <div style={{color:T.textSecondary,fontSize:13}}>Carregant...</div>
-      </div>
-    </div>
-  );
-
-  const client = data?.clients?.find(c => c.id === id);
-  if (!client) return (
-    <div style={{...S.wrap,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
-      <div style={{textAlign:"center",color:T.textSecondary}}>
-        <div style={{fontSize:36,marginBottom:12}}>🤔</div>
-        <div style={{fontWeight:500,fontSize:16,color:T.textPrimary,marginBottom:8}}>Client no trobat</div>
-        <div style={{fontSize:13}}>Comprova l'enllaç amb el teu preparador</div>
-      </div>
-    </div>
-  );
-
-  return <App clienteInicial={id} />;
-}
-
-export function Root() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<App />} />
-        <Route path="/client/:clientId" element={<ClientDirecte />} />
-      </Routes>
-    </BrowserRouter>
   );
 }
