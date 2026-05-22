@@ -210,25 +210,32 @@ const [clientDraft, setClientDraft] = useState(null);
   // Standard client
   const [stdCompleted, setStdCompleted] = useState({});
   const [clientViewTab, setClientViewTab] = useState("entrenament");
+  const [showFinishModal, setShowFinishModal] = useState(false);
+const [finishForm, setFinishForm] = useState({rpe:"",duration:"",feeling:"",notes:""});
 
   useEffect(()=>{loadData();},[]);
 
   const loadData = async () => {
-    setLoading(true);
-    try {
-      const [dr,hr,cr,h1r] = await Promise.all([
-        get(ref(db,"fitcoach-data2")),
-        get(ref(db,"history-2")),
-        get(ref(db,"fitcoach-completed")),
-        get(ref(db,"history-1")),
-      ]);
-      setData(dr.exists()?dr.val():DEFAULT_DATA);
-      setIgnHistory(hr.exists()?Object.values(hr.val()):[]);
-      setStdCompleted(cr.exists()?cr.val():{});
-      setClientHistories({1:h1r.exists()?Object.values(h1r.val()):[]});
-    } catch {setData(DEFAULT_DATA);}
-    setLoading(false);
-  };
+  setLoading(true);
+  try {
+    const [dr,hr,cr,h1r,h3r] = await Promise.all([
+      get(ref(db,"fitcoach-data2")),
+      get(ref(db,"history-2")),
+      get(ref(db,"fitcoach-completed")),
+      get(ref(db,"history-1")),
+      get(ref(db,"history-3")),
+    ]);
+    setData(dr.exists()?dr.val():DEFAULT_DATA);
+    setIgnHistory(hr.exists()?Object.values(hr.val()):[]);
+    setStdCompleted(cr.exists()?cr.val():{});
+    setClientHistories({
+      1:h1r.exists()?Object.values(h1r.val()):[],
+      2:hr.exists()?Object.values(hr.val()):[],
+      3:h3r.exists()?Object.values(h3r.val()):[],
+    });
+  } catch {setData(DEFAULT_DATA);}
+  setLoading(false);
+};
   const persist = async (nd) => {setSaving(true);try{await set(ref(db,"fitcoach-data2"),nd);}catch{}setSaving(false);};
   const persistHistory = async (h) => {try{await set(ref(db,"history-2"),h);}catch{}};
   const persistStdCompleted = async (c) => {try{await set(ref(db,"fitcoach-completed"),c);}catch{}};
@@ -284,7 +291,47 @@ const [clientDraft, setClientDraft] = useState(null);
   const saveEdit = () => {const r={...data.routines,[adminClient]:{...data.routines[adminClient],[selDay]:data.routines[adminClient][selDay].map(e=>e.id===editingEx.id?editingEx:e)}};updateData({...data,routines:r});setEditingEx(null);};
   const addEx = () => {if(!newEx.name)return;const currentClient=data.routines[adminClient]||DAYS.reduce((a,d)=>({...a,[d]:[]}),{});const currentDay=currentClient[selDay]||[];const r={...data.routines,[adminClient]:{...currentClient,[selDay]:[...currentDay,{...newEx,id:Date.now()}]}};updateData({...data,routines:r});setNewEx({name:"",sets:3,reps:10,unit:"reps",weight:"",notes:"",icon:"dumbbell"});setShowAddEx(false);};
   const addClient = () => {if(!newClient.name)return;const id=Date.now();const avatar=newClient.name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();const newC={id,name:newClient.name,goal:newClient.goal,avatar,routineType:"weekly",age:"",level:"principiant",place:"gimnàs",material:"",injuries:"",currentPain:"",avoidEx:"",likes:"",dislikes:"",coachNotes:"",startDate:new Date().toLocaleDateString("ca-ES")};updateData({clients:[...data.clients,newC],routines:{...data.routines,[id]:DAYS.reduce((a,d)=>({...a,[d]:[]}),{})}});setNewClient({name:"",goal:""});setShowAddClient(false);selectAdminClient(id);setAdminTab("dades");};
+const saveStdSession = async (clientId, day, exercises, formData) => {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("ca-ES");
+  const sessionId = `${clientId}-${day}-${dateStr}-${now.getTime()}`;
+  
+  // Evitar duplicats: mateix client, dia i data
+  const existing = clientHistories[clientId] || [];
+  const duplicate = existing.find(s => s.clientId===clientId && s.day===day && s.date===dateStr);
+  if(duplicate) return;
 
+  const completedExs = exercises.filter(e => isStdDone(clientId, day, e.id));
+  const record = {
+    id: sessionId,
+    date: dateStr,
+    day,
+    clientId,
+    sessionTitle: `Entrenament ${day}`,
+    completedExercises: completedExs.length,
+    totalExercises: exercises.length,
+    completionPercentage: Math.round((completedExs.length/exercises.length)*100),
+    exercises: exercises.map(e => ({
+      name: e.name,
+      sets: e.sets,
+      reps: e.reps,
+      weight: e.weight||"",
+      completed: isStdDone(clientId, day, e.id),
+    })),
+    rpe: formData.rpe||null,
+    durationReal: formData.duration||null,
+    feeling: formData.feeling||null,
+    clientNotes: formData.notes||"",
+    createdAt: now.toISOString(),
+  };
+
+  const updated = [record, ...existing].slice(0, 100);
+  setClientHistories(p => ({...p, [clientId]: updated}));
+  try {
+    const obj = updated.reduce((a,s,i) => ({...a,[i]:s}), {});
+    await set(ref(db, `history-${clientId}`), obj);
+  } catch {}
+};
   // ── keyframes injected once ───────────────────────────────────────────────
   const cfStyle = `@keyframes cfPop{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(-60px) rotate(360deg);opacity:0}}`;
 
@@ -620,9 +667,60 @@ const [clientDraft, setClientDraft] = useState(null);
           </div>
           {!esAccesDirecte&&<button style={S.btnSecondary} onClick={()=>setMode("select")}>Sortir</button>}
         </div>
+{showFinishModal&&(
+  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
+    <div style={{background:T.card,borderRadius:"20px 20px 0 0",padding:"1.5rem 1.25rem",width:"100%",maxWidth:520,border:`1px solid ${T.border}`}}>
+      <div style={{fontWeight:500,fontSize:16,color:T.textPrimary,marginBottom:4}}>Finalitzar entrenament</div>
+      <div style={{fontSize:13,color:T.textSecondary,marginBottom:20}}>Com ha anat la sessió?</div>
+      
+      <div style={{marginBottom:12}}>
+        <label style={S.lbl}>RPE — Esforç percebut (1-10)</label>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+          {[1,2,3,4,5,6,7,8,9,10].map(n=>(
+            <button key={n} onClick={()=>setFinishForm(p=>({...p,rpe:n}))}
+              style={{width:38,height:38,borderRadius:10,border:`1px solid ${finishForm.rpe===n?T.accent:T.border}`,background:finishForm.rpe===n?T.accent:T.card2,color:finishForm.rpe===n?T.bg:T.textSecondary,cursor:"pointer",fontSize:13,fontWeight:finishForm.rpe===n?500:400}}>
+              {n}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{marginBottom:12}}>
+        <label style={S.lbl}>Durada real (minuts)</label>
+        <input style={{...S.inp,width:"auto",maxWidth:120}} type="number" placeholder="45" value={finishForm.duration} onChange={e=>setFinishForm(p=>({...p,duration:e.target.value}))}/>
+      </div>
+
+      <div style={{marginBottom:12}}>
+        <label style={S.lbl}>Sensació</label>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+          {[["😄","Molt bé"],["🙂","Bé"],["😐","Normal"],["😓","Cansat"],["😣","Molèsties"]].map(([emoji,label])=>(
+            <button key={label} onClick={()=>setFinishForm(p=>({...p,feeling:label}))}
+              style={{padding:"6px 10px",borderRadius:10,border:`1px solid ${finishForm.feeling===label?T.accent:T.border}`,background:finishForm.feeling===label?T.accent:T.card2,color:finishForm.feeling===label?T.bg:T.textSecondary,cursor:"pointer",fontSize:12}}>
+              {emoji} {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{marginBottom:16}}>
+        <label style={S.lbl}>Notes (opcional)</label>
+        <textarea style={{...S.inp,minHeight:60,resize:"vertical"}} placeholder="Com t'has sentit, molèsties..." value={finishForm.notes} onChange={e=>setFinishForm(p=>({...p,notes:e.target.value}))}/>
+      </div>
+
+      <div style={{display:"flex",gap:8}}>
+        <button style={{...S.btnSecondary,flex:1}} onClick={()=>setShowFinishModal(false)}>Cancel·lar</button>
+        <button style={{...S.btnPrimary,flex:2,padding:"12px"}} onClick={async()=>{
+          await saveStdSession(selClient, selDay, dayExs, finishForm);
+          setShowFinishModal(false);
+          setFinishForm({rpe:"",duration:"",feeling:"",notes:""});
+        }}>Guardar sessió</button>
+      </div>
+    </div>
+  </div>
+)}
 {/* Pestanyes vista client */}
 <div style={{display:"flex",borderBottom:`1px solid ${T.border}`,padding:"0 1.25rem"}}>
-  {[["entrenament","🏋️ Entrenament"],["perfil","👤 Perfil"]].map(([tab,label])=>(
+  {[["entrenament","🏋️ Entrenament"],["perfil","👤 Perfil"],["historial","📋 Historial"]].map(([tab,label])=>(
     <button key={tab} onClick={()=>setClientViewTab(tab)}
       style={{padding:"10px 16px",fontSize:13,cursor:"pointer",background:"none",border:"none",
         borderBottom:`2px solid ${clientViewTab===tab?T.accent:"transparent"}`,
@@ -692,6 +790,14 @@ const [clientDraft, setClientDraft] = useState(null);
             );
           })}
           {dc===dayExs.length&&dayExs.length>0&&(
+  <div style={{background:T.greenBg,border:`1px solid ${T.greenBorder}`,borderRadius:14,padding:"1.25rem",textAlign:"center"}}>
+    <div style={{fontSize:32,marginBottom:6}}>🎉</div>
+    <div style={{fontWeight:500,color:T.green,marginBottom:12}}>Tots els exercicis completats!</div>
+    <button style={{...S.btnPrimary,padding:"12px"}} onClick={()=>{setFinishForm({rpe:"",duration:"",feeling:"",notes:""});setShowFinishModal(true);}}>
+      🏁 Finalitzar entrenament
+    </button>
+  </div>
+)}
             <div style={{background:T.greenBg,border:`1px solid ${T.greenBorder}`,borderRadius:14,padding:"1.25rem",textAlign:"center"}}>
               <div style={{fontSize:32,marginBottom:6}}>🎉</div>
               <div style={{fontWeight:500,color:T.green}}>Entrenament completat!</div>
@@ -704,6 +810,62 @@ const [clientDraft, setClientDraft] = useState(null);
 )}
 
 {clientViewTab==="perfil"&&(()=>{
+  {clientViewTab==="historial"&&(()=>{
+  const history = clientHistories[selClient] || [];
+  const totalS = history.length;
+  const thisWeek = history.filter(s => {
+    const d = new Date(s.createdAt);
+    const now = new Date();
+    const diff = (now - d) / (1000*60*60*24);
+    return diff <= 7;
+  }).length;
+  return (
+    <div style={S.sec}>
+      {totalS===0?(
+        <div style={{textAlign:"center",padding:"3rem 0",color:T.textSecondary}}>
+          <div style={{fontSize:40,marginBottom:12}}>📋</div>
+          <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4}}>Encara no hi ha sessions</div>
+          <div style={{fontSize:13}}>Completa el primer entrenament per veure l'historial</div>
+        </div>
+      ):(
+        <>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:8,marginBottom:16}}>
+            {[{label:"Total sessions",value:totalS,color:T.accent},{label:"Aquesta setmana",value:thisWeek,color:T.green}].map(st=>(
+              <div key={st.label} style={{background:T.card,borderRadius:12,padding:"0.75rem",textAlign:"center",border:`1px solid ${T.border}`}}>
+                <div style={{fontSize:22,fontWeight:500,color:st.color}}>{st.value}</div>
+                <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{st.label}</div>
+              </div>
+            ))}
+          </div>
+          {history.map((sess,idx)=>{
+            const full = sess.completionPercentage===100;
+            return (
+              <div key={idx} style={S.card}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                  <div>
+                    <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>{sess.sessionTitle}</div>
+                    <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{sess.date}</div>
+                  </div>
+                  <span style={full?S.tag("green"):S.tag()}>{sess.completionPercentage}%</span>
+                </div>
+                <div style={{fontSize:12,color:T.textSecondary,marginBottom:8}}>{sess.completedExercises}/{sess.totalExercises} exercicis</div>
+                {(sess.rpe||sess.feeling||sess.durationReal)&&(
+                  <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
+                    {sess.rpe&&<span style={S.tag("purple")}>RPE {sess.rpe}</span>}
+                    {sess.durationReal&&<span style={S.tag()}>⏱ {sess.durationReal} min</span>}
+                    {sess.feeling&&<span style={S.tag()}>{sess.feeling}</span>}
+                  </div>
+                )}
+                <ProgressBar value={sess.completedExercises} total={sess.totalExercises} color={full?T.green:T.accent}/>
+                {sess.clientNotes&&<div style={{fontSize:12,color:T.textSecondary,marginTop:8,fontStyle:"italic"}}>💬 {sess.clientNotes}</div>}
+              </div>
+            );
+          })}
+        </>
+      )}
+    </div>
+  );
+})()}
   const fields=[
     {key:"age",label:"Edat",placeholder:"Ex. 28"},
     {key:"level",label:"Nivell",type:"select",options:["principiant","intermedi","avançat"]},
@@ -942,53 +1104,67 @@ const routine=getIgnasiRoutine();
 })()}
       {/* History tab */}
       {adminTab==="history"&&(()=>{
-        const history=clientHistories[adminClient];
-        const client=data.clients.find(c=>c.id===adminClient);
-        const ci=data.clients.findIndex(c=>c.id===adminClient);
-        void ci;
-        if(!history) return <div style={S.sec}><div style={{textAlign:"center",padding:"2rem",color:T.textSecondary,fontSize:13}}>Carregant historial...</div></div>;
-        const totalS=history.length;
-        const fullS=history.filter(s=>s.doneCount===s.total).length;
-        const avgPct=totalS>0?Math.round(history.reduce((a,s)=>a+(s.doneCount/s.total)*100,0)/totalS):0;
-        return (
-          <div style={S.sec}>
-            {totalS===0?(
-              <div style={{textAlign:"center",padding:"2.5rem 0",color:T.textSecondary}}>
-                <div style={{fontSize:36,marginBottom:10}}>📋</div>
-                <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4}}>{client?.name} encara no té sessions</div>
-                <div style={{fontSize:13}}>Apareixeran aquí quan el client finalitzi entrenaments</div>
+  const history = clientHistories[adminClient] || [];
+  const client = data.clients.find(c=>c.id===adminClient);
+  const totalS = history.length;
+  const fullS = history.filter(s=>s.completionPercentage===100).length;
+  const lastS = history[0];
+  return (
+    <div style={S.sec}>
+      {totalS===0?(
+        <div style={{textAlign:"center",padding:"2.5rem 0",color:T.textSecondary}}>
+          <div style={{fontSize:36,marginBottom:10}}>📋</div>
+          <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4}}>{client?.name} encara no té sessions</div>
+          <div style={{fontSize:13}}>Apareixeran aquí quan el client finalitzi entrenaments</div>
+        </div>
+      ):(
+        <>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:8,marginBottom:16}}>
+            {[{label:"Sessions",value:totalS,color:T.accent},{label:"Completes",value:fullS,color:T.green},{label:"Última",value:lastS?.date||"—",color:T.purple}].map(st=>(
+              <div key={st.label} style={{background:T.card,borderRadius:12,padding:"0.75rem",textAlign:"center",border:`1px solid ${T.border}`}}>
+                <div style={{fontSize:st.label==="Última"?13:20,fontWeight:500,color:st.color}}>{st.value}</div>
+                <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{st.label}</div>
               </div>
-            ):(
-              <>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:8,marginBottom:16}}>
-                  {[{label:"Sessions",value:totalS,color:T.accent},{label:"Completes",value:fullS,color:T.green},{label:"% mitjà",value:`${avgPct}%`,color:T.purple}].map(st=>(
-                    <div key={st.label} style={{background:T.card,borderRadius:12,padding:"0.75rem",textAlign:"center",border:`1px solid ${T.border}`}}>
-                      <div style={{fontSize:20,fontWeight:500,color:st.color}}>{st.value}</div>
-                      <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{st.label}</div>
-                    </div>
-                  ))}
-                </div>
-                {history.map((sess,idx)=>{
-                  const p=Math.round((sess.doneCount/sess.total)*100);
-                  const full=sess.doneCount===sess.total;
-                  return (
-                    <div key={idx} style={S.card}>
-                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-                        <div>
-                          <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{sess.day}</div>
-                          <div style={{fontSize:12,color:T.textSecondary}}>{sess.date}{sess.time?" · "+sess.time:""}</div>
-                        </div>
-                        {full?<span style={S.tag("green")}>✓ Complet</span>:<span style={{fontSize:12,color:T.textSecondary}}>{sess.doneCount}/{sess.total} · {p}%</span>}
-                      </div>
-                      <ProgressBar value={sess.doneCount} total={sess.total} color={full?T.green:T.accent}/>
-                    </div>
-                  );
-                })}
-              </>
-            )}
+            ))}
           </div>
-        );
-      })()}
+          {history.map((sess,idx)=>{
+            const full = sess.completionPercentage===100;
+            return (
+              <div key={idx} style={S.card}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                  <div>
+                    <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{sess.sessionTitle||sess.day}</div>
+                    <div style={{fontSize:12,color:T.textSecondary}}>{sess.date}</div>
+                  </div>
+                  {full?<span style={S.tag("green")}>✓ Complet</span>:<span style={{fontSize:12,color:T.textSecondary}}>{sess.completedExercises}/{sess.totalExercises}</span>}
+                </div>
+                {(sess.rpe||sess.feeling||sess.durationReal)&&(
+                  <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
+                    {sess.rpe&&<span style={S.tag("purple")}>RPE {sess.rpe}</span>}
+                    {sess.durationReal&&<span style={S.tag()}>⏱ {sess.durationReal} min</span>}
+                    {sess.feeling&&<span style={S.tag()}>{sess.feeling}</span>}
+                  </div>
+                )}
+                <ProgressBar value={sess.completedExercises} total={sess.totalExercises} color={full?T.green:T.accent}/>
+                {sess.clientNotes&&<div style={{fontSize:12,color:T.textSecondary,marginTop:6,fontStyle:"italic"}}>💬 {sess.clientNotes}</div>}
+                {sess.exercises&&(
+                  <div style={{marginTop:8,paddingTop:8,borderTop:`1px solid ${T.border}`}}>
+                    {sess.exercises.map((e,i)=>(
+                      <div key={i} style={{fontSize:12,color:e.completed?T.textSecondary:T.textMuted,display:"flex",alignItems:"center",gap:6,padding:"2px 0"}}>
+                        <span style={{color:e.completed?T.green:T.textMuted}}>{e.completed?"✓":"○"}</span>
+                        {e.name} — {e.sets}×{e.reps}{e.weight?` · ${e.weight}`:""}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </>
+      )}
+    </div>
+  );
+})()}
 
       {/* Routine tab */}
       {adminTab==="routine"&&(
