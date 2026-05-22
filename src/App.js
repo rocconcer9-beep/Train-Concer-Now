@@ -223,7 +223,7 @@ export default function App() {
   const loadClientHistory = async (clientId) => {
     if(clientHistories[clientId]!==undefined)return;
     try{const h=await window.storage.get(`history-${clientId}`,true);setClientHistories(p=>({...p,[clientId]:h?JSON.parse(h.value):[]}));}
-    catch{setClientHistories(p=>({...p,[clientId]:[])));}
+    catch{setClientHistories(p=>({...p,[clientId]:[]}));}
   };
   const selectAdminClient = (id) => {setAdminClient(id);setAdminTab("routine");loadClientHistory(id);};
 
@@ -929,4 +929,3 @@ export default function App() {
     </div>
   );
 }
-
