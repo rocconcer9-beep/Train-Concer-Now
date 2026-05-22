@@ -779,13 +779,16 @@ const [clientDraft, setClientDraft] = useState(null);
         ))}
       </div>
     </div>
-  );
-})()}
+);
+  })()}
 
-</div>
-  // ══════════════════════════════════════════════════════════════════════════
-  // ── ADMIN ─────────────────────────────────────────────────────────────────
-  const routine=getIgnasiRoutine();
+  </div>
+);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// ── ADMIN ─────────────────────────────────────────────────────────────────
+const routine=getIgnasiRoutine();
   const dayExercises=data.routines[adminClient]?.[selDay]||[];
 
   return (
