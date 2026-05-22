@@ -297,10 +297,7 @@ export default function App() {
     <div style={S.wrap}>
       <style>{cfStyle}</style>
       <div style={{padding:"2.5rem 1.25rem 1.5rem",textAlign:"center"}}>
-        <div style={{width:68,height:68,background:T.card,borderRadius:20,margin:"0 auto 16px",display:"flex",alignItems:"center",justifyContent:"center",border:`1px solid ${T.border}`}}>
-          <svg viewBox="0 0 32 32" width="34" height="34"><path d="M6 16a10 10 0 1 0 20 0A10 10 0 0 0 6 16z" stroke={T.accent} strokeWidth="1.5" fill="none"/><path d="M13 12l6 4-6 4V12z" fill={T.accent}/></svg>
-        </div>
-        <div style={{fontSize:28,fontWeight:500,color:T.textPrimary,marginBottom:4}}>FitCoach</div>
+        <img src="/logo.png" alt="Train Concer Now" style={{width:220,maxWidth:"85%",margin:"0 auto 16px",display:"block"}}/>
         <div style={{fontSize:13,color:T.textSecondary}}>Qui ets avui?</div>
       </div>
       <div style={{padding:"0 1.25rem 2rem"}}>
