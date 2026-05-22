@@ -181,9 +181,12 @@ const esAccesDirecte = !!urlClient; // eslint-disable-line no-unused-vars
   // Admin
   const [adminClient, setAdminClient] = useState(1);
   const [adminTab, setAdminTab] = useState("routine");
+const [clientTab, setClientTab] = useState("dades");
   const [clientHistories, setClientHistories] = useState({});
   const [selDay, setSelDay] = useState(TODAY);
   const [editingEx, setEditingEx] = useState(null);
+const [editingClient, setEditingClient] = useState(false);
+const [clientDraft, setClientDraft] = useState(null);
   const [showAddEx, setShowAddEx] = useState(false);
   const [newEx, setNewEx] = useState({name:"",sets:3,reps:10,unit:"reps",weight:"",notes:"",icon:"dumbbell"});
   const [showAddClient, setShowAddClient] = useState(false);
@@ -236,7 +239,7 @@ const esAccesDirecte = !!urlClient; // eslint-disable-line no-unused-vars
     try{const h=await get(ref(db,`history-${clientId}`));setClientHistories(p=>({...p,[clientId]:h.exists()?Object.values(h.val()):[]}));}
     catch{setClientHistories(p=>({...p,[clientId]:[]}));}
   };
-  const selectAdminClient = (id) => {setAdminClient(id);setAdminTab("routine");loadClientHistory(id);};
+  const selectAdminClient = (id) => {setAdminClient(id);setAdminTab("routine");setClientTab("dades");setEditingClient(false);loadClientHistory(id);};
 
   // Ignasi helpers
   const getIgnasiRoutine = () => data?.routines?.[2]?.ignasi||DEFAULT_IGNASI;
@@ -280,7 +283,7 @@ const esAccesDirecte = !!urlClient; // eslint-disable-line no-unused-vars
   const deleteEx = (exId) => {const r={...data.routines,[adminClient]:{...data.routines[adminClient],[selDay]:data.routines[adminClient][selDay].filter(e=>e.id!==exId)}};updateData({...data,routines:r});};
   const saveEdit = () => {const r={...data.routines,[adminClient]:{...data.routines[adminClient],[selDay]:data.routines[adminClient][selDay].map(e=>e.id===editingEx.id?editingEx:e)}};updateData({...data,routines:r});setEditingEx(null);};
   const addEx = () => {if(!newEx.name)return;const r={...data.routines,[adminClient]:{...data.routines[adminClient],[selDay]:[...(data.routines[adminClient][selDay]||[]),{...newEx,id:Date.now()}]}};updateData({...data,routines:r});setNewEx({name:"",sets:3,reps:10,unit:"reps",weight:"",notes:"",icon:"dumbbell"});setShowAddEx(false);};
-  const addClient = () => {if(!newClient.name)return;const id=Date.now();const avatar=newClient.name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();updateData({clients:[...data.clients,{id,name:newClient.name,goal:newClient.goal,avatar,routineType:"weekly"}],routines:{...data.routines,[id]:DAYS.reduce((a,d)=>({...a,[d]:[]}),{})}});setNewClient({name:"",goal:""});setShowAddClient(false);selectAdminClient(id);};
+  const addClient = () => {if(!newClient.name)return;const id=Date.now();const avatar=newClient.name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();const newC={id,name:newClient.name,goal:newClient.goal,avatar,routineType:"weekly",age:"",level:"principiant",place:"gimnàs",material:"",injuries:"",currentPain:"",avoidEx:"",likes:"",dislikes:"",coachNotes:"",startDate:new Date().toLocaleDateString("ca-ES")};updateData({clients:[...data.clients,newC],routines:{...data.routines,[id]:DAYS.reduce((a,d)=>({...a,[d]:[]}),{})}});setNewClient({name:"",goal:""});setShowAddClient(false);selectAdminClient(id);setClientTab("dades");};
 
   // ── keyframes injected once ───────────────────────────────────────────────
   const cfStyle = `@keyframes cfPop{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(-60px) rotate(360deg);opacity:0}}`;
@@ -734,7 +737,14 @@ const esAccesDirecte = !!urlClient; // eslint-disable-line no-unused-vars
       </div>
 
       {/* Tabs */}
-      <div style={{display:"flex",borderBottom:`1px solid ${T.border}`,padding:"0 1.25rem"}}>
+        <div style={{display:"flex",borderBottom:`1px solid ${T.border}`,padding:"0 1.25rem"}}>
+          {(adminClient===2?[["routine","Rutina"],["history","Historial"]]:[["dades","Dades"],["routine","Entrenaments"],["history","Historial"]]).map(([tab,label])=>(
+            <button key={tab} onClick={()=>{if(tab==="history"){setAdminTab("history");loadClientHistory(adminClient);}else if(tab==="dades"){setAdminTab("dades");}else{setAdminTab("routine");}}}
+              style={{padding:"10px 16px",fontSize:13,cursor:"pointer",background:"none",border:"none",borderBottom:`2px solid ${(adminClient===2?adminTab:adminTab)===tab?T.accent:"transparent"}`,color:(adminClient===2?adminTab:adminTab)===tab?T.accent:T.textSecondary,fontWeight:adminTab===tab?500:400}}>
+              {label}
+            </button>
+          ))}
+        </div>
         {["routine","history"].map(tab=>(
           <button key={tab} onClick={()=>{setAdminTab(tab);if(tab==="history")loadClientHistory(adminClient);}}
             style={{padding:"10px 16px",fontSize:13,cursor:"pointer",background:"none",border:"none",borderBottom:`2px solid ${adminTab===tab?T.accent:"transparent"}`,color:adminTab===tab?T.accent:T.textSecondary,fontWeight:adminTab===tab?500:400,marginBottom:-1,transition:"all 0.15s"}}>
@@ -743,6 +753,103 @@ const esAccesDirecte = !!urlClient; // eslint-disable-line no-unused-vars
         ))}
       </div>
 
+{/* Dades tab */}
+{adminTab==="dades"&&adminClient!==2&&(()=>{
+  const client=data.clients.find(c=>c.id===adminClient);
+  const ci=data.clients.findIndex(c=>c.id===adminClient);
+  const color=cClr(ci);
+  const fields=[
+    {key:"age",label:"Edat",placeholder:"Ex. 28"},
+    {key:"level",label:"Nivell",type:"select",options:["principiant","intermedi","avançat"]},
+    {key:"place",label:"Lloc d'entrenament",type:"select",options:["gimnàs","casa","exterior","pista","altre"]},
+    {key:"material",label:"Material disponible",placeholder:"Ex. manuelles, goma..."},
+    {key:"startDate",label:"Data d'inici",placeholder:"Ex. 01/01/2025"},
+    {key:"injuries",label:"Lesions prèvies",placeholder:"Ex. genoll dret..."},
+    {key:"currentPain",label:"Dolor actual",placeholder:"Ex. cap / lumbar..."},
+    {key:"avoidEx",label:"Exercicis a evitar",placeholder:"Ex. sentadilla profunda..."},
+    {key:"likes",label:"Exercicis que li agraden",placeholder:"Ex. rem, dominades..."},
+    {key:"dislikes",label:"Exercicis que no li agraden",placeholder:"Ex. burpees..."},
+    {key:"coachNotes",label:"Notes internes",placeholder:"Notes privades de l'entrenador..."},
+  ];
+  const saveClientData=()=>{
+    const nd={...data,clients:data.clients.map(c=>c.id===adminClient?{...c,...clientDraft}:c)};
+    updateData(nd);setEditingClient(false);
+  };
+  return (
+    <div style={S.sec}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>Fitxa de {client?.name}</div>
+        {!editingClient
+          ?<button style={{...S.btnSecondary,fontSize:12}} onClick={()=>{setClientDraft({...client});setEditingClient(true);}}>Editar dades</button>
+          :<div style={{display:"flex",gap:8}}>
+            <button style={{...S.btnSecondary,fontSize:12}} onClick={()=>setEditingClient(false)}>Cancel·lar</button>
+            <button style={{...S.btnPrimary,width:"auto",padding:"6px 14px",fontSize:12}} onClick={saveClientData}>Guardar</button>
+          </div>
+        }
+      </div>
+
+      {/* Nom i objectiu */}
+      <div style={{...S.card,marginBottom:12}}>
+        <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Dades bàsiques</div>
+        <div style={{marginBottom:8}}>
+          <label style={S.lbl}>Nom complet</label>
+          {editingClient
+            ?<input style={S.inp} value={clientDraft?.name||""} onChange={e=>setClientDraft(p=>({...p,name:e.target.value}))}/>
+            :<div style={{fontSize:14,color:T.textPrimary,fontWeight:500}}>{client?.name}</div>
+          }
+        </div>
+        <div style={{marginBottom:8}}>
+          <label style={S.lbl}>Objectiu principal</label>
+          {editingClient
+            ?<input style={S.inp} value={clientDraft?.goal||""} onChange={e=>setClientDraft(p=>({...p,goal:e.target.value}))}/>
+            :<div style={{fontSize:13,color:T.textPrimary}}>{client?.goal||"—"}</div>
+          }
+        </div>
+        {fields.slice(0,5).map(f=>(
+          <div key={f.key} style={{marginBottom:8}}>
+            <label style={S.lbl}>{f.label}</label>
+            {editingClient
+              ?f.type==="select"
+                ?<select style={{...S.inp}} value={clientDraft?.[f.key]||""} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}>
+                  {f.options.map(o=><option key={o} value={o}>{o}</option>)}
+                </select>
+                :<input style={S.inp} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>
+              :<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"—"}</div>
+            }
+          </div>
+        ))}
+      </div>
+
+      {/* Salut */}
+      <div style={{...S.card,marginBottom:12}}>
+        <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Salut i limitacions</div>
+        {fields.slice(5,8).map(f=>(
+          <div key={f.key} style={{marginBottom:8}}>
+            <label style={S.lbl}>{f.label}</label>
+            {editingClient
+              ?<input style={S.inp} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>
+              :<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"—"}</div>
+            }
+          </div>
+        ))}
+      </div>
+
+      {/* Preferències */}
+      <div style={S.card}>
+        <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Preferències i notes</div>
+        {fields.slice(8).map(f=>(
+          <div key={f.key} style={{marginBottom:8}}>
+            <label style={S.lbl}>{f.label}</label>
+            {editingClient
+              ?<textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>
+              :<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"—"}</div>
+            }
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+})()}
       {/* History tab */}
       {adminTab==="history"&&(()=>{
         const history=clientHistories[adminClient];
