@@ -85,17 +85,60 @@ const DEFAULT_IGNASI = {
   ]
 };
 
+const DEFAULT_LIBRARY = [
+  {id:"ex_press_banca",name:"Press Banca",category:"Força",muscleGroup:"Pectoral",movementPattern:"Push horitzontal",material:"Barra / Mancuernes",defaultSets:3,defaultReps:"8-10",defaultLoad:"",defaultRest:"90s",instructions:"Controla la baixada i mantén escàpules estables.",observations:"No bloquejar excessivament els colzes.",level:"Intermedi"},
+  {id:"ex_press_inclinat",name:"Press Inclinat",category:"Força",muscleGroup:"Pectoral superior",movementPattern:"Push horitzontal inclinat",material:"Barra / Mancuernes",defaultSets:3,defaultReps:"10",defaultLoad:"",defaultRest:"75s",instructions:"Inclinació 30-45 graus.",observations:"",level:"Intermedi"},
+  {id:"ex_elevacions",name:"Elevacions laterals",category:"Força",muscleGroup:"Deltoides",movementPattern:"Push lateral",material:"Mancuernes",defaultSets:3,defaultReps:"12-15",defaultLoad:"",defaultRest:"60s",instructions:"Colzes lleugerament flexionats.",observations:"",level:"Principiant"},
+  {id:"ex_rem_manc",name:"Rem amb mancuerna",category:"Força",muscleGroup:"Esquena",movementPattern:"Pull horitzontal",material:"Mancuernes",defaultSets:3,defaultReps:"10-12",defaultLoad:"",defaultRest:"75s",instructions:"Esquena recta, tira del colze.",observations:"",level:"Principiant"},
+  {id:"ex_jaló",name:"Jaló al pit",category:"Força",muscleGroup:"Dorsal",movementPattern:"Pull vertical",material:"Politja",defaultSets:3,defaultReps:"10-12",defaultLoad:"",defaultRest:"75s",instructions:"Tira fins al pit, escàpules avall.",observations:"",level:"Principiant"},
+  {id:"ex_sentadilla",name:"Sentadilla",category:"Força",muscleGroup:"Quàdriceps / Glutis",movementPattern:"Squat",material:"Barra / Pes corporal",defaultSets:3,defaultReps:"8-10",defaultLoad:"",defaultRest:"90s",instructions:"Genolls alineats, esquena recta.",observations:"",level:"Intermedi"},
+  {id:"ex_hip_thrust",name:"Hip Thrust",category:"Força",muscleGroup:"Glutis",movementPattern:"Hip hinge",material:"Barra / Mancuernes",defaultSets:3,defaultReps:"10-12",defaultLoad:"",defaultRest:"75s",instructions:"Activa el gluti a dalt.",observations:"",level:"Principiant"},
+  {id:"ex_rdl",name:"Pes Mort Romanès",category:"Força",muscleGroup:"Isquiotibials / Glutis",movementPattern:"Hip hinge",material:"Barra / Mancuernes",defaultSets:3,defaultReps:"10",defaultLoad:"",defaultRest:"90s",instructions:"Esquena neutra, baixa controlat.",observations:"",level:"Intermedi"},
+  {id:"ex_planxa",name:"Planxa",category:"Core",muscleGroup:"Core",movementPattern:"Antiextensió",material:"Cap",defaultSets:3,defaultReps:"30s",defaultLoad:"",defaultRest:"45s",instructions:"Cos alineat, no elevar malucs.",observations:"",level:"Principiant"},
+  {id:"ex_dead_bug",name:"Dead Bug",category:"Core",muscleGroup:"Core",movementPattern:"Antiextensió",material:"Cap",defaultSets:3,defaultReps:"8-10",defaultLoad:"",defaultRest:"45s",instructions:"Esquena enganxada al terra.",observations:"",level:"Principiant"},
+];
+
+const DEFAULT_TEMPLATES = [
+  {id:"tpl_push",name:"Push",description:"Tren superior empenta",type:"Força",objective:"Força tren superior",estimatedDuration:"45-60 min",exercises:[
+    {id:"tex_1",exerciseId:"ex_press_banca",name:"Press Banca",plannedSets:3,plannedReps:"8-10",plannedLoad:"",plannedRest:"90s",observations:"",order:1},
+    {id:"tex_2",exerciseId:"ex_press_inclinat",name:"Press Inclinat",plannedSets:3,plannedReps:"10",plannedLoad:"",plannedRest:"75s",observations:"",order:2},
+    {id:"tex_3",exerciseId:"ex_elevacions",name:"Elevacions laterals",plannedSets:3,plannedReps:"12-15",plannedLoad:"",plannedRest:"60s",observations:"",order:3},
+  ]},
+  {id:"tpl_pull",name:"Pull",description:"Tren superior tracció",type:"Força",objective:"Força esquena i bíceps",estimatedDuration:"45-60 min",exercises:[
+    {id:"tex_4",exerciseId:"ex_rem_manc",name:"Rem amb mancuerna",plannedSets:3,plannedReps:"10-12",plannedLoad:"",plannedRest:"75s",observations:"",order:1},
+    {id:"tex_5",exerciseId:"ex_jaló",name:"Jaló al pit",plannedSets:3,plannedReps:"10-12",plannedLoad:"",plannedRest:"75s",observations:"",order:2},
+  ]},
+  {id:"tpl_legs",name:"Legs",description:"Tren inferior",type:"Força",objective:"Força tren inferior",estimatedDuration:"50-60 min",exercises:[
+    {id:"tex_6",exerciseId:"ex_sentadilla",name:"Sentadilla",plannedSets:3,plannedReps:"8-10",plannedLoad:"",plannedRest:"90s",observations:"",order:1},
+    {id:"tex_7",exerciseId:"ex_hip_thrust",name:"Hip Thrust",plannedSets:3,plannedReps:"10-12",plannedLoad:"",plannedRest:"75s",observations:"",order:2},
+    {id:"tex_8",exerciseId:"ex_rdl",name:"Pes Mort Romanès",plannedSets:3,plannedReps:"10",plannedLoad:"",plannedRest:"90s",observations:"",order:3},
+  ]},
+  {id:"tpl_fullbody",name:"Full Body",description:"Cos complet",type:"Força",objective:"Força cos complet",estimatedDuration:"60 min",exercises:[
+    {id:"tex_9",exerciseId:"ex_sentadilla",name:"Sentadilla",plannedSets:3,plannedReps:"8-10",plannedLoad:"",plannedRest:"90s",observations:"",order:1},
+    {id:"tex_10",exerciseId:"ex_press_banca",name:"Press Banca",plannedSets:3,plannedReps:"8-10",plannedLoad:"",plannedRest:"90s",observations:"",order:2},
+    {id:"tex_11",exerciseId:"ex_rem_manc",name:"Rem amb mancuerna",plannedSets:3,plannedReps:"10-12",plannedLoad:"",plannedRest:"75s",observations:"",order:3},
+    {id:"tex_12",exerciseId:"ex_planxa",name:"Planxa",plannedSets:3,plannedReps:"30s",plannedLoad:"",plannedRest:"45s",observations:"",order:4},
+  ]},
+];
+
+const DEFAULT_SCHEDULE = {
+  1: {Dilluns:["tpl_push"],Dimarts:[],Dimecres:["tpl_pull"],Dijous:[],Divendres:["tpl_legs","tpl_push","tpl_pull"],Dissabte:[],Diumenge:[]},
+  3: {Dilluns:["tpl_push"],Dimarts:[],Dimecres:["tpl_pull"],Dijous:[],Divendres:["tpl_legs"],Dissabte:[],Diumenge:[]},
+};
 const DEFAULT_DATA = {
   clients:[
-    {id:1,name:"Roc Concernau",  goal:"Ús personal",                                 avatar:"RC",routineType:"weekly"},
+    {id:1,name:"Roc Concernau",  goal:"Ús personal",avatar:"RC",routineType:"weekly"},
     {id:2,name:"Ignasi Concernau",goal:"Entrenament a casa · 3 dies/setmana · 10-15'",avatar:"IC",routineType:"flexible"},
-    {id:3,name:"Marc Perez",     goal:"Rendiment bàsquet",                            avatar:"MP",routineType:"weekly"},
+    {id:3,name:"Marc Perez",     goal:"Rendiment bàsquet",avatar:"MP",routineType:"weekly"},
   ],
   routines:{
     1: DAYS.reduce((a,d)=>({...a,[d]:[]}),{}),
     2: {flexible:true, ignasi:DEFAULT_IGNASI},
     3: DAYS.reduce((a,d)=>({...a,[d]:[]}),{}),
   },
+  exerciseLibrary: DEFAULT_LIBRARY,
+  templates: DEFAULT_TEMPLATES,
+  schedule: DEFAULT_SCHEDULE,
 };
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
@@ -212,6 +255,13 @@ const [clientDraft, setClientDraft] = useState(null);
   const [clientViewTab, setClientViewTab] = useState("entrenament");
   const [showFinishModal, setShowFinishModal] = useState(false);
 const [finishForm, setFinishForm] = useState({rpe:"",duration:"",feeling:"",notes:""});
+  const [adminRoutineTab, setAdminRoutineTab] = useState("rutina");
+const [editingTemplate, setEditingTemplate] = useState(null);
+const [editingLibEx, setEditingLibEx] = useState(null);
+const [showAddTemplate, setShowAddTemplate] = useState(false);
+const [showAddLibEx, setShowAddLibEx] = useState(false);
+const [newTemplate, setNewTemplate] = useState({name:"",description:"",type:"Força",objective:"",estimatedDuration:"",exercises:[]});
+const [newLibEx, setNewLibEx] = useState({name:"",category:"Força",muscleGroup:"",movementPattern:"",material:"",defaultSets:3,defaultReps:"10",defaultLoad:"",defaultRest:"60s",instructions:"",observations:"",level:"Principiant"});
 
   useEffect(()=>{loadData();},[]);
 
@@ -1163,140 +1213,332 @@ const routine=getIgnasiRoutine();
 
       {/* Routine tab */}
       {adminTab==="routine"&&(
-        <div style={S.sec}>
-          {adminClient===2?(
-            // Ignasi editor
-            <div>
-              <div style={{fontWeight:500,fontSize:14,color:T.textPrimary,marginBottom:4}}>Rutina — Ignasi Concernau</div>
-              <div style={{fontSize:12,color:T.textSecondary,marginBottom:16}}>Rutina flexible · mateixa cada dia que entreni</div>
-              {routine.blocks.map(block=>(
-                <div key={block.id} style={{marginBottom:22}}>
-                  {editingBlock?.id===block.id?(
-                    <FormCard style={{marginBottom:10}}>
-                      <div style={{marginBottom:8}}><label style={S.lbl}>Títol del bloc</label><input style={S.inp} value={editingBlock.title} onChange={e=>setEditingBlock(p=>({...p,title:e.target.value}))}/></div>
-                      {block.type==="circuit"&&(
-                        <div style={{...S.row,marginBottom:8}}>
-                          <div style={{flex:1}}><label style={S.lbl}>Voltes</label><input style={S.inp} type="number" value={editingBlock.rounds} onChange={e=>setEditingBlock(p=>({...p,rounds:parseInt(e.target.value)||1}))}/></div>
-                          <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={editingBlock.rest} onChange={e=>setEditingBlock(p=>({...p,rest:e.target.value}))}/></div>
-                        </div>
-                      )}
-                      <div style={{...S.row,justifyContent:"flex-end"}}><button style={S.btnSecondary} onClick={()=>setEditingBlock(null)}>Cancel·lar</button><button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={saveBlockEdit}>Guardar</button></div>
-                    </FormCard>
-                  ):(
-                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-                      <div style={{fontSize:12,fontWeight:500,color:block.color,background:block.bg,padding:"3px 12px",borderRadius:20,border:`1px solid ${block.border}`}}>{block.title} · {block.subtitle}</div>
-                      <button style={S.btnEdit} onClick={()=>setEditingBlock({...block})}>Editar bloc</button>
-                    </div>
-                  )}
-                  {block.exercises.map((ex,i)=>(
-                    editingIgnasiEx?.id===ex.id?(
-                      <FormCard key={ex.id}>
-                        <div style={{marginBottom:8}}><label style={S.lbl}>Nom de l'exercici</label><input style={S.inp} value={editingIgnasiEx.name} onChange={e=>setEditingIgnasiEx(p=>({...p,name:e.target.value}))}/></div>
-                        <div style={{...S.row,marginBottom:8}}>
-                          <div style={{flex:1}}><label style={S.lbl}>Sèries</label><input style={S.inp} type="number" value={editingIgnasiEx.sets} onChange={e=>setEditingIgnasiEx(p=>({...p,sets:+e.target.value}))}/></div>
-                          <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} type="number" value={editingIgnasiEx.reps} onChange={e=>setEditingIgnasiEx(p=>({...p,reps:+e.target.value}))}/></div>
-                          <div style={{flex:1}}><label style={S.lbl}>Unitat</label><input style={S.inp} value={editingIgnasiEx.unit} onChange={e=>setEditingIgnasiEx(p=>({...p,unit:e.target.value}))} placeholder="reps..."/></div>
-                        </div>
-                        <div style={{marginBottom:8}}><label style={S.lbl}>Indicacions</label><textarea style={{...S.inp,minHeight:70,resize:"vertical"}} value={editingIgnasiEx.notes} onChange={e=>setEditingIgnasiEx(p=>({...p,notes:e.target.value}))}/></div>
-                        <div style={{marginBottom:12}}><label style={S.lbl}>Icona</label><IconPicker value={editingIgnasiEx.icon} onChange={v=>setEditingIgnasiEx(p=>({...p,icon:v}))}/></div>
-                        <div style={{...S.row,justifyContent:"flex-end"}}><button style={S.btnSecondary} onClick={()=>setEditingIgnasiEx(null)}>Cancel·lar</button><button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={saveIgnasiExEdit}>Guardar</button></div>
-                      </FormCard>
-                    ):(
-                      <div key={ex.id} style={S.card}>
-                        <div style={{display:"flex",alignItems:"center",gap:10}}>
-                          <div style={{background:block.bg,borderRadius:10,padding:6,flexShrink:0}}><ExIcon type={ex.icon} size={28} color={block.color}/></div>
-                          <div style={{flex:1}}>
-                            <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{i+1}. {ex.name}</div>
-                            <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{ex.sets>1?`${ex.sets} sèries · `:""}{ex.reps} {ex.unit}</div>
-                          </div>
-                          <div style={{display:"flex",gap:4}}>
-                            <button style={S.btnEdit} onClick={()=>setEditingIgnasiEx({...ex})}>Editar</button>
-                            <button style={S.btnDanger} onClick={()=>deleteIgnasiEx(block.id,ex.id)}>Eliminar</button>
-                          </div>
-                        </div>
-                        {ex.notes&&<div style={{fontSize:11,color:T.textSecondary,marginTop:6,paddingLeft:46,fontStyle:"italic"}}>{ex.notes.slice(0,80)}{ex.notes.length>80?"...":""}</div>}
-                      </div>
-                    )
-                  ))}
-                  {showAddIgnasiEx===block.id?(
-                    <FormCard>
-                      <div style={{fontWeight:500,fontSize:13,color:T.textPrimary,marginBottom:12}}>Nou exercici</div>
-                      <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.inp} value={newIgnasiEx.name} onChange={e=>setNewIgnasiEx(p=>({...p,name:e.target.value}))} placeholder="Ex. Flexions al terra"/></div>
-                      <div style={{...S.row,marginBottom:8}}>
-                        <div style={{flex:1}}><label style={S.lbl}>Sèries</label><input style={S.inp} type="number" value={newIgnasiEx.sets} onChange={e=>setNewIgnasiEx(p=>({...p,sets:+e.target.value}))}/></div>
-                        <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} type="number" value={newIgnasiEx.reps} onChange={e=>setNewIgnasiEx(p=>({...p,reps:+e.target.value}))}/></div>
-                        <div style={{flex:1}}><label style={S.lbl}>Unitat</label><input style={S.inp} value={newIgnasiEx.unit} onChange={e=>setNewIgnasiEx(p=>({...p,unit:e.target.value}))} placeholder="reps"/></div>
-                      </div>
-                      <div style={{marginBottom:8}}><label style={S.lbl}>Indicacions</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={newIgnasiEx.notes} onChange={e=>setNewIgnasiEx(p=>({...p,notes:e.target.value}))} placeholder="Com executar l'exercici..."/></div>
-                      <div style={{marginBottom:12}}><label style={S.lbl}>Icona</label><IconPicker value={newIgnasiEx.icon} onChange={v=>setNewIgnasiEx(p=>({...p,icon:v}))}/></div>
-                      <div style={{...S.row,justifyContent:"flex-end"}}><button style={S.btnSecondary} onClick={()=>setShowAddIgnasiEx(null)}>Cancel·lar</button><button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={()=>addIgnasiEx(block.id)}>Afegir</button></div>
-                    </FormCard>
-                  ):(
-                    <button style={{...S.btnSecondary,width:"100%",textAlign:"center",fontSize:12,marginTop:4}} onClick={()=>setShowAddIgnasiEx(block.id)}>+ Afegir exercici</button>
-                  )}
-                </div>
-              ))}
-            </div>
-          ):(
-            // Standard editor
-            <div>
-              <div style={{fontWeight:500,fontSize:14,color:T.textPrimary,marginBottom:12}}>Rutina — {data.clients.find(c=>c.id===adminClient)?.name}</div>
-              <div style={{display:"flex",gap:6,marginBottom:16}}>
-                {DAYS.map((d,i)=>(
-                  <button key={d} onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1px solid ${selDay===d?T.accent:T.border}`,background:selDay===d?T.accent:T.card,color:selDay===d?T.bg:T.textSecondary,cursor:"pointer",fontSize:12,fontWeight:selDay===d?500:400}} title={d}>{DAYS_SHORT[i]}</button>
-                ))}
+  <div style={S.sec}>
+    {adminClient===2?(
+      // Ignasi — no tocar
+      <div>
+        <div style={{fontWeight:500,fontSize:14,color:T.textPrimary,marginBottom:4}}>Rutina — Ignasi Concernau</div>
+        <div style={{fontSize:12,color:T.textSecondary,marginBottom:16}}>Rutina flexible · mateixa cada dia que entreni</div>
+        {routine.blocks.map(block=>(
+          <div key={block.id} style={{marginBottom:22}}>
+            {editingBlock?.id===block.id?(
+              <FormCard style={{marginBottom:10}}>
+                <div style={{marginBottom:8}}><label style={S.lbl}>Títol del bloc</label><input style={S.inp} value={editingBlock.title} onChange={e=>setEditingBlock(p=>({...p,title:e.target.value}))}/></div>
+                {block.type==="circuit"&&(
+                  <div style={{...S.row,marginBottom:8}}>
+                    <div style={{flex:1}}><label style={S.lbl}>Voltes</label><input style={S.inp} type="number" value={editingBlock.rounds} onChange={e=>setEditingBlock(p=>({...p,rounds:parseInt(e.target.value)||1}))}/></div>
+                    <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={editingBlock.rest} onChange={e=>setEditingBlock(p=>({...p,rest:e.target.value}))}/></div>
+                  </div>
+                )}
+                <div style={{...S.row,justifyContent:"flex-end"}}><button style={S.btnSecondary} onClick={()=>setEditingBlock(null)}>Cancel·lar</button><button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={saveBlockEdit}>Guardar</button></div>
+              </FormCard>
+            ):(
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+                <div style={{fontSize:12,fontWeight:500,color:block.color,background:block.bg,padding:"3px 12px",borderRadius:20,border:`1px solid ${block.border}`}}>{block.title} · {block.subtitle}</div>
+                <button style={S.btnEdit} onClick={()=>setEditingBlock({...block})}>Editar bloc</button>
               </div>
-              <div style={{fontSize:13,color:T.textSecondary,marginBottom:12}}>{selDay}</div>
-              {dayExercises.length===0&&!showAddEx&&<div style={{textAlign:"center",padding:"1.5rem 0",color:T.textSecondary,fontSize:13}}>Dia de descans — sense exercicis</div>}
-              {dayExercises.map(ex=>(
-                editingEx?.id===ex.id?(
-                  <FormCard key={ex.id}>
-                    <div style={{marginBottom:8}}><label style={S.lbl}>Exercici</label><input style={S.inp} value={editingEx.name} onChange={e=>setEditingEx(p=>({...p,name:e.target.value}))}/></div>
-                    <div style={{...S.row,marginBottom:8}}>
-                      <div style={{flex:1}}><label style={S.lbl}>Sèries</label><input style={S.inp} type="number" value={editingEx.sets} onChange={e=>setEditingEx(p=>({...p,sets:+e.target.value}))}/></div>
-                      <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} type="number" value={editingEx.reps} onChange={e=>setEditingEx(p=>({...p,reps:+e.target.value}))}/></div>
-                      <div style={{flex:1}}><label style={S.lbl}>Pes/Temps</label><input style={S.inp} value={editingEx.weight} onChange={e=>setEditingEx(p=>({...p,weight:e.target.value}))}/></div>
+            )}
+            {block.exercises.map((ex,i)=>(
+              editingIgnasiEx?.id===ex.id?(
+                <FormCard key={ex.id}>
+                  <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.inp} value={editingIgnasiEx.name} onChange={e=>setEditingIgnasiEx(p=>({...p,name:e.target.value}))}/></div>
+                  <div style={{...S.row,marginBottom:8}}>
+                    <div style={{flex:1}}><label style={S.lbl}>Sèries</label><input style={S.inp} type="number" value={editingIgnasiEx.sets} onChange={e=>setEditingIgnasiEx(p=>({...p,sets:+e.target.value}))}/></div>
+                    <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} type="number" value={editingIgnasiEx.reps} onChange={e=>setEditingIgnasiEx(p=>({...p,reps:+e.target.value}))}/></div>
+                    <div style={{flex:1}}><label style={S.lbl}>Unitat</label><input style={S.inp} value={editingIgnasiEx.unit} onChange={e=>setEditingIgnasiEx(p=>({...p,unit:e.target.value}))}/></div>
+                  </div>
+                  <div style={{marginBottom:8}}><label style={S.lbl}>Indicacions</label><textarea style={{...S.inp,minHeight:70,resize:"vertical"}} value={editingIgnasiEx.notes} onChange={e=>setEditingIgnasiEx(p=>({...p,notes:e.target.value}))}/></div>
+                  <div style={{marginBottom:12}}><label style={S.lbl}>Icona</label><IconPicker value={editingIgnasiEx.icon} onChange={v=>setEditingIgnasiEx(p=>({...p,icon:v}))}/></div>
+                  <div style={{...S.row,justifyContent:"flex-end"}}><button style={S.btnSecondary} onClick={()=>setEditingIgnasiEx(null)}>Cancel·lar</button><button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={saveIgnasiExEdit}>Guardar</button></div>
+                </FormCard>
+              ):(
+                <div key={ex.id} style={S.card}>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                    <div style={{background:block.bg,borderRadius:10,padding:6,flexShrink:0}}><ExIcon type={ex.icon} size={28} color={block.color}/></div>
+                    <div style={{flex:1}}>
+                      <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{i+1}. {ex.name}</div>
+                      <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{ex.sets>1?`${ex.sets} sèries · `:""}{ex.reps} {ex.unit}</div>
                     </div>
-                    <div style={{marginBottom:12}}><label style={S.lbl}>Notes</label><input style={S.inp} value={editingEx.notes} onChange={e=>setEditingEx(p=>({...p,notes:e.target.value}))}/></div>
-                    <div style={{...S.row,justifyContent:"flex-end"}}><button style={S.btnSecondary} onClick={()=>setEditingEx(null)}>Cancel·lar</button><button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={saveEdit}>Guardar</button></div>
+                    <div style={{display:"flex",gap:4}}>
+                      <button style={S.btnEdit} onClick={()=>setEditingIgnasiEx({...ex})}>Editar</button>
+                      <button style={S.btnDanger} onClick={()=>deleteIgnasiEx(block.id,ex.id)}>Eliminar</button>
+                    </div>
+                  </div>
+                  {ex.notes&&<div style={{fontSize:11,color:T.textSecondary,marginTop:6,paddingLeft:46,fontStyle:"italic"}}>{ex.notes.slice(0,80)}{ex.notes.length>80?"...":""}</div>}
+                </div>
+              )
+            ))}
+            {showAddIgnasiEx===block.id?(
+              <FormCard>
+                <div style={{fontWeight:500,fontSize:13,color:T.textPrimary,marginBottom:12}}>Nou exercici</div>
+                <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.inp} value={newIgnasiEx.name} onChange={e=>setNewIgnasiEx(p=>({...p,name:e.target.value}))} placeholder="Ex. Flexions"/></div>
+                <div style={{...S.row,marginBottom:8}}>
+                  <div style={{flex:1}}><label style={S.lbl}>Sèries</label><input style={S.inp} type="number" value={newIgnasiEx.sets} onChange={e=>setNewIgnasiEx(p=>({...p,sets:+e.target.value}))}/></div>
+                  <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} type="number" value={newIgnasiEx.reps} onChange={e=>setNewIgnasiEx(p=>({...p,reps:+e.target.value}))}/></div>
+                  <div style={{flex:1}}><label style={S.lbl}>Unitat</label><input style={S.inp} value={newIgnasiEx.unit} onChange={e=>setNewIgnasiEx(p=>({...p,unit:e.target.value}))} placeholder="reps"/></div>
+                </div>
+                <div style={{marginBottom:8}}><label style={S.lbl}>Indicacions</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={newIgnasiEx.notes} onChange={e=>setNewIgnasiEx(p=>({...p,notes:e.target.value}))}/></div>
+                <div style={{marginBottom:12}}><label style={S.lbl}>Icona</label><IconPicker value={newIgnasiEx.icon} onChange={v=>setNewIgnasiEx(p=>({...p,icon:v}))}/></div>
+                <div style={{...S.row,justifyContent:"flex-end"}}><button style={S.btnSecondary} onClick={()=>setShowAddIgnasiEx(null)}>Cancel·lar</button><button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={()=>addIgnasiEx(block.id)}>Afegir</button></div>
+              </FormCard>
+            ):(
+              <button style={{...S.btnSecondary,width:"100%",textAlign:"center",fontSize:12,marginTop:4}} onClick={()=>setShowAddIgnasiEx(block.id)}>+ Afegir exercici</button>
+            )}
+          </div>
+        ))}
+      </div>
+    ):(
+      // Clients estàndard — nova estructura
+      <div>
+        {/* Sub-pestanyes */}
+        <div style={{display:"flex",gap:0,marginBottom:16,borderBottom:`1px solid ${T.border}`}}>
+          {[["rutina","📅 Rutina"],["plantilles","📋 Plantilles"],["biblioteca","📚 Biblioteca"]].map(([tab,label])=>(
+            <button key={tab} onClick={()=>setAdminRoutineTab(tab)}
+              style={{padding:"8px 14px",fontSize:12,cursor:"pointer",background:"none",border:"none",
+                borderBottom:`2px solid ${adminRoutineTab===tab?T.accent:"transparent"}`,
+                color:adminRoutineTab===tab?T.accent:T.textSecondary,
+                fontWeight:adminRoutineTab===tab?500:400,marginBottom:-1}}>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Sub-pestanya: Rutina */}
+        {adminRoutineTab==="rutina"&&(()=>{
+          const schedule = data.schedule?.[adminClient] || DAYS.reduce((a,d)=>({...a,[d]:[]}),{});
+          const templates = data.templates || [];
+          const updateSchedule = (day, tplIds) => {
+            const nd = {...data, schedule:{...data.schedule,[adminClient]:{...schedule,[day]:tplIds}}};
+            updateData(nd);
+          };
+          return (
+            <div>
+              <div style={{fontSize:12,color:T.textSecondary,marginBottom:16}}>
+                Assigna plantilles d'entrenament a cada dia · {data.clients.find(c=>c.id===adminClient)?.name}
+              </div>
+              {DAYS.map(day=>{
+                const dayTpls = schedule[day] || [];
+                return (
+                  <div key={day} style={{...S.card,marginBottom:8}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:dayTpls.length>0?10:0}}>
+                      <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{day}</div>
+                      {dayTpls.length===0&&<span style={{fontSize:11,color:T.textMuted}}>Descans</span>}
+                    </div>
+                    {dayTpls.length>0&&(
+                      <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:8}}>
+                        {dayTpls.map(tplId=>{
+                          const tpl = templates.find(t=>t.id===tplId);
+                          return tpl?(
+                            <div key={tplId} style={{display:"flex",alignItems:"center",gap:4,background:T.purpleBg,border:`1px solid #3A3A60`,borderRadius:20,padding:"3px 10px"}}>
+                              <span style={{fontSize:12,color:T.purple}}>{tpl.name}</span>
+                              <button onClick={()=>updateSchedule(day,dayTpls.filter(id=>id!==tplId))} style={{background:"none",border:"none",color:T.textMuted,cursor:"pointer",fontSize:14,lineHeight:1,padding:"0 2px"}}>×</button>
+                            </div>
+                          ):null;
+                        })}
+                      </div>
+                    )}
+                    <select style={{...S.inp,fontSize:12}} value="" onChange={e=>{
+                      if(e.target.value&&!dayTpls.includes(e.target.value))
+                        updateSchedule(day,[...dayTpls,e.target.value]);
+                    }}>
+                      <option value="">+ Afegir plantilla...</option>
+                      {templates.filter(t=>!dayTpls.includes(t.id)).map(t=>(
+                        <option key={t.id} value={t.id}>{t.name} — {t.objective}</option>
+                      ))}
+                    </select>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+
+        {/* Sub-pestanya: Plantilles */}
+        {adminRoutineTab==="plantilles"&&(()=>{
+          const templates = data.templates || [];
+          const updateTemplates = (tpls) => updateData({...data,templates:tpls});
+          const deleteTemplate = (id) => updateTemplates(templates.filter(t=>t.id!==id));
+          const duplicateTemplate = (tpl) => {
+            const copy = {...tpl, id:`tpl_${Date.now()}`, name:`${tpl.name} (còpia)`,
+              exercises: tpl.exercises.map(e=>({...e,id:`tex_${Date.now()}_${Math.random().toString(36).slice(2)}`}))};
+            updateTemplates([...templates,copy]);
+          };
+          return (
+            <div>
+              {templates.map(tpl=>(
+                editingTemplate?.id===tpl.id?(
+                  <FormCard key={tpl.id}>
+                    <div style={{fontWeight:500,fontSize:13,color:T.textPrimary,marginBottom:12}}>Editar plantilla</div>
+                    <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.inp} value={editingTemplate.name} onChange={e=>setEditingTemplate(p=>({...p,name:e.target.value}))}/></div>
+                    <div style={{marginBottom:8}}><label style={S.lbl}>Objectiu</label><input style={S.inp} value={editingTemplate.objective} onChange={e=>setEditingTemplate(p=>({...p,objective:e.target.value}))}/></div>
+                    <div style={{...S.row,marginBottom:8}}>
+                      <div style={{flex:1}}><label style={S.lbl}>Tipus</label><input style={S.inp} value={editingTemplate.type} onChange={e=>setEditingTemplate(p=>({...p,type:e.target.value}))}/></div>
+                      <div style={{flex:1}}><label style={S.lbl}>Durada</label><input style={S.inp} value={editingTemplate.estimatedDuration} onChange={e=>setEditingTemplate(p=>({...p,estimatedDuration:e.target.value}))}/></div>
+                    </div>
+                    <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,marginBottom:8}}>Exercicis</div>
+                    {editingTemplate.exercises.map((ex,i)=>(
+                      <div key={ex.id} style={{...S.card,marginBottom:6}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                          <span style={{fontSize:13,fontWeight:500,color:T.textPrimary}}>{ex.name}</span>
+                          <button style={S.btnDanger} onClick={()=>setEditingTemplate(p=>({...p,exercises:p.exercises.filter((_,j)=>j!==i)}))}>×</button>
+                        </div>
+                        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                          <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Sèries</label><input style={S.inp} type="number" value={ex.plannedSets} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedSets:+e.target.value}:ex2)}))}/></div>
+                          <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Reps</label><input style={S.inp} value={ex.plannedReps} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedReps:e.target.value}:ex2)}))}/></div>
+                          <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Càrrega</label><input style={S.inp} value={ex.plannedLoad} placeholder="40kg" onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedLoad:e.target.value}:ex2)}))}/></div>
+                          <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Descans</label><input style={S.inp} value={ex.plannedRest} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedRest:e.target.value}:ex2)}))}/></div>
+                        </div>
+                        <div style={{marginTop:6}}><label style={S.lbl}>Observacions</label><input style={S.inp} value={ex.observations||""} placeholder="Indicacions específiques..." onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,observations:e.target.value}:ex2)}))}/></div>
+                      </div>
+                    ))}
+                    <select style={{...S.inp,fontSize:12,marginBottom:12}} value="" onChange={e=>{
+                      const lib = data.exerciseLibrary||[];
+                      const libEx = lib.find(l=>l.id===e.target.value);
+                      if(libEx) setEditingTemplate(p=>({...p,exercises:[...p.exercises,{id:`tex_${Date.now()}`,exerciseId:libEx.id,name:libEx.name,plannedSets:libEx.defaultSets,plannedReps:libEx.defaultReps,plannedLoad:libEx.defaultLoad||"",plannedRest:libEx.defaultRest||"",observations:"",order:p.exercises.length+1}]}));
+                    }}>
+                      <option value="">+ Afegir exercici de la biblioteca...</option>
+                      {(data.exerciseLibrary||[]).map(l=><option key={l.id} value={l.id}>{l.name}</option>)}
+                    </select>
+                    <div style={{...S.row,justifyContent:"flex-end"}}>
+                      <button style={S.btnSecondary} onClick={()=>setEditingTemplate(null)}>Cancel·lar</button>
+                      <button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={()=>{updateTemplates(templates.map(t=>t.id===editingTemplate.id?editingTemplate:t));setEditingTemplate(null);}}>Guardar</button>
+                    </div>
+                  </FormCard>
+                ):(
+                  <div key={tpl.id} style={S.card}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                      <div>
+                        <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>{tpl.name}</div>
+                        <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{tpl.objective} · {tpl.estimatedDuration}</div>
+                      </div>
+                      <div style={{display:"flex",gap:4}}>
+                        <button style={S.btnEdit} onClick={()=>setEditingTemplate({...tpl,exercises:[...tpl.exercises]})}>Editar</button>
+                        <button style={S.btnEdit} onClick={()=>duplicateTemplate(tpl)}>Duplicar</button>
+                        <button style={S.btnDanger} onClick={()=>deleteTemplate(tpl.id)}>Eliminar</button>
+                      </div>
+                    </div>
+                    <div style={{fontSize:11,color:T.textSecondary,marginBottom:8}}>{tpl.exercises.length} exercicis</div>
+                    {tpl.exercises.map((ex,i)=>(
+                      <div key={ex.id} style={{display:"flex",alignItems:"center",gap:8,padding:"4px 0",borderBottom:`1px solid ${T.border}`}}>
+                        <span style={{fontSize:12,color:T.textMuted,width:16}}>{i+1}.</span>
+                        <span style={{fontSize:13,flex:1,color:T.textPrimary}}>{ex.name}</span>
+                        <span style={{fontSize:11,color:T.textSecondary}}>{ex.plannedSets}×{ex.plannedReps}{ex.plannedLoad?` · ${ex.plannedLoad}`:""}</span>
+                      </div>
+                    ))}
+                  </div>
+                )
+              ))}
+              {showAddTemplate?(
+                <FormCard>
+                  <div style={{fontWeight:500,fontSize:13,color:T.textPrimary,marginBottom:12}}>Nova plantilla</div>
+                  <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.inp} value={newTemplate.name} onChange={e=>setNewTemplate(p=>({...p,name:e.target.value}))} placeholder="Ex. Push"/></div>
+                  <div style={{marginBottom:8}}><label style={S.lbl}>Objectiu</label><input style={S.inp} value={newTemplate.objective} onChange={e=>setNewTemplate(p=>({...p,objective:e.target.value}))} placeholder="Ex. Força tren superior"/></div>
+                  <div style={{...S.row,marginBottom:12}}>
+                    <div style={{flex:1}}><label style={S.lbl}>Tipus</label><input style={S.inp} value={newTemplate.type} onChange={e=>setNewTemplate(p=>({...p,type:e.target.value}))}/></div>
+                    <div style={{flex:1}}><label style={S.lbl}>Durada</label><input style={S.inp} value={newTemplate.estimatedDuration} onChange={e=>setNewTemplate(p=>({...p,estimatedDuration:e.target.value}))} placeholder="45-60 min"/></div>
+                  </div>
+                  <div style={{...S.row,justifyContent:"flex-end"}}>
+                    <button style={S.btnSecondary} onClick={()=>setShowAddTemplate(false)}>Cancel·lar</button>
+                    <button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={()=>{
+                      if(!newTemplate.name)return;
+                      updateTemplates([...templates,{...newTemplate,id:`tpl_${Date.now()}`,exercises:[]}]);
+                      setNewTemplate({name:"",description:"",type:"Força",objective:"",estimatedDuration:"",exercises:[]});
+                      setShowAddTemplate(false);
+                    }}>Crear</button>
+                  </div>
+                </FormCard>
+              ):(
+                <button style={{...S.btnSecondary,width:"100%",textAlign:"center",marginTop:4}} onClick={()=>setShowAddTemplate(true)}>+ Nova plantilla</button>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* Sub-pestanya: Biblioteca */}
+        {adminRoutineTab==="biblioteca"&&(()=>{
+          const lib = data.exerciseLibrary||[];
+          const updateLib = (l) => updateData({...data,exerciseLibrary:l});
+          return (
+            <div>
+              <div style={{fontSize:12,color:T.textSecondary,marginBottom:12}}>{lib.length} exercicis a la biblioteca</div>
+              {lib.map(ex=>(
+                editingLibEx?.id===ex.id?(
+                  <FormCard key={ex.id}>
+                    <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.inp} value={editingLibEx.name} onChange={e=>setEditingLibEx(p=>({...p,name:e.target.value}))}/></div>
+                    <div style={{...S.row,marginBottom:8}}>
+                      <div style={{flex:1}}><label style={S.lbl}>Categoria</label><input style={S.inp} value={editingLibEx.category} onChange={e=>setEditingLibEx(p=>({...p,category:e.target.value}))}/></div>
+                      <div style={{flex:1}}><label style={S.lbl}>Grup muscular</label><input style={S.inp} value={editingLibEx.muscleGroup} onChange={e=>setEditingLibEx(p=>({...p,muscleGroup:e.target.value}))}/></div>
+                    </div>
+                    <div style={{...S.row,marginBottom:8}}>
+                      <div style={{flex:1}}><label style={S.lbl}>Sèries</label><input style={S.inp} type="number" value={editingLibEx.defaultSets} onChange={e=>setEditingLibEx(p=>({...p,defaultSets:+e.target.value}))}/></div>
+                      <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} value={editingLibEx.defaultReps} onChange={e=>setEditingLibEx(p=>({...p,defaultReps:e.target.value}))}/></div>
+                      <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={editingLibEx.defaultRest} onChange={e=>setEditingLibEx(p=>({...p,defaultRest:e.target.value}))}/></div>
+                    </div>
+                    <div style={{marginBottom:8}}><label style={S.lbl}>Material</label><input style={S.inp} value={editingLibEx.material} onChange={e=>setEditingLibEx(p=>({...p,material:e.target.value}))}/></div>
+                    <div style={{marginBottom:8}}><label style={S.lbl}>Indicacions</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={editingLibEx.instructions} onChange={e=>setEditingLibEx(p=>({...p,instructions:e.target.value}))}/></div>
+                    <div style={{marginBottom:12}}><label style={S.lbl}>Nivell</label>
+                      <select style={S.inp} value={editingLibEx.level} onChange={e=>setEditingLibEx(p=>({...p,level:e.target.value}))}>
+                        {["Principiant","Intermedi","Avançat"].map(l=><option key={l} value={l}>{l}</option>)}
+                      </select>
+                    </div>
+                    <div style={{...S.row,justifyContent:"flex-end"}}>
+                      <button style={S.btnSecondary} onClick={()=>setEditingLibEx(null)}>Cancel·lar</button>
+                      <button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={()=>{updateLib(lib.map(e=>e.id===editingLibEx.id?editingLibEx:e));setEditingLibEx(null);}}>Guardar</button>
+                    </div>
                   </FormCard>
                 ):(
                   <div key={ex.id} style={S.card}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-                      <div style={{fontWeight:500,fontSize:14,color:T.textPrimary,marginBottom:6}}>{ex.name}</div>
-                      <div style={{display:"flex",gap:4}}>
-                        <button style={S.btnEdit} onClick={()=>setEditingEx(ex)}>Editar</button>
-                        <button style={S.btnDanger} onClick={()=>deleteEx(ex.id)}>Eliminar</button>
+                      <div>
+                        <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{ex.name}</div>
+                        <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{ex.category} · {ex.muscleGroup} · {ex.level}</div>
+                        <div style={{fontSize:11,color:T.textMuted,marginTop:2}}>{ex.defaultSets}×{ex.defaultReps} · {ex.defaultRest}</div>
                       </div>
-                    </div>
-                    <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-                      <span style={S.tag("purple")}>{ex.sets} sèries</span>
-                      <span style={S.tag("green")}>{ex.reps} reps</span>
-                      {ex.weight&&<span style={S.tag()}>{ex.weight}</span>}
-                      {ex.notes&&<div style={{fontSize:12,color:T.textSecondary,marginTop:6,width:"100%"}}>{ex.notes}</div>}
+                      <div style={{display:"flex",gap:4}}>
+                        <button style={S.btnEdit} onClick={()=>setEditingLibEx({...ex})}>Editar</button>
+                        <button style={S.btnDanger} onClick={()=>updateLib(lib.filter(e=>e.id!==ex.id))}>Eliminar</button>
+                      </div>
                     </div>
                   </div>
                 )
               ))}
-              {showAddEx?(
+              {showAddLibEx?(
                 <FormCard>
-                  <div style={{fontWeight:500,fontSize:14,color:T.textPrimary,marginBottom:12}}>Nou exercici</div>
-                  <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.inp} value={newEx.name} onChange={e=>setNewEx(p=>({...p,name:e.target.value}))} placeholder="Ex. Sentadilla"/></div>
+                  <div style={{fontWeight:500,fontSize:13,color:T.textPrimary,marginBottom:12}}>Nou exercici</div>
+                  <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.inp} value={newLibEx.name} onChange={e=>setNewLibEx(p=>({...p,name:e.target.value}))} placeholder="Ex. Press Banca"/></div>
                   <div style={{...S.row,marginBottom:8}}>
-                    <div style={{flex:1}}><label style={S.lbl}>Sèries</label><input style={S.inp} type="number" value={newEx.sets} onChange={e=>setNewEx(p=>({...p,sets:+e.target.value}))}/></div>
-                    <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} type="number" value={newEx.reps} onChange={e=>setNewEx(p=>({...p,reps:+e.target.value}))}/></div>
-                    <div style={{flex:1}}><label style={S.lbl}>Pes/Temps</label><input style={S.inp} value={newEx.weight} onChange={e=>setNewEx(p=>({...p,weight:e.target.value}))} placeholder="20kg"/></div>
+                    <div style={{flex:1}}><label style={S.lbl}>Categoria</label><input style={S.inp} value={newLibEx.category} onChange={e=>setNewLibEx(p=>({...p,category:e.target.value}))}/></div>
+                    <div style={{flex:1}}><label style={S.lbl}>Grup muscular</label><input style={S.inp} value={newLibEx.muscleGroup} onChange={e=>setNewLibEx(p=>({...p,muscleGroup:e.target.value}))}/></div>
                   </div>
-                  <div style={{marginBottom:12}}><label style={S.lbl}>Notes</label><input style={S.inp} value={newEx.notes} onChange={e=>setNewEx(p=>({...p,notes:e.target.value}))} placeholder="Indicacions..."/></div>
-                  <div style={{...S.row,justifyContent:"flex-end"}}><button style={S.btnSecondary} onClick={()=>setShowAddEx(false)}>Cancel·lar</button><button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={addEx}>Afegir</button></div>
+                  <div style={{...S.row,marginBottom:8}}>
+                    <div style={{flex:1}}><label style={S.lbl}>Sèries</label><input style={S.inp} type="number" value={newLibEx.defaultSets} onChange={e=>setNewLibEx(p=>({...p,defaultSets:+e.target.value}))}/></div>
+                    <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} value={newLibEx.defaultReps} onChange={e=>setNewLibEx(p=>({...p,defaultReps:e.target.value}))}/></div>
+                    <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={newLibEx.defaultRest} onChange={e=>setNewLibEx(p=>({...p,defaultRest:e.target.value}))}/></div>
+                  </div>
+                  <div style={{marginBottom:8}}><label style={S.lbl}>Material</label><input style={S.inp} value={newLibEx.material} onChange={e=>setNewLibEx(p=>({...p,material:e.target.value}))}/></div>
+                  <div style={{marginBottom:8}}><label style={S.lbl}>Indicacions</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={newLibEx.instructions} onChange={e=>setNewLibEx(p=>({...p,instructions:e.target.value}))}/></div>
+                  <div style={{marginBottom:12}}><label style={S.lbl}>Nivell</label>
+                    <select style={S.inp} value={newLibEx.level} onChange={e=>setNewLibEx(p=>({...p,level:e.target.value}))}>
+                      {["Principiant","Intermedi","Avançat"].map(l=><option key={l} value={l}>{l}</option>)}
+                    </select>
+                  </div>
+                  <div style={{...S.row,justifyContent:"flex-end"}}>
+                    <button style={S.btnSecondary} onClick={()=>setShowAddLibEx(false)}>Cancel·lar</button>
+                    <button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={()=>{
+                      if(!newLibEx.name)return;
+                      updateLib([...lib,{...newLibEx,id:`ex_${Date.now()}`}]);
+                      setNewLibEx({name:"",category:"Força",muscleGroup:"",movementPattern:"",material:"",defaultSets:3,defaultReps:"10",defaultLoad:"",defaultRest:"60s",instructions:"",observations:"",level:"Principiant"});
+                      setShowAddLibEx(false);
+                    }}>Afegir</button>
+                  </div>
                 </FormCard>
               ):(
-                <button style={{...S.btnSecondary,width:"100%",textAlign:"center",marginTop:4}} onClick={()=>setShowAddEx(true)}>+ Afegir exercici</button>
+                <button style={{...S.btnSecondary,width:"100%",textAlign:"center",marginTop:4}} onClick={()=>setShowAddLibEx(true)}>+ Nou exercici</button>
               )}
             </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
+          );
+        })()}
+      </div>
+    )}
+  </div>
+)}
