@@ -667,289 +667,284 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
           </div>
           {!esAccesDirecte&&<button style={S.btnSecondary} onClick={()=>setMode("select")}>Sortir</button>}
         </div>
-{showFinishModal&&(
-  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
-    <div style={{background:T.card,borderRadius:"20px 20px 0 0",padding:"1.5rem 1.25rem",width:"100%",maxWidth:520,border:`1px solid ${T.border}`}}>
-      <div style={{fontWeight:500,fontSize:16,color:T.textPrimary,marginBottom:4}}>Finalitzar entrenament</div>
-      <div style={{fontSize:13,color:T.textSecondary,marginBottom:20}}>Com ha anat la sessió?</div>
-      
-      <div style={{marginBottom:12}}>
-        <label style={S.lbl}>RPE — Esforç percebut (1-10)</label>
-        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-          {[1,2,3,4,5,6,7,8,9,10].map(n=>(
-            <button key={n} onClick={()=>setFinishForm(p=>({...p,rpe:n}))}
-              style={{width:38,height:38,borderRadius:10,border:`1px solid ${finishForm.rpe===n?T.accent:T.border}`,background:finishForm.rpe===n?T.accent:T.card2,color:finishForm.rpe===n?T.bg:T.textSecondary,cursor:"pointer",fontSize:13,fontWeight:finishForm.rpe===n?500:400}}>
-              {n}
-            </button>
-          ))}
-        </div>
-      </div>
 
-      <div style={{marginBottom:12}}>
-        <label style={S.lbl}>Durada real (minuts)</label>
-        <input style={{...S.inp,width:"auto",maxWidth:120}} type="number" placeholder="45" value={finishForm.duration} onChange={e=>setFinishForm(p=>({...p,duration:e.target.value}))}/>
-      </div>
-
-      <div style={{marginBottom:12}}>
-        <label style={S.lbl}>Sensació</label>
-        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-          {[["😄","Molt bé"],["🙂","Bé"],["😐","Normal"],["😓","Cansat"],["😣","Molèsties"]].map(([emoji,label])=>(
-            <button key={label} onClick={()=>setFinishForm(p=>({...p,feeling:label}))}
-              style={{padding:"6px 10px",borderRadius:10,border:`1px solid ${finishForm.feeling===label?T.accent:T.border}`,background:finishForm.feeling===label?T.accent:T.card2,color:finishForm.feeling===label?T.bg:T.textSecondary,cursor:"pointer",fontSize:12}}>
-              {emoji} {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div style={{marginBottom:16}}>
-        <label style={S.lbl}>Notes (opcional)</label>
-        <textarea style={{...S.inp,minHeight:60,resize:"vertical"}} placeholder="Com t'has sentit, molèsties..." value={finishForm.notes} onChange={e=>setFinishForm(p=>({...p,notes:e.target.value}))}/>
-      </div>
-
-      <div style={{display:"flex",gap:8}}>
-        <button style={{...S.btnSecondary,flex:1}} onClick={()=>setShowFinishModal(false)}>Cancel·lar</button>
-        <button style={{...S.btnPrimary,flex:2,padding:"12px"}} onClick={async()=>{
-          await saveStdSession(selClient, selDay, dayExs, finishForm);
-          setShowFinishModal(false);
-          setFinishForm({rpe:"",duration:"",feeling:"",notes:""});
-        }}>Guardar sessió</button>
-      </div>
-    </div>
-  </div>
-)}
-{/* Pestanyes vista client */}
-<div style={{display:"flex",borderBottom:`1px solid ${T.border}`,padding:"0 1.25rem"}}>
-  {[["entrenament","🏋️ Entrenament"],["perfil","👤 Perfil"],["historial","📋 Historial"]].map(([tab,label])=>(
-    <button key={tab} onClick={()=>setClientViewTab(tab)}
-      style={{padding:"10px 16px",fontSize:13,cursor:"pointer",background:"none",border:"none",
-        borderBottom:`2px solid ${clientViewTab===tab?T.accent:"transparent"}`,
-        color:clientViewTab===tab?T.accent:T.textSecondary,
-        fontWeight:clientViewTab===tab?500:400,marginBottom:-1,transition:"all 0.15s"}}>
-      {label}
-    </button>
-  ))}
-</div>
-
-{clientViewTab==="entrenament"&&(
-  <>
-    {/* Day selector */}
-    <div style={{display:"flex",gap:6,padding:"0.85rem 1.25rem 0.5rem",overflowX:"auto"}}>
-      {DAYS.map((d,i)=>{
-        const hasEx=(data.routines[selClient]?.[d]?.length||0)>0;
-        const active=selDay===d;
-        return (
-          <div key={d} style={{textAlign:"center",flexShrink:0}}>
-            <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1px solid ${active?T.accent:hasEx?cc.border:T.border}`,background:active?T.accent:T.card,color:active?T.bg:hasEx?cc.text:T.textMuted,cursor:"pointer",fontSize:12,fontWeight:active?500:400}}>
-              {DAYS_SHORT[i]}
-            </button>
-            {hasEx&&!active&&<div style={{width:4,height:4,borderRadius:"50%",background:T.accent,margin:"3px auto 0"}}/>}
-            {d===TODAY&&<div style={{fontSize:9,color:T.accent,marginTop:2}}>avui</div>}
-          </div>
-        );
-      })}
-    </div>
-    <div style={S.sec}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-        <div>
-          <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>{selDay}</div>
-          {selDay===TODAY&&<div style={{fontSize:12,color:T.accent,fontWeight:500}}>Avui</div>}
-        </div>
-        {dayExs.length>0&&(
-          <div style={{textAlign:"right"}}>
-            <div style={{fontSize:12,color:T.textSecondary,marginBottom:4}}>{dc}/{dayExs.length}</div>
-            <ProgressBar value={dc} total={dayExs.length}/>
+        {/* Modal finalitzar */}
+        {showFinishModal&&(
+          <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
+            <div style={{background:T.card,borderRadius:"20px 20px 0 0",padding:"1.5rem 1.25rem",width:"100%",maxWidth:520,border:`1px solid ${T.border}`}}>
+              <div style={{fontWeight:500,fontSize:16,color:T.textPrimary,marginBottom:4}}>Finalitzar entrenament</div>
+              <div style={{fontSize:13,color:T.textSecondary,marginBottom:20}}>Com ha anat la sessió?</div>
+              <div style={{marginBottom:12}}>
+                <label style={S.lbl}>RPE — Esforç percebut (1-10)</label>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                  {[1,2,3,4,5,6,7,8,9,10].map(n=>(
+                    <button key={n} onClick={()=>setFinishForm(p=>({...p,rpe:n}))}
+                      style={{width:38,height:38,borderRadius:10,border:`1px solid ${finishForm.rpe===n?T.accent:T.border}`,background:finishForm.rpe===n?T.accent:T.card2,color:finishForm.rpe===n?T.bg:T.textSecondary,cursor:"pointer",fontSize:13,fontWeight:finishForm.rpe===n?500:400}}>
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div style={{marginBottom:12}}>
+                <label style={S.lbl}>Durada real (minuts)</label>
+                <input style={{...S.inp,width:"auto",maxWidth:120}} type="number" placeholder="45" value={finishForm.duration} onChange={e=>setFinishForm(p=>({...p,duration:e.target.value}))}/>
+              </div>
+              <div style={{marginBottom:12}}>
+                <label style={S.lbl}>Sensació</label>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                  {[["😄","Molt bé"],["🙂","Bé"],["😐","Normal"],["😓","Cansat"],["😣","Molèsties"]].map(([emoji,label])=>(
+                    <button key={label} onClick={()=>setFinishForm(p=>({...p,feeling:label}))}
+                      style={{padding:"6px 10px",borderRadius:10,border:`1px solid ${finishForm.feeling===label?T.accent:T.border}`,background:finishForm.feeling===label?T.accent:T.card2,color:finishForm.feeling===label?T.bg:T.textSecondary,cursor:"pointer",fontSize:12}}>
+                      {emoji} {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div style={{marginBottom:16}}>
+                <label style={S.lbl}>Notes (opcional)</label>
+                <textarea style={{...S.inp,minHeight:60,resize:"vertical"}} placeholder="Com t'has sentit, molèsties..." value={finishForm.notes} onChange={e=>setFinishForm(p=>({...p,notes:e.target.value}))}/>
+              </div>
+              <div style={{display:"flex",gap:8}}>
+                <button style={{...S.btnSecondary,flex:1}} onClick={()=>setShowFinishModal(false)}>Cancel·lar</button>
+                <button style={{...S.btnPrimary,flex:2,padding:"12px"}} onClick={async()=>{
+                  await saveStdSession(selClient,selDay,dayExs,finishForm);
+                  setShowFinishModal(false);
+                  setFinishForm({rpe:"",duration:"",feeling:"",notes:""});
+                }}>Guardar sessió</button>
+              </div>
+            </div>
           </div>
         )}
-      </div>
-      {dayExs.length===0?(
-        <div style={{textAlign:"center",padding:"3rem 0",color:T.textSecondary}}>
-          <div style={{fontSize:40,marginBottom:12}}>🛋️</div>
-          <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4}}>Dia de descans</div>
-          <div style={{fontSize:13}}>Descansa i recupera energia</div>
-        </div>
-      ):(
-        <>
-          {dayExs.map((ex,i)=>{
-            const done=isStdDone(selClient,selDay,ex.id);
-            return (
-              <div key={ex.id} style={{...S.card,opacity:done?0.5:1}}>
-                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
-                  <button onClick={()=>toggleStdDone(selClient,selDay,ex.id)} style={{width:26,height:26,borderRadius:"50%",border:`2px solid ${done?T.accent:T.border}`,background:done?T.accent:T.card2,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.2s"}}>
-                    {done&&<svg viewBox="0 0 16 16" width="14" height="14"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                  </button>
-                  <div style={{fontWeight:500,fontSize:14,color:done?T.textMuted:T.textPrimary,textDecoration:done?"line-through":"none"}}>{i+1}. {ex.name}</div>
-                </div>
-                <div style={{paddingLeft:36,display:"flex",gap:5,flexWrap:"wrap"}}>
-                  <span style={S.tag("purple")}>{ex.sets} sèries</span>
-                  <span style={S.tag("green")}>{ex.reps} reps</span>
-                  {ex.weight&&<span style={S.tag()}>{ex.weight}</span>}
-                  {ex.notes&&<div style={{fontSize:12,color:T.textSecondary,marginTop:6,width:"100%"}}>💬 {ex.notes}</div>}
-                </div>
-              </div>
-            );
-          })}
-          {dc===dayExs.length&&dayExs.length>0&&(
-  <div style={{background:T.greenBg,border:`1px solid ${T.greenBorder}`,borderRadius:14,padding:"1.25rem",textAlign:"center"}}>
-    <div style={{fontSize:32,marginBottom:6}}>🎉</div>
-    <div style={{fontWeight:500,color:T.green,marginBottom:12}}>Tots els exercicis completats!</div>
-    <button style={{...S.btnPrimary,padding:"12px"}} onClick={()=>{setFinishForm({rpe:"",duration:"",feeling:"",notes:""});setShowFinishModal(true);}}>
-      🏁 Finalitzar entrenament
-    </button>
-  </div>
-)}
-            <div style={{background:T.greenBg,border:`1px solid ${T.greenBorder}`,borderRadius:14,padding:"1.25rem",textAlign:"center"}}>
-              <div style={{fontSize:32,marginBottom:6}}>🎉</div>
-              <div style={{fontWeight:500,color:T.green}}>Entrenament completat!</div>
-            </div>
-          )}
-        </>
-      )}
-    </div>
-  </>
-)}
 
-{clientViewTab==="perfil"&&(()=>{
-  {clientViewTab==="historial"&&(()=>{
-  const history = clientHistories[selClient] || [];
-  const totalS = history.length;
-  const thisWeek = history.filter(s => {
-    const d = new Date(s.createdAt);
-    const now = new Date();
-    const diff = (now - d) / (1000*60*60*24);
-    return diff <= 7;
-  }).length;
-  return (
-    <div style={S.sec}>
-      {totalS===0?(
-        <div style={{textAlign:"center",padding:"3rem 0",color:T.textSecondary}}>
-          <div style={{fontSize:40,marginBottom:12}}>📋</div>
-          <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4}}>Encara no hi ha sessions</div>
-          <div style={{fontSize:13}}>Completa el primer entrenament per veure l'historial</div>
+        {/* Pestanyes */}
+        <div style={{display:"flex",borderBottom:`1px solid ${T.border}`,padding:"0 1.25rem"}}>
+          {[["entrenament","🏋️ Entrenament"],["perfil","👤 Perfil"],["historial","📋 Historial"]].map(([tab,label])=>(
+            <button key={tab} onClick={()=>setClientViewTab(tab)}
+              style={{padding:"10px 16px",fontSize:13,cursor:"pointer",background:"none",border:"none",
+                borderBottom:`2px solid ${clientViewTab===tab?T.accent:"transparent"}`,
+                color:clientViewTab===tab?T.accent:T.textSecondary,
+                fontWeight:clientViewTab===tab?500:400,marginBottom:-1,transition:"all 0.15s"}}>
+              {label}
+            </button>
+          ))}
         </div>
-      ):(
-        <>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:8,marginBottom:16}}>
-            {[{label:"Total sessions",value:totalS,color:T.accent},{label:"Aquesta setmana",value:thisWeek,color:T.green}].map(st=>(
-              <div key={st.label} style={{background:T.card,borderRadius:12,padding:"0.75rem",textAlign:"center",border:`1px solid ${T.border}`}}>
-                <div style={{fontSize:22,fontWeight:500,color:st.color}}>{st.value}</div>
-                <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{st.label}</div>
-              </div>
-            ))}
-          </div>
-          {history.map((sess,idx)=>{
-            const full = sess.completionPercentage===100;
-            return (
-              <div key={idx} style={S.card}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                  <div>
-                    <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>{sess.sessionTitle}</div>
-                    <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{sess.date}</div>
+
+        {/* Pestanya Entrenament */}
+        {clientViewTab==="entrenament"&&(
+          <>
+            <div style={{display:"flex",gap:6,padding:"0.85rem 1.25rem 0.5rem",overflowX:"auto"}}>
+              {DAYS.map((d,i)=>{
+                const hasEx=(data.routines[selClient]?.[d]?.length||0)>0;
+                const active=selDay===d;
+                return (
+                  <div key={d} style={{textAlign:"center",flexShrink:0}}>
+                    <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1px solid ${active?T.accent:hasEx?cc.border:T.border}`,background:active?T.accent:T.card,color:active?T.bg:hasEx?cc.text:T.textMuted,cursor:"pointer",fontSize:12,fontWeight:active?500:400}}>
+                      {DAYS_SHORT[i]}
+                    </button>
+                    {hasEx&&!active&&<div style={{width:4,height:4,borderRadius:"50%",background:T.accent,margin:"3px auto 0"}}/>}
+                    {d===TODAY&&<div style={{fontSize:9,color:T.accent,marginTop:2}}>avui</div>}
                   </div>
-                  <span style={full?S.tag("green"):S.tag()}>{sess.completionPercentage}%</span>
+                );
+              })}
+            </div>
+            <div style={S.sec}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                <div>
+                  <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>{selDay}</div>
+                  {selDay===TODAY&&<div style={{fontSize:12,color:T.accent,fontWeight:500}}>Avui</div>}
                 </div>
-                <div style={{fontSize:12,color:T.textSecondary,marginBottom:8}}>{sess.completedExercises}/{sess.totalExercises} exercicis</div>
-                {(sess.rpe||sess.feeling||sess.durationReal)&&(
-                  <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
-                    {sess.rpe&&<span style={S.tag("purple")}>RPE {sess.rpe}</span>}
-                    {sess.durationReal&&<span style={S.tag()}>⏱ {sess.durationReal} min</span>}
-                    {sess.feeling&&<span style={S.tag()}>{sess.feeling}</span>}
+                {dayExs.length>0&&(
+                  <div style={{textAlign:"right"}}>
+                    <div style={{fontSize:12,color:T.textSecondary,marginBottom:4}}>{dc}/{dayExs.length}</div>
+                    <ProgressBar value={dc} total={dayExs.length}/>
                   </div>
                 )}
-                <ProgressBar value={sess.completedExercises} total={sess.totalExercises} color={full?T.green:T.accent}/>
-                {sess.clientNotes&&<div style={{fontSize:12,color:T.textSecondary,marginTop:8,fontStyle:"italic"}}>💬 {sess.clientNotes}</div>}
               </div>
-            );
-          })}
-        </>
-      )}
-    </div>
-  );
-})()}
-  const fields=[
-    {key:"age",label:"Edat",placeholder:"Ex. 28"},
-    {key:"level",label:"Nivell",type:"select",options:["principiant","intermedi","avançat"]},
-    {key:"place",label:"Lloc d'entrenament",type:"select",options:["gimnàs","casa","exterior","pista","altre"]},
-    {key:"material",label:"Material disponible",placeholder:"Ex. manuelles, goma..."},
-    {key:"startDate",label:"Data d'inici",placeholder:"Ex. 01/01/2025"},
-    {key:"injuries",label:"Lesions prèvies",placeholder:"Ex. genoll dret..."},
-    {key:"currentPain",label:"Dolor actual",placeholder:"Ex. cap / lumbar..."},
-    {key:"avoidEx",label:"Exercicis a evitar",placeholder:"Ex. sentadilla profunda..."},
-    {key:"likes",label:"Exercicis que li agraden",placeholder:"Ex. rem, dominades..."},
-    {key:"dislikes",label:"Exercicis que no li agraden",placeholder:"Ex. burpees..."},
-    {key:"coachNotes",label:"Notes internes",placeholder:"Notes privades de l'entrenador..."},
-  ];
-  const saveClientData=()=>{
-    const nd={...data,clients:data.clients.map(c=>c.id===selClient?{...c,...clientDraft}:c)};
-    updateData(nd);setEditingClient(false);
-  };
-  return (
-    <div style={S.sec}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-        <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>El meu perfil</div>
-        {!editingClient
-          ?<button style={{...S.btnSecondary,fontSize:12}} onClick={()=>{setClientDraft({...client});setEditingClient(true);}}>Editar</button>
-          :<div style={{display:"flex",gap:8}}>
-            <button style={{...S.btnSecondary,fontSize:12}} onClick={()=>setEditingClient(false)}>Cancel·lar</button>
-            <button style={{...S.btnPrimary,width:"auto",padding:"6px 14px",fontSize:12}} onClick={saveClientData}>Guardar</button>
-          </div>
-        }
-      </div>
-      <div style={{...S.card,marginBottom:12}}>
-        <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Dades bàsiques</div>
-        <div style={{marginBottom:8}}>
-          <label style={S.lbl}>Nom complet</label>
-          {editingClient?<input style={S.inp} value={clientDraft?.name||""} onChange={e=>setClientDraft(p=>({...p,name:e.target.value}))}/>
-            :<div style={{fontSize:14,color:T.textPrimary,fontWeight:500}}>{client?.name}</div>}
-        </div>
-        <div style={{marginBottom:8}}>
-          <label style={S.lbl}>Objectiu principal</label>
-          {editingClient?<input style={S.inp} value={clientDraft?.goal||""} onChange={e=>setClientDraft(p=>({...p,goal:e.target.value}))}/>
-            :<div style={{fontSize:13,color:T.textPrimary}}>{client?.goal||"—"}</div>}
-        </div>
-        {fields.slice(0,5).map(f=>(
-          <div key={f.key} style={{marginBottom:8}}>
-            <label style={S.lbl}>{f.label}</label>
-            {editingClient
-              ?f.type==="select"
-                ?<select style={S.inp} value={clientDraft?.[f.key]||""} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}>
-                  {f.options.map(o=><option key={o} value={o}>{o}</option>)}
-                </select>
-                :<input style={S.inp} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>
-              :<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"—"}</div>}
-          </div>
-        ))}
-      </div>
-      <div style={{...S.card,marginBottom:12}}>
-        <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Salut i limitacions</div>
-        {fields.slice(5,8).map(f=>(
-          <div key={f.key} style={{marginBottom:8}}>
-            <label style={S.lbl}>{f.label}</label>
-            {editingClient?<input style={S.inp} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>
-              :<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"—"}</div>}
-          </div>
-        ))}
-      </div>
-      <div style={S.card}>
-        <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Preferències i notes</div>
-        {fields.slice(8).map(f=>(
-          <div key={f.key} style={{marginBottom:8}}>
-            <label style={S.lbl}>{f.label}</label>
-            {editingClient?<textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>
-              :<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"—"}</div>}
-          </div>
-        ))}
-      </div>
-    </div>
-);
-  })()}
+              {dayExs.length===0?(
+                <div style={{textAlign:"center",padding:"3rem 0",color:T.textSecondary}}>
+                  <div style={{fontSize:40,marginBottom:12}}>🛋️</div>
+                  <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4}}>Dia de descans</div>
+                  <div style={{fontSize:13}}>Descansa i recupera energia</div>
+                </div>
+              ):(
+                <>
+                  {dayExs.map((ex,i)=>{
+                    const done=isStdDone(selClient,selDay,ex.id);
+                    return (
+                      <div key={ex.id} style={{...S.card,opacity:done?0.5:1}}>
+                        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
+                          <button onClick={()=>toggleStdDone(selClient,selDay,ex.id)} style={{width:26,height:26,borderRadius:"50%",border:`2px solid ${done?T.accent:T.border}`,background:done?T.accent:T.card2,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.2s"}}>
+                            {done&&<svg viewBox="0 0 16 16" width="14" height="14"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                          </button>
+                          <div style={{fontWeight:500,fontSize:14,color:done?T.textMuted:T.textPrimary,textDecoration:done?"line-through":"none"}}>{i+1}. {ex.name}</div>
+                        </div>
+                        <div style={{paddingLeft:36,display:"flex",gap:5,flexWrap:"wrap"}}>
+                          <span style={S.tag("purple")}>{ex.sets} sèries</span>
+                          <span style={S.tag("green")}>{ex.reps} reps</span>
+                          {ex.weight&&<span style={S.tag()}>{ex.weight}</span>}
+                          {ex.notes&&<div style={{fontSize:12,color:T.textSecondary,marginTop:6,width:"100%"}}>💬 {ex.notes}</div>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {dc===dayExs.length&&dayExs.length>0&&(
+                    <div style={{background:T.greenBg,border:`1px solid ${T.greenBorder}`,borderRadius:14,padding:"1.25rem",textAlign:"center"}}>
+                      <div style={{fontSize:32,marginBottom:6}}>🎉</div>
+                      <div style={{fontWeight:500,color:T.green,marginBottom:12}}>Tots els exercicis completats!</div>
+                      <button style={{...S.btnPrimary,padding:"12px"}} onClick={()=>{setFinishForm({rpe:"",duration:"",feeling:"",notes:""});setShowFinishModal(true);}}>
+                        🏁 Finalitzar entrenament
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </>
+        )}
 
-  </div>
-);
-}
+        {/* Pestanya Perfil */}
+        {clientViewTab==="perfil"&&(()=>{
+          const fields=[
+            {key:"age",label:"Edat",placeholder:"Ex. 28"},
+            {key:"level",label:"Nivell",type:"select",options:["principiant","intermedi","avançat"]},
+            {key:"place",label:"Lloc d'entrenament",type:"select",options:["gimnàs","casa","exterior","pista","altre"]},
+            {key:"material",label:"Material disponible",placeholder:"Ex. manuelles, goma..."},
+            {key:"startDate",label:"Data d'inici",placeholder:"Ex. 01/01/2025"},
+            {key:"injuries",label:"Lesions prèvies",placeholder:"Ex. genoll dret..."},
+            {key:"currentPain",label:"Dolor actual",placeholder:"Ex. cap / lumbar..."},
+            {key:"avoidEx",label:"Exercicis a evitar",placeholder:"Ex. sentadilla profunda..."},
+            {key:"likes",label:"Exercicis que li agraden",placeholder:"Ex. rem, dominades..."},
+            {key:"dislikes",label:"Exercicis que no li agraden",placeholder:"Ex. burpees..."},
+            {key:"coachNotes",label:"Notes internes",placeholder:"Notes privades de l'entrenador..."},
+          ];
+          const saveClientData=()=>{
+            const nd={...data,clients:data.clients.map(c=>c.id===selClient?{...c,...clientDraft}:c)};
+            updateData(nd);setEditingClient(false);
+          };
+          return (
+            <div style={S.sec}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+                <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>El meu perfil</div>
+                {!editingClient
+                  ?<button style={{...S.btnSecondary,fontSize:12}} onClick={()=>{setClientDraft({...client});setEditingClient(true);}}>Editar</button>
+                  :<div style={{display:"flex",gap:8}}>
+                    <button style={{...S.btnSecondary,fontSize:12}} onClick={()=>setEditingClient(false)}>Cancel·lar</button>
+                    <button style={{...S.btnPrimary,width:"auto",padding:"6px 14px",fontSize:12}} onClick={saveClientData}>Guardar</button>
+                  </div>
+                }
+              </div>
+              <div style={{...S.card,marginBottom:12}}>
+                <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Dades bàsiques</div>
+                <div style={{marginBottom:8}}>
+                  <label style={S.lbl}>Nom complet</label>
+                  {editingClient?<input style={S.inp} value={clientDraft?.name||""} onChange={e=>setClientDraft(p=>({...p,name:e.target.value}))}/>
+                    :<div style={{fontSize:14,color:T.textPrimary,fontWeight:500}}>{client?.name}</div>}
+                </div>
+                <div style={{marginBottom:8}}>
+                  <label style={S.lbl}>Objectiu principal</label>
+                  {editingClient?<input style={S.inp} value={clientDraft?.goal||""} onChange={e=>setClientDraft(p=>({...p,goal:e.target.value}))}/>
+                    :<div style={{fontSize:13,color:T.textPrimary}}>{client?.goal||"—"}</div>}
+                </div>
+                {fields.slice(0,5).map(f=>(
+                  <div key={f.key} style={{marginBottom:8}}>
+                    <label style={S.lbl}>{f.label}</label>
+                    {editingClient
+                      ?f.type==="select"
+                        ?<select style={S.inp} value={clientDraft?.[f.key]||""} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}>
+                          {f.options.map(o=><option key={o} value={o}>{o}</option>)}
+                        </select>
+                        :<input style={S.inp} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>
+                      :<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"—"}</div>}
+                  </div>
+                ))}
+              </div>
+              <div style={{...S.card,marginBottom:12}}>
+                <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Salut i limitacions</div>
+                {fields.slice(5,8).map(f=>(
+                  <div key={f.key} style={{marginBottom:8}}>
+                    <label style={S.lbl}>{f.label}</label>
+                    {editingClient?<input style={S.inp} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>
+                      :<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"—"}</div>}
+                  </div>
+                ))}
+              </div>
+              <div style={S.card}>
+                <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Preferències i notes</div>
+                {fields.slice(8).map(f=>(
+                  <div key={f.key} style={{marginBottom:8}}>
+                    <label style={S.lbl}>{f.label}</label>
+                    {editingClient?<textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>
+                      :<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"—"}</div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
-// ══════════════════════════════════════════════════════════════════════════
-// ── ADMIN ─────────────────────────────────────────────────────────────────
+        {/* Pestanya Historial */}
+        {clientViewTab==="historial"&&(()=>{
+          const history=clientHistories[selClient]||[];
+          const totalS=history.length;
+          const thisWeek=history.filter(s=>{
+            const d=new Date(s.createdAt);
+            const now=new Date();
+            return (now-d)/(1000*60*60*24)<=7;
+          }).length;
+          return (
+            <div style={S.sec}>
+              {totalS===0?(
+                <div style={{textAlign:"center",padding:"3rem 0",color:T.textSecondary}}>
+                  <div style={{fontSize:40,marginBottom:12}}>📋</div>
+                  <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4}}>Encara no hi ha sessions</div>
+                  <div style={{fontSize:13}}>Completa el primer entrenament per veure l'historial</div>
+                </div>
+              ):(
+                <>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:8,marginBottom:16}}>
+                    {[{label:"Total sessions",value:totalS,color:T.accent},{label:"Aquesta setmana",value:thisWeek,color:T.green}].map(st=>(
+                      <div key={st.label} style={{background:T.card,borderRadius:12,padding:"0.75rem",textAlign:"center",border:`1px solid ${T.border}`}}>
+                        <div style={{fontSize:22,fontWeight:500,color:st.color}}>{st.value}</div>
+                        <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{st.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {history.map((sess,idx)=>{
+                    const full=sess.completionPercentage===100;
+                    return (
+                      <div key={idx} style={S.card}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                          <div>
+                            <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>{sess.sessionTitle}</div>
+                            <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{sess.date}</div>
+                          </div>
+                          <span style={full?S.tag("green"):S.tag()}>{sess.completionPercentage}%</span>
+                        </div>
+                        <div style={{fontSize:12,color:T.textSecondary,marginBottom:8}}>{sess.completedExercises}/{sess.totalExercises} exercicis</div>
+                        {(sess.rpe||sess.feeling||sess.durationReal)&&(
+                          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
+                            {sess.rpe&&<span style={S.tag("purple")}>RPE {sess.rpe}</span>}
+                            {sess.durationReal&&<span style={S.tag()}>⏱ {sess.durationReal} min</span>}
+                            {sess.feeling&&<span style={S.tag()}>{sess.feeling}</span>}
+                          </div>
+                        )}
+                        <ProgressBar value={sess.completedExercises} total={sess.totalExercises} color={full?T.green:T.accent}/>
+                        {sess.clientNotes&&<div style={{fontSize:12,color:T.textSecondary,marginTop:8,fontStyle:"italic"}}>💬 {sess.clientNotes}</div>}
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+            </div>
+          );
+        })()}
+
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── ADMIN ─────────────────────────────────────────────────────────────────
 const routine=getIgnasiRoutine();
   const dayExercises=data.routines[adminClient]?.[selDay]||[];
 
