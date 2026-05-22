@@ -167,7 +167,7 @@ export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const urlClient = urlParams.get("client");
   const clienteInicial = urlClient ? parseInt(urlClient) : null;
-const esAccesDirecte = !!urlClient;
+const esAccesDirecte = !!urlClient; // eslint-disable-line no-unused-vars
   const [mode, setMode] = useState(clienteInicial ? "client" : "select");
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
