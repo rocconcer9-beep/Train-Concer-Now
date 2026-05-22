@@ -238,7 +238,7 @@ const [clientDraft, setClientDraft] = useState(null);
     try{const h=await get(ref(db,`history-${clientId}`));setClientHistories(p=>({...p,[clientId]:h.exists()?Object.values(h.val()):[]}));}
     catch{setClientHistories(p=>({...p,[clientId]:[]}));}
   };
-  const selectAdminClient = (id) => {setAdminClient(id);setAdminTab("routine");setClientTab("dades");setEditingClient(false);loadClientHistory(id);};
+  const selectAdminClient = (id) => {setAdminClient(id);setAdminTab("routine");setAdminTab("dades");setEditingClient(false);loadClientHistory(id);};
 
   // Ignasi helpers
   const getIgnasiRoutine = () => data?.routines?.[2]?.ignasi||DEFAULT_IGNASI;
@@ -282,7 +282,7 @@ const [clientDraft, setClientDraft] = useState(null);
   const deleteEx = (exId) => {const r={...data.routines,[adminClient]:{...data.routines[adminClient],[selDay]:data.routines[adminClient][selDay].filter(e=>e.id!==exId)}};updateData({...data,routines:r});};
   const saveEdit = () => {const r={...data.routines,[adminClient]:{...data.routines[adminClient],[selDay]:data.routines[adminClient][selDay].map(e=>e.id===editingEx.id?editingEx:e)}};updateData({...data,routines:r});setEditingEx(null);};
   const addEx = () => {if(!newEx.name)return;const r={...data.routines,[adminClient]:{...data.routines[adminClient],[selDay]:[...(data.routines[adminClient][selDay]||[]),{...newEx,id:Date.now()}]}};updateData({...data,routines:r});setNewEx({name:"",sets:3,reps:10,unit:"reps",weight:"",notes:"",icon:"dumbbell"});setShowAddEx(false);};
-  const addClient = () => {if(!newClient.name)return;const id=Date.now();const avatar=newClient.name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();const newC={id,name:newClient.name,goal:newClient.goal,avatar,routineType:"weekly",age:"",level:"principiant",place:"gimnàs",material:"",injuries:"",currentPain:"",avoidEx:"",likes:"",dislikes:"",coachNotes:"",startDate:new Date().toLocaleDateString("ca-ES")};updateData({clients:[...data.clients,newC],routines:{...data.routines,[id]:DAYS.reduce((a,d)=>({...a,[d]:[]}),{})}});setNewClient({name:"",goal:""});setShowAddClient(false);selectAdminClient(id);setClientTab("dades");};
+  const addClient = () => {if(!newClient.name)return;const id=Date.now();const avatar=newClient.name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();const newC={id,name:newClient.name,goal:newClient.goal,avatar,routineType:"weekly",age:"",level:"principiant",place:"gimnàs",material:"",injuries:"",currentPain:"",avoidEx:"",likes:"",dislikes:"",coachNotes:"",startDate:new Date().toLocaleDateString("ca-ES")};updateData({clients:[...data.clients,newC],routines:{...data.routines,[id]:DAYS.reduce((a,d)=>({...a,[d]:[]}),{})}});setNewClient({name:"",goal:""});setShowAddClient(false);selectAdminClient(id);setAdminTab("dades");};
 
   // ── keyframes injected once ───────────────────────────────────────────────
   const cfStyle = `@keyframes cfPop{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(-60px) rotate(360deg);opacity:0}}`;
