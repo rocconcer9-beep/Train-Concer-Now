@@ -181,7 +181,6 @@ const esAccesDirecte = !!urlClient; // eslint-disable-line no-unused-vars
   // Admin
   const [adminClient, setAdminClient] = useState(1);
   const [adminTab, setAdminTab] = useState("routine");
-const [clientTab, setClientTab] = useState("dades");
   const [clientHistories, setClientHistories] = useState({});
   const [selDay, setSelDay] = useState(TODAY);
   const [editingEx, setEditingEx] = useState(null);
