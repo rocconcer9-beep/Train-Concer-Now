@@ -1,5 +1,5 @@
-﻿{
+{
   "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
+    { "source": "/client/:path*", "destination": "/index.html" }
   ]
 }
