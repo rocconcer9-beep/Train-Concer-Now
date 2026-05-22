@@ -351,7 +351,6 @@ export default function App() {
   // ── CLIENT IGNASI ─────────────────────────────────────────────────────────
   if(mode==="client"&&selClient===2){
     const routine=getIgnasiRoutine();
-    const allExs=getAllExs();
     const dc=doneCount();
     const pct=Math.round((dc/totalExs)*100);
     const allDone=dc===totalExs;
@@ -745,7 +744,7 @@ export default function App() {
         const history=clientHistories[adminClient];
         const client=data.clients.find(c=>c.id===adminClient);
         const ci=data.clients.findIndex(c=>c.id===adminClient);
-        const cc=cClr(ci);
+        void ci;
         if(!history) return <div style={S.sec}><div style={{textAlign:"center",padding:"2rem",color:T.textSecondary,fontSize:13}}>Carregant historial...</div></div>;
         const totalS=history.length;
         const fullS=history.filter(s=>s.doneCount===s.total).length;
