@@ -229,7 +229,8 @@ const esAccesDirecte = !!urlClient; // eslint-disable-line no-unused-vars
   const [editingEx, setEditingEx] = useState(null);
 const [editingClient, setEditingClient] = useState(false);
 const [clientDraft, setClientDraft] = useState(null);
-  const [showAddEx, setShowAddEx] = useState(false);
+  // eslint-disable-next-line no-unused-vars
+const [showAddEx, setShowAddEx] = useState(false);
   const [newEx, setNewEx] = useState({name:"",sets:3,reps:10,unit:"reps",weight:"",notes:"",icon:"dumbbell"});
   const [showAddClient, setShowAddClient] = useState(false);
   const [newClient, setNewClient] = useState({name:"",goal:""});
@@ -337,8 +338,11 @@ const [newLibEx, setNewLibEx] = useState({name:"",category:"Força",muscleGroup:
   // Standard helpers
   const toggleStdDone = (cid,day,exId) => {const key=`${cid}-${day}-${exId}`;const u={...stdCompleted,[key]:!stdCompleted[key]};setStdCompleted(u);persistStdCompleted(u);};
   const isStdDone = (cid,day,exId) => !!stdCompleted[`${cid}-${day}-${exId}`];
+  // eslint-disable-next-line no-unused-vars
   const deleteEx = (exId) => {const r={...data.routines,[adminClient]:{...data.routines[adminClient],[selDay]:data.routines[adminClient][selDay].filter(e=>e.id!==exId)}};updateData({...data,routines:r});};
+  // eslint-disable-next-line no-unused-vars
   const saveEdit = () => {const r={...data.routines,[adminClient]:{...data.routines[adminClient],[selDay]:data.routines[adminClient][selDay].map(e=>e.id===editingEx.id?editingEx:e)}};updateData({...data,routines:r});setEditingEx(null);};
+  // eslint-disable-next-line no-unused-vars
   const addEx = () => {if(!newEx.name)return;const currentClient=data.routines[adminClient]||DAYS.reduce((a,d)=>({...a,[d]:[]}),{});const currentDay=currentClient[selDay]||[];const r={...data.routines,[adminClient]:{...currentClient,[selDay]:[...currentDay,{...newEx,id:Date.now()}]}};updateData({...data,routines:r});setNewEx({name:"",sets:3,reps:10,unit:"reps",weight:"",notes:"",icon:"dumbbell"});setShowAddEx(false);};
   const addClient = () => {if(!newClient.name)return;const id=Date.now();const avatar=newClient.name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();const newC={id,name:newClient.name,goal:newClient.goal,avatar,routineType:"weekly",age:"",level:"principiant",place:"gimnàs",material:"",injuries:"",currentPain:"",avoidEx:"",likes:"",dislikes:"",coachNotes:"",startDate:new Date().toLocaleDateString("ca-ES")};updateData({clients:[...data.clients,newC],routines:{...data.routines,[id]:DAYS.reduce((a,d)=>({...a,[d]:[]}),{})}});setNewClient({name:"",goal:""});setShowAddClient(false);selectAdminClient(id);setAdminTab("dades");};
 const saveStdSession = async (clientId, day, exercises, formData) => {
@@ -996,7 +1000,8 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
   // ══════════════════════════════════════════════════════════════════════════
   // ── ADMIN ─────────────────────────────────────────────────────────────────
 const routine=getIgnasiRoutine();
-  const dayExercises=data.routines[adminClient]?.[selDay]||[];
+  // eslint-disable-next-line no-unused-vars
+const dayExercises=data.routines[adminClient]?.[selDay]||[];
 
   return (
     <div style={S.wrap}>
