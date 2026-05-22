@@ -398,7 +398,6 @@ export default function App() {
                   </div>
                 </div>
                 {ignHistory.map((sess,idx)=>{
-                  const p=Math.round((sess.doneCount/sess.total)*100);
                   const full=sess.doneCount===sess.total;
                   return (
                     <div key={idx} style={S.card}>
