@@ -157,6 +157,11 @@ const ProgressBar = ({value, total, color=T.accent}) => {
   );
 };
 
+// ── Form card (fora del component per evitar re-renders) ──────────────────────
+const FormCard = ({children, style={}}) => (
+  <div style={{background:"#1A1A24",border:"1px solid #E8FF4740",borderRadius:14,padding:"0.9rem 1rem",marginBottom:10,...style}}>{children}</div>
+);
+
 // ══════════════════════════════════════════════════════════════════════════════
 export default function App() {
   const [mode, setMode] = useState("select");
@@ -285,9 +290,6 @@ export default function App() {
   );
 
   // ── Shared form styles ────────────────────────────────────────────────────
-  const FormCard = ({children, style={}}) => (
-    <div style={{...S.card,border:`1px solid ${T.accent}40`,...style}}>{children}</div>
-  );
 
   // ══════════════════════════════════════════════════════════════════════════
   // ── SELECT ────────────────────────────────────────────────────────────────
