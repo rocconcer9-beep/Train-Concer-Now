@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { db } from "./firebase";
+import { ref, set, get, push, onValue } from "firebase/database";
 
 const DAYS = ["Dilluns","Dimarts","Dimecres","Dijous","Divendres","Dissabte","Diumenge"];
 const DAYS_SHORT = ["L","M","X","J","V","S","D"];
@@ -211,27 +213,27 @@ const esAccesDirecte = !!urlClient; // eslint-disable-line no-unused-vars
   const loadData = async () => {
     setLoading(true);
     try {
-      const [dr,hr,cr] = await Promise.allSettled([
-        window.storage.get("fitcoach-data2",true),
-        window.storage.get("history-2",true),
-        window.storage.get("fitcoach-completed",true),
+      const [dr,hr,cr,h1r] = await Promise.all([
+        get(ref(db,"fitcoach-data2")),
+        get(ref(db,"history-2")),
+        get(ref(db,"fitcoach-completed")),
+        get(ref(db,"history-1")),
       ]);
-      setData(dr.status==="fulfilled"&&dr.value?JSON.parse(dr.value.value):DEFAULT_DATA);
-      setIgnHistory(hr.status==="fulfilled"&&hr.value?JSON.parse(hr.value.value):[]);
-      setStdCompleted(cr.status==="fulfilled"&&cr.value?JSON.parse(cr.value.value):{});
-      try { const h1=await window.storage.get("history-1",true); setClientHistories({1:h1?JSON.parse(h1.value):[]});} catch {setClientHistories({1:[]});}
+      setData(dr.exists()?dr.val():DEFAULT_DATA);
+      setIgnHistory(hr.exists()?Object.values(hr.val()):[]);
+      setStdCompleted(cr.exists()?cr.val():{});
+      setClientHistories({1:h1r.exists()?Object.values(h1r.val()):[]});
     } catch {setData(DEFAULT_DATA);}
     setLoading(false);
   };
-
-  const persist = async (nd) => {setSaving(true);try{await window.storage.set("fitcoach-data2",JSON.stringify(nd),true);}catch{}setSaving(false);};
-  const persistHistory = async (h) => {try{await window.storage.set("history-2",JSON.stringify(h),true);}catch{}};
-  const persistStdCompleted = async (c) => {try{await window.storage.set("fitcoach-completed",JSON.stringify(c),true);}catch{}};
+  const persist = async (nd) => {setSaving(true);try{await set(ref(db,"fitcoach-data2"),nd);}catch{}setSaving(false);};
+  const persistHistory = async (h) => {try{await set(ref(db,"history-2"),h);}catch{}};
+  const persistStdCompleted = async (c) => {try{await set(ref(db,"fitcoach-completed"),c);}catch{}};
   const updateData = (d) => {setData(d);persist(d);};
 
   const loadClientHistory = async (clientId) => {
     if(clientHistories[clientId]!==undefined)return;
-    try{const h=await window.storage.get(`history-${clientId}`,true);setClientHistories(p=>({...p,[clientId]:h?JSON.parse(h.value):[]}));}
+    try{const h=await get(ref(db,`history-${clientId}`));setClientHistories(p=>({...p,[clientId]:h.exists()?Object.values(h.val()):[]}));}
     catch{setClientHistories(p=>({...p,[clientId]:[]}));}
   };
   const selectAdminClient = (id) => {setAdminClient(id);setAdminTab("routine");loadClientHistory(id);};
