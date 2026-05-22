@@ -422,7 +422,7 @@ const esAccesDirecte = !!urlClient; // eslint-disable-line no-unused-vars
             )}
           </div>
           <div style={{padding:"0 1.25rem"}}>
-            <button style={S.btnSecondary} onClick={()=>setMode("select")}>Sortir de l'app</button>
+            <button style={S.btnSecondary} onClick={()=>{if(!esAccesDirecte)setMode("select")}}>Sortir de l'app</button>
           </div>
         </div>
       );
@@ -438,7 +438,7 @@ const esAccesDirecte = !!urlClient; // eslint-disable-line no-unused-vars
               <svg viewBox="0 0 16 16" width="13" height="13" fill="none"><path stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" d="M2 8a6 6 0 1 0 12 0A6 6 0 0 0 2 8zm6-3v3l2 2"/></svg>
               Historial
             </button>
-            <button style={S.btnSecondary} onClick={()=>setMode("select")}>Sortir</button>
+            <button style={S.btnSecondary} onClick={()=>{if(!esAccesDirecte)setMode("select")}}>Sortir</button>
           </div>
         }/>
         <div style={S.sec}>
@@ -613,7 +613,7 @@ const esAccesDirecte = !!urlClient; // eslint-disable-line no-unused-vars
               <div style={{fontSize:11,color:cc.text}}>{client?.goal}</div>
             </div>
           </div>
-          <button style={S.btnSecondary} onClick={()=>setMode("select")}>Sortir</button>
+          <button style={S.btnSecondary} onClick={()=>{if(!esAccesDirecte)setMode("select")}}>Sortir</button>
         </div>
         {/* Day selector */}
         <div style={{display:"flex",gap:6,padding:"0.85rem 1.25rem 0.5rem",overflowX:"auto"}}>
