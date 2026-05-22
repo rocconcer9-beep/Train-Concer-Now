@@ -808,7 +808,7 @@ const esAccesDirecte = !!urlClient; // eslint-disable-line no-unused-vars
                       <div style={{marginBottom:8}}><label style={S.lbl}>Títol del bloc</label><input style={S.inp} value={editingBlock.title} onChange={e=>setEditingBlock(p=>({...p,title:e.target.value}))}/></div>
                       {block.type==="circuit"&&(
                         <div style={{...S.row,marginBottom:8}}>
-                          <div style={{flex:1}}><label style={S.lbl}>Voltes</label><input style={S.inp} type="number" value={editingBlock.rounds} onChange={e=>setEditingBlock(p=>({...p,rounds:+e.target.value}))}/></div>
+                          <div style={{flex:1}}><label style={S.lbl}>Voltes</label><input style={S.inp} type="number" value={editingBlock.rounds} onChange={e=>setEditingBlock(p=>({...p,rounds:parseInt(e.target.value)||1}))}/></div>
                           <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={editingBlock.rest} onChange={e=>setEditingBlock(p=>({...p,rest:e.target.value}))}/></div>
                         </div>
                       )}
