@@ -1638,9 +1638,9 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
                       </div>
                     ))}
                     <select style={{...S.inp,fontSize:12,marginBottom:12}} value="" onChange={e=>{
-                      const lib = data.exerciseLibrary||[];
-                      const libEx = lib.find(l=>l.id===e.target.value);
-                      if(libEx) setEditingTemplate(p=>({...p,exercises:[...p.exercises,{id:`tex_${Date.now()}`,exerciseId:libEx.id,name:libEx.name,plannedSets:libEx.defaultSets,plannedReps:libEx.defaultReps,plannedLoad:libEx.defaultLoad||"",plannedRest:libEx.defaultRest||"",observations:"",order:p.exercises.length+1}]}));
+                      const lib = getClientLibrary(adminClient);
+const libEx = lib.find(l=>l.id===e.target.value);
+if(libEx) setEditingTemplate(p=>({...p,exercises:[...p.exercises,{id:`tex_${Date.now()}`,exerciseId:libEx.id,name:libEx.name,plannedSets:libEx.defaultSets,plannedReps:libEx.defaultReps,plannedLoad:libEx.defaultLoad||"",plannedRest:libEx.defaultRest||"",observations:"",order:p.exercises.length+1}]}));
                     }}>
                       <option value="">+ Afegir exercici de la biblioteca...</option>
                       {getClientLibrary(adminClient).map(l=><option key={l.id} value={l.id}>{l.name}</option>)}
@@ -1697,9 +1697,9 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
     </div>
   )}
   <select style={{...S.inp,fontSize:12,marginBottom:12}} value="" onChange={e=>{
-    const lib=data.exerciseLibrary||[];
-    const libEx=lib.find(l=>l.id===e.target.value);
-    if(libEx) setNewTemplate(p=>({...p,exercises:[...(p.exercises||[]),{id:`tex_${Date.now()}`,exerciseId:libEx.id,name:libEx.name,plannedSets:libEx.defaultSets,plannedReps:libEx.defaultReps,plannedLoad:libEx.defaultLoad||"",plannedRest:libEx.defaultRest||"",observations:"",order:(p.exercises||[]).length+1}]}));
+    const lib=getClientLibrary(adminClient);
+const libEx=lib.find(l=>l.id===e.target.value);
+if(libEx) setNewTemplate(p=>({...p,exercises:[...(p.exercises||[]),{id:`tex_${Date.now()}`,exerciseId:libEx.id,name:libEx.name,plannedSets:libEx.defaultSets,plannedReps:libEx.defaultReps,plannedLoad:libEx.defaultLoad||"",plannedRest:libEx.defaultRest||"",observations:"",order:(p.exercises||[]).length+1}]}));
   }}>
     <option value="">+ Afegir exercici de la biblioteca...</option>
                       {getClientLibrary(adminClient).map(l=><option key={l.id} value={l.id}>{l.name}</option>)}
