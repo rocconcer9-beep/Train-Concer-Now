@@ -254,7 +254,8 @@ const [showAddEx, setShowAddEx] = useState(false);
   // Standard client
   const [stdCompleted, setStdCompleted] = useState({});
   const [clientViewTab, setClientViewTab] = useState("entrenament");
-  const [selTemplate, setSelTemplate] = useState(null);
+  // eslint-disable-next-line no-unused-vars
+const [selTemplate, setSelTemplate] = useState(null);
 const [sessionExercises, setSessionExercises] = useState({});
   const [showFinishModal, setShowFinishModal] = useState(false);
 const [finishForm, setFinishForm] = useState({rpe:"",duration:"",feeling:"",notes:""});
@@ -338,6 +339,7 @@ const [newLibEx, setNewLibEx] = useState({name:"",category:"Força",muscleGroup:
   const saveBlockEdit = () => {const r=getIgnasiRoutine();const blocks=r.blocks.map(b=>b.id===editingBlock.id?{...b,title:editingBlock.title,subtitle:`${parseInt(editingBlock.rounds)||2} voltes`,rounds:parseInt(editingBlock.rounds)||2,rest:editingBlock.rest}:b);updateIgnasiRoutine({...r,blocks});setEditingBlock(null);};
 
   // Standard helpers
+  // eslint-disable-next-line no-unused-vars
   const toggleStdDone = (cid,day,exId) => {const key=`${cid}-${day}-${exId}`;const u={...stdCompleted,[key]:!stdCompleted[key]};setStdCompleted(u);persistStdCompleted(u);};
   const isStdDone = (cid,day,exId) => !!stdCompleted[`${cid}-${day}-${exId}`];
   // eslint-disable-next-line no-unused-vars
@@ -709,6 +711,7 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
     const ci=data.clients.findIndex(c=>c.id===selClient);
     const cc=cClr(ci);
     const dayExs=data.routines[selClient]?.[selDay]||[];
+    // eslint-disable-next-line no-unused-vars
     const dc=dayExs.filter(e=>isStdDone(selClient,selDay,e.id)).length;
     return (
       <div style={S.wrap}>
@@ -797,6 +800,7 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
   const dayTemplates = dayTplIds.map(id=>templates.find(t=>t.id===id)).filter(Boolean);
   const sessionKey = `${selClient}-${selDay}`;
   const currentSession = sessionExercises[sessionKey] || null;
+  // eslint-disable-next-line no-unused-vars
   const currentTemplate = currentSession ? templates.find(t=>t.id===currentSession.templateId) : null;
 
   const startSession = (tpl) => {
