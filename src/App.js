@@ -361,7 +361,7 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
   const duplicate = existing.find(s => s.clientId===clientId && s.day===day && s.date===dateStr);
   if(duplicate) return;
 
-  const completedExs = exercises.filter(e => isStdDone(clientId, day, e.id));
+  const completedExs = exercises.filter(e => e.sets ? e.sets.every(st=>st.completed) : isStdDone(clientId, day, e.id));
   const record = {
     id: sessionId,
     date: dateStr,
@@ -372,12 +372,17 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
     totalExercises: exercises.length,
     completionPercentage: Math.round((completedExs.length/exercises.length)*100),
     exercises: exercises.map(e => ({
-      name: e.name,
-      sets: e.sets,
-      reps: e.reps,
-      weight: e.weight||"",
-      completed: isStdDone(clientId, day, e.id),
-    })),
+  name: e.name,
+  plannedSets: e.plannedSets||e.sets?.length||0,
+  plannedReps: e.plannedReps||e.reps||"",
+  sets: (e.sets||[]).map(st=>({
+    reps: st.reps||"",
+    rest: st.rest||"",
+    completed: st.completed||false,
+  })),
+  completedSets: (e.sets||[]).filter(st=>st.completed).length,
+  completed: e.sets ? e.sets.every(st=>st.completed) : isStdDone(clientId, day, e.id),
+})),
     rpe: formData.rpe||null,
     durationReal: formData.duration||null,
     feeling: formData.feeling||null,
