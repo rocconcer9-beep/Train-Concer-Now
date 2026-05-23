@@ -257,6 +257,7 @@ const [showAddEx, setShowAddEx] = useState(false);
   // eslint-disable-next-line no-unused-vars
 const [selTemplate, setSelTemplate] = useState(null);
 const [sessionExercises, setSessionExercises] = useState({});
+  const [expandedExercises, setExpandedExercises] = useState({});
   const [showFinishModal, setShowFinishModal] = useState(false);
 const [finishForm, setFinishForm] = useState({rpe:"",duration:"",feeling:"",notes:""});
   const [adminRoutineTab, setAdminRoutineTab] = useState("rutina");
@@ -804,6 +805,16 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
   const currentTemplate = currentSession ? templates.find(t=>t.id===currentSession.templateId) : null;
 
   const startSession = (tpl) => {
+  const exs = tpl.exercises.map(ex=>({
+    ...ex,
+    sets: Array.from({length:ex.plannedSets}, ()=>({
+      reps: ex.plannedReps,
+      rest: ex.plannedRest||"",
+      completed: false,
+    })),
+  }));
+  setSessionExercises(p=>({...p,[sessionKey]:{templateId:tpl.id,templateName:tpl.name,exercises:exs}}));
+};
     const exs = tpl.exercises.map(ex=>({
       ...ex,
       actualSets: ex.plannedSets,
@@ -827,88 +838,148 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
   };
 
   if(currentSession) {
-    const exs = currentSession.exercises;
-    const dc = exs.filter(e=>e.completed).length;
-    return (
-      <>
-        {/* Selector de dies */}
-        <div style={{display:"flex",gap:6,padding:"0.85rem 1.25rem 0.5rem",overflowX:"auto"}}>
-          {DAYS.map((d,i)=>{
-            const hasTpls=(data.schedule?.[selClient]?.[d]?.length||0)>0;
-            const active=selDay===d;
-            return (
-              <div key={d} style={{textAlign:"center",flexShrink:0}}>
-                <button onClick={()=>{setSelDay(d);setSessionExercises(p=>{const np={...p};delete np[`${selClient}-${d}`];return np;});}} style={{width:34,height:34,borderRadius:"50%",border:`1px solid ${active?T.accent:hasTpls?cc.border:T.border}`,background:active?T.accent:T.card,color:active?T.bg:hasTpls?cc.text:T.textMuted,cursor:"pointer",fontSize:12,fontWeight:active?500:400}}>
-                  {DAYS_SHORT[i]}
-                </button>
-                {hasTpls&&!active&&<div style={{width:4,height:4,borderRadius:"50%",background:T.accent,margin:"3px auto 0"}}/>}
-                {d===TODAY&&<div style={{fontSize:9,color:T.accent,marginTop:2}}>avui</div>}
-              </div>
-            );
-          })}
-        </div>
-        <div style={S.sec}>
-          {/* Capçalera sessió */}
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-            <div>
-              <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>{currentSession.templateName}</div>
-              <div style={{fontSize:12,color:T.textSecondary}}>{selDay}{selDay===TODAY?" · Avui":""}</div>
-            </div>
-            <div style={{textAlign:"right"}}>
-              <div style={{fontSize:12,color:T.textSecondary,marginBottom:4}}>{dc}/{exs.length}</div>
-              <ProgressBar value={dc} total={exs.length}/>
-            </div>
-          </div>
-          {/* Exercicis */}
-          {exs.map((ex,i)=>(
-            <div key={i} style={{...S.card,opacity:ex.completed?0.6:1}}>
-              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
-                <button onClick={()=>toggleSessionEx(i)} style={{width:26,height:26,borderRadius:"50%",border:`2px solid ${ex.completed?T.accent:T.border}`,background:ex.completed?T.accent:T.card2,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.2s"}}>
-                  {ex.completed&&<svg viewBox="0 0 16 16" width="14" height="14"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                </button>
-                <div style={{fontWeight:500,fontSize:14,color:ex.completed?T.textMuted:T.textPrimary,textDecoration:ex.completed?"line-through":"none"}}>{i+1}. {ex.name}</div>
-              </div>
-              <div style={{paddingLeft:36}}>
-                <div style={{fontSize:11,color:T.textSecondary,marginBottom:6}}>
-                  Planificat: {ex.plannedSets}×{ex.plannedReps}{ex.plannedLoad?` · ${ex.plannedLoad}`:""}
-                  {ex.plannedRest?` · descans ${ex.plannedRest}`:""}
-                </div>
-                <div style={{display:"flex",gap:6}}>
-                  <div style={{flex:1}}>
-                    <label style={S.lbl}>Sèries reals</label>
-                    <input style={S.inp} type="number" value={ex.actualSets} onChange={e=>updateSessionEx(i,"actualSets",e.target.value)}/>
-                  </div>
-                  <div style={{flex:1}}>
-                    <label style={S.lbl}>Reps reals</label>
-                    <input style={S.inp} value={ex.actualReps} onChange={e=>updateSessionEx(i,"actualReps",e.target.value)}/>
-                  </div>
-                  <div style={{flex:1}}>
-                    <label style={S.lbl}>Càrrega</label>
-                    <input style={S.inp} value={ex.actualLoad} placeholder="kg" onChange={e=>updateSessionEx(i,"actualLoad",e.target.value)}/>
-                  </div>
-                </div>
-                {ex.observations&&<div style={{fontSize:12,color:T.textSecondary,marginTop:6}}>💬 {ex.observations}</div>}
-              </div>
-            </div>
-          ))}
-          {/* Completat */}
-          {dc===exs.length&&exs.length>0&&(
-            <div style={{background:T.greenBg,border:`1px solid ${T.greenBorder}`,borderRadius:14,padding:"1.25rem",textAlign:"center"}}>
-              <div style={{fontSize:32,marginBottom:6}}>🎉</div>
-              <div style={{fontWeight:500,color:T.green,marginBottom:12}}>Tots els exercicis completats!</div>
-              <button style={{...S.btnPrimary,padding:"12px"}} onClick={()=>{setFinishForm({rpe:"",duration:"",feeling:"",notes:""});setShowFinishModal(true);}}>
-                🏁 Finalitzar entrenament
-              </button>
-            </div>
-          )}
-          <button style={{...S.btnSecondary,marginTop:12,width:"100%",textAlign:"center"}} onClick={()=>setSessionExercises(p=>{const np={...p};delete np[sessionKey];return np;})}>
-            ← Canviar entrenament
-          </button>
-        </div>
-      </>
-    );
-  }
+  const exs = currentSession.exercises;
+  const dc = exs.filter(e=>e.sets&&e.sets.every(s=>s.completed)).length;
 
+  const toggleSet = (exIdx, setIdx) => {
+    setSessionExercises(p=>{
+      const s = {...p[sessionKey]};
+      s.exercises = s.exercises.map((e,i)=>i===exIdx?{
+        ...e,
+        sets: e.sets.map((st,j)=>j===setIdx?{...st,completed:!st.completed}:st)
+      }:e);
+      return {...p,[sessionKey]:s};
+    });
+  };
+
+  const updateSet = (exIdx, setIdx, field, value) => {
+    setSessionExercises(p=>{
+      const s = {...p[sessionKey]};
+      s.exercises = s.exercises.map((e,i)=>i===exIdx?{
+        ...e,
+        sets: e.sets.map((st,j)=>j===setIdx?{...st,[field]:value}:st)
+      }:e);
+      return {...p,[sessionKey]:s};
+    });
+  };
+
+  const addSet = (exIdx) => {
+    setSessionExercises(p=>{
+      const s = {...p[sessionKey]};
+      const ex = s.exercises[exIdx];
+      const lastSet = ex.sets[ex.sets.length-1];
+      s.exercises = s.exercises.map((e,i)=>i===exIdx?{
+        ...e,
+        sets: [...e.sets, {reps:lastSet?.reps||ex.plannedReps, rest:lastSet?.rest||ex.plannedRest||"", completed:false}]
+      }:e);
+      return {...p,[sessionKey]:s};
+    });
+  };
+
+  return (
+    <>
+      {/* Selector de dies */}
+      <div style={{display:"flex",gap:6,padding:"0.85rem 1.25rem 0.5rem",overflowX:"auto"}}>
+        {DAYS.map((d,i)=>{
+          const hasTpls=(data.schedule?.[selClient]?.[d]?.length||0)>0;
+          const active=selDay===d;
+          return (
+            <div key={d} style={{textAlign:"center",flexShrink:0}}>
+              <button onClick={()=>{setSelDay(d);}} style={{width:34,height:34,borderRadius:"50%",border:`1px solid ${active?T.accent:hasTpls?cc.border:T.border}`,background:active?T.accent:T.card,color:active?T.bg:hasTpls?cc.text:T.textMuted,cursor:"pointer",fontSize:12,fontWeight:active?500:400}}>
+                {DAYS_SHORT[i]}
+              </button>
+              {hasTpls&&!active&&<div style={{width:4,height:4,borderRadius:"50%",background:T.accent,margin:"3px auto 0"}}/>}
+              {d===TODAY&&<div style={{fontSize:9,color:T.accent,marginTop:2}}>avui</div>}
+            </div>
+          );
+        })}
+      </div>
+      <div style={S.sec}>
+        {/* Capçalera sessió */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+          <div>
+            <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>{currentSession.templateName}</div>
+            <div style={{fontSize:12,color:T.textSecondary}}>{selDay}{selDay===TODAY?" · Avui":""}</div>
+          </div>
+          <div style={{textAlign:"right"}}>
+            <div style={{fontSize:12,color:T.textSecondary,marginBottom:4}}>{dc}/{exs.length}</div>
+            <ProgressBar value={dc} total={exs.length}/>
+          </div>
+        </div>
+
+        {/* Exercicis */}
+        {exs.map((ex,i)=>{
+          const allSetsCompleted = ex.sets&&ex.sets.length>0&&ex.sets.every(s=>s.completed);
+          const isExpanded = expandedExercises[`${sessionKey}-${i}`]!==false;
+          return (
+            <div key={i} style={{...S.card,opacity:allSetsCompleted?0.6:1}}>
+              {/* Capçalera exercici */}
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:isExpanded?10:0}}
+                onClick={()=>setExpandedExercises(p=>({...p,[`${sessionKey}-${i}`]:!isExpanded}))}>
+                <div style={{width:26,height:26,borderRadius:"50%",border:`2px solid ${allSetsCompleted?T.accent:T.border}`,background:allSetsCompleted?T.accent:T.card2,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  {allSetsCompleted&&<svg viewBox="0 0 16 16" width="14" height="14"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:500,fontSize:14,color:allSetsCompleted?T.textMuted:T.textPrimary,textDecoration:allSetsCompleted?"line-through":"none"}}>{i+1}. {ex.name}</div>
+                  <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>
+                    {ex.sets?.filter(s=>s.completed).length||0}/{ex.sets?.length||0} sèries · {ex.plannedReps} reps planificades
+                  </div>
+                </div>
+                <svg viewBox="0 0 12 12" width="14" height="14" style={{transition:"transform 0.2s",transform:isExpanded?"rotate(180deg)":"rotate(0)",flexShrink:0}}>
+                  <polyline points="2,4 6,8 10,4" fill="none" stroke={T.textSecondary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+
+              {/* Sèries desplegables */}
+              {isExpanded&&(
+                <div style={{paddingLeft:36}}>
+                  {ex.observations&&<div style={{fontSize:12,color:T.textSecondary,marginBottom:8}}>💬 {ex.observations}</div>}
+                  {(ex.sets||[]).map((st,j)=>(
+                    <div key={j} style={{background:T.card2,borderRadius:10,padding:"10px 12px",marginBottom:6,border:`1px solid ${st.completed?T.accent:T.border}`}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                        <button onClick={()=>toggleSet(i,j)} style={{width:24,height:24,borderRadius:"50%",border:`2px solid ${st.completed?T.accent:T.border}`,background:st.completed?T.accent:T.bg,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.2s"}}>
+                          {st.completed&&<svg viewBox="0 0 16 16" width="12" height="12"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                        </button>
+                        <span style={{fontSize:13,fontWeight:500,color:T.textPrimary}}>Sèrie {j+1}</span>
+                      </div>
+                      <div style={{display:"flex",gap:6}}>
+                        <div style={{flex:1}}>
+                          <label style={S.lbl}>Reps fetes</label>
+                          <input style={S.inp} value={st.reps} onChange={e=>updateSet(i,j,"reps",e.target.value)} placeholder={ex.plannedReps}/>
+                        </div>
+                        <div style={{flex:1}}>
+                          <label style={S.lbl}>Descans</label>
+                          <input style={S.inp} value={st.rest} onChange={e=>updateSet(i,j,"rest",e.target.value)} placeholder="90s"/>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <button style={{...S.btnSecondary,width:"100%",textAlign:"center",fontSize:12,marginTop:4}} onClick={()=>addSet(i)}>
+                    + Afegir sèrie
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Completat */}
+        {dc===exs.length&&exs.length>0&&(
+          <div style={{background:T.greenBg,border:`1px solid ${T.greenBorder}`,borderRadius:14,padding:"1.25rem",textAlign:"center"}}>
+            <div style={{fontSize:32,marginBottom:6}}>🎉</div>
+            <div style={{fontWeight:500,color:T.green,marginBottom:12}}>Tots els exercicis completats!</div>
+            <button style={{...S.btnPrimary,padding:"12px"}} onClick={()=>{setFinishForm({rpe:"",duration:"",feeling:"",notes:""});setShowFinishModal(true);}}>
+              🏁 Finalitzar entrenament
+            </button>
+          </div>
+        )}
+        <button style={{...S.btnSecondary,marginTop:12,width:"100%",textAlign:"center"}} onClick={()=>setSessionExercises(p=>{const np={...p};delete np[sessionKey];return np;})}>
+          ← Canviar entrenament
+        </button>
+      </div>
+    </>
+  );
+}
   return (
     <>
       {/* Selector de dies */}
