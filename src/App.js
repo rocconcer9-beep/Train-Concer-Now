@@ -824,7 +824,8 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
     });
   };
 
-  const toggleSessionEx = (exIdx) => {
+  // eslint-disable-next-line no-unused-vars
+    const toggleSessionEx = (exIdx) => {
     updateSessionEx(exIdx, "completed", !currentSession.exercises[exIdx].completed);
   };
 
