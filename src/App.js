@@ -1192,7 +1192,9 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
           const history=clientHistories[selClient]||[];
           const totalS=history.length;
           const thisWeek=history.filter(s=>{
+            if(!s.createdAt) return false;
             const d=new Date(s.createdAt);
+            if(isNaN(d.getTime())) return false;
             const now=new Date();
             return (now-d)/(1000*60*60*24)<=7;
           }).length;
