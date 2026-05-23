@@ -815,15 +815,6 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
   }));
   setSessionExercises(p=>({...p,[sessionKey]:{templateId:tpl.id,templateName:tpl.name,exercises:exs}}));
 };
-    const exs = tpl.exercises.map(ex=>({
-      ...ex,
-      actualSets: ex.plannedSets,
-      actualReps: ex.plannedReps,
-      actualLoad: ex.plannedLoad||"",
-      completed: false,
-    }));
-    setSessionExercises(p=>({...p,[sessionKey]:{templateId:tpl.id,templateName:tpl.name,exercises:exs}}));
-  };
 
   const updateSessionEx = (exIdx, field, value) => {
     setSessionExercises(p=>{
