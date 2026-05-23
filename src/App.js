@@ -935,11 +935,12 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
                   {(ex.sets||[]).map((st,j)=>(
                     <div key={j} style={{background:T.card2,borderRadius:10,padding:"10px 12px",marginBottom:6,border:`1px solid ${st.completed?T.accent:T.border}`}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-                        <button onClick={()=>toggleSet(i,j)} style={{width:24,height:24,borderRadius:"50%",border:`2px solid ${st.completed?T.accent:T.border}`,background:st.completed?T.accent:T.bg,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.2s"}}>
-                          {st.completed&&<svg viewBox="0 0 16 16" width="12" height="12"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                        </button>
-                        <span style={{fontSize:13,fontWeight:500,color:T.textPrimary}}>Sèrie {j+1}</span>
-                      </div>
+  <button onClick={()=>toggleSet(i,j)} style={{width:24,height:24,borderRadius:"50%",border:`2px solid ${st.completed?T.accent:T.border}`,background:st.completed?T.accent:T.bg,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.2s"}}>
+    {st.completed&&<svg viewBox="0 0 16 16" width="12" height="12"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+  </button>
+  <span style={{fontSize:13,fontWeight:500,color:T.textPrimary}}>Sèrie {j+1}</span>
+  <button onClick={()=>setSessionExercises(p=>{const s={...p[sessionKey]};s.exercises=s.exercises.map((e,ei)=>ei===i?{...e,sets:e.sets.filter((_,si)=>si!==j)}:e);return {...p,[sessionKey]:s};})} style={{marginLeft:"auto",width:20,height:20,borderRadius:"50%",border:"none",background:T.dangerBg,color:T.danger,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,lineHeight:1}}>×</button>
+</div>
                       <div style={{display:"flex",gap:6}}>
                         <div style={{flex:1}}>
                           <label style={S.lbl}>Reps fetes</label>
