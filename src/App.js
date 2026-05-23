@@ -1054,7 +1054,7 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
               <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>{tpl.name}</div>
               <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{tpl.objective} · {tpl.estimatedDuration}</div>
             </div>
-            <span style={S.tag("purple")}>{tpl.exercises.length} ex</span>
+            <span style={S.tag("purple")}>{tpl.exercises?.length||0} ex</span>
           </div>
         </div>
       ))}
