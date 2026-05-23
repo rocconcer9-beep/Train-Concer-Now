@@ -382,8 +382,10 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
   name: e.name,
   plannedSets: e.plannedSets||e.sets?.length||0,
   plannedReps: e.plannedReps||e.reps||"",
+  plannedLoad: e.plannedLoad||"",
   sets: (e.sets||[]).map(st=>({
     reps: st.reps||"",
+    load: st.load||"",
     rest: st.rest||"",
     completed: st.completed||false,
   })),
@@ -821,7 +823,8 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
   const exs = tpl.exercises.map(ex=>({
     ...ex,
     sets: Array.from({length:ex.plannedSets}, ()=>({
-      reps: ex.plannedReps,
+      reps: ex.plannedReps||"",
+      load: ex.plannedLoad||"",
       rest: ex.plannedRest||"",
       completed: false,
     })),
@@ -875,7 +878,7 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
       const lastSet = ex.sets[ex.sets.length-1];
       s.exercises = s.exercises.map((e,i)=>i===exIdx?{
         ...e,
-        sets: [...e.sets, {reps:lastSet?.reps||ex.plannedReps, rest:lastSet?.rest||ex.plannedRest||"", completed:false}]
+        sets: [...e.sets, {reps:lastSet?.reps||ex.plannedReps||"", load:lastSet?.load||ex.plannedLoad||"", rest:lastSet?.rest||ex.plannedRest||"", completed:false}]
       }:e);
       return {...p,[sessionKey]:s};
     });
@@ -927,7 +930,7 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
                 <div style={{flex:1}}>
                   <div style={{fontWeight:500,fontSize:14,color:allSetsCompleted?T.textMuted:T.textPrimary,textDecoration:allSetsCompleted?"line-through":"none"}}>{i+1}. {ex.name}</div>
                   <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>
-                    {ex.sets?.filter(s=>s.completed).length||0}/{ex.sets?.length||0} sèries · {ex.plannedReps} reps planificades
+                    {ex.sets?.filter(s=>s.completed).length||0}/{ex.sets?.length||0} sèries · {ex.plannedReps} reps{ex.plannedLoad?` · ${ex.plannedLoad}`:""}
                   </div>
                 </div>
                 <svg viewBox="0 0 12 12" width="14" height="14" style={{transition:"transform 0.2s",transform:isExpanded?"rotate(180deg)":"rotate(0)",flexShrink:0}}>
@@ -951,7 +954,11 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
                       <div style={{display:"flex",gap:6}}>
                         <div style={{flex:1}}>
                           <label style={S.lbl}>Reps fetes</label>
-                          <input style={S.inp} value={st.reps} onChange={e=>updateSet(i,j,"reps",e.target.value)} placeholder={ex.plannedReps}/>
+                          <input style={S.inp} value={st.reps} onChange={e=>updateSet(i,j,"reps",e.target.value)} placeholder={ex.plannedReps||"reps"}/>
+                        </div>
+                        <div style={{flex:1}}>
+                          <label style={S.lbl}>Kg / càrrega</label>
+                          <input style={S.inp} value={st.load||""} onChange={e=>updateSet(i,j,"load",e.target.value)} placeholder={ex.plannedLoad||"kg"}/>
                         </div>
                         <div style={{flex:1}}>
                           <label style={S.lbl}>Descans</label>
@@ -997,7 +1004,8 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
                     observations:ex.instructions||"",
                     isExtra:true,
                     sets:Array.from({length:ex.defaultSets},()=>({
-                      reps:ex.defaultReps,
+                      reps:ex.defaultReps||"",
+                      load:ex.defaultLoad||"",
                       rest:ex.defaultRest||"",
                       completed:false,
                     })),
@@ -1226,6 +1234,22 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
                           </div>
                         )}
                         <ProgressBar value={sess.completedExercises} total={sess.totalExercises} color={full?T.green:T.accent}/>
+                        {sess.exercises&&sess.exercises.length>0&&(
+                          <div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${T.border}`}}>
+                            {sess.exercises.map((e,i)=>(
+                              <div key={i} style={{marginBottom:8}}>
+                                <div style={{fontSize:12,fontWeight:500,color:e.completed?T.textSecondary:T.textPrimary,marginBottom:3}}>
+                                  {e.completed?"✓ ":"○ "}{e.name}{e.plannedLoad?` · ${e.plannedLoad}`:""}
+                                </div>
+                                {(e.sets||[]).map((st,j)=>(
+                                  <div key={j} style={{fontSize:11,color:st.completed?T.green:T.textMuted,paddingLeft:14,padding:"1px 0 1px 14px"}}>
+                                    S{j+1}: {st.reps||"—"} reps{st.load?` · ${st.load}`:""}{st.rest?` · ${st.rest}`:""} {st.completed?"✓":"○"}
+                                  </div>
+                                ))}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                         {sess.clientNotes&&<div style={{fontSize:12,color:T.textSecondary,marginTop:8,fontStyle:"italic"}}>💬 {sess.clientNotes}</div>}
                       </div>
                     );
@@ -1461,15 +1485,27 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
                       <ProgressBar value={sess.completedExercises} total={sess.totalExercises} color={full?T.green:T.accent}/>
                       {sess.clientNotes&&<div style={{fontSize:12,color:T.textSecondary,marginTop:6,fontStyle:"italic"}}>💬 {sess.clientNotes}</div>}
                       {sess.exercises&&(
-                        <div style={{marginTop:8,paddingTop:8,borderTop:`1px solid ${T.border}`}}>
-                          {sess.exercises.map((e,i)=>(
-                            <div key={i} style={{fontSize:12,color:e.completed?T.textSecondary:T.textMuted,display:"flex",alignItems:"center",gap:6,padding:"2px 0"}}>
-                              <span style={{color:e.completed?T.green:T.textMuted}}>{e.completed?"✓":"○"}</span>
-                              {e.name} — {e.completedSets||e.plannedSets||"?"}×{e.plannedReps||e.reps||"?"}{e.weight?` · ${e.weight}`:""}
-                            </div>
-                          ))}
+                  <div style={{marginTop:8,paddingTop:8,borderTop:`1px solid ${T.border}`}}>
+                    {sess.exercises.map((e,i)=>(
+                      <div key={i} style={{marginBottom:6}}>
+                        <div style={{fontSize:12,color:e.completed?T.textSecondary:T.textMuted,display:"flex",alignItems:"center",gap:6,padding:"2px 0"}}>
+                          <span style={{color:e.completed?T.green:T.textMuted}}>{e.completed?"✓":"○"}</span>
+                          <span style={{fontWeight:500}}>{e.name}</span>
+                          <span>— {e.completedSets||0}/{e.plannedSets||0} sèries · {e.plannedReps||"?"}{e.plannedLoad?` · ${e.plannedLoad}`:""}</span>
                         </div>
-                      )}
+                        {(e.sets||[]).length>0&&(
+                          <div style={{paddingLeft:18}}>
+                            {(e.sets||[]).map((st,j)=>(
+                              <div key={j} style={{fontSize:11,color:st.completed?T.green:T.textMuted,padding:"1px 0"}}>
+                                S{j+1}: {st.reps||"—"} reps{st.load?` · ${st.load}`:""}{st.rest?` · ${st.rest}`:""} {st.completed?"✓":"○"}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
                     </div>
                   );
                 })}
