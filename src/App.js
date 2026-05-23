@@ -258,6 +258,7 @@ const [showAddEx, setShowAddEx] = useState(false);
 const [selTemplate, setSelTemplate] = useState(null);
 const [sessionExercises, setSessionExercises] = useState({});
   const [expandedExercises, setExpandedExercises] = useState({});
+  const [showAddExModal, setShowAddExModal] = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
 const [finishForm, setFinishForm] = useState({rpe:"",duration:"",feeling:"",notes:""});
   const [adminRoutineTab, setAdminRoutineTab] = useState("rutina");
@@ -965,7 +966,48 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
             </button>
           </div>
         )}
-        <button style={{...S.btnSecondary,marginTop:12,width:"100%",textAlign:"center"}} onClick={()=>setSessionExercises(p=>{const np={...p};delete np[sessionKey];return np;})}>
+        {showAddExModal&&(
+          <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
+            <div style={{background:T.card,borderRadius:"20px 20px 0 0",padding:"1.5rem 1.25rem",width:"100%",maxWidth:520,border:`1px solid ${T.border}`,maxHeight:"70vh",overflowY:"auto"}}>
+              <div style={{fontWeight:500,fontSize:16,color:T.textPrimary,marginBottom:4}}>Afegir exercici</div>
+              <div style={{fontSize:13,color:T.textSecondary,marginBottom:16}}>Tria un exercici de la biblioteca</div>
+              {(data.exerciseLibrary||[]).map(ex=>(
+                <div key={ex.id} style={{...S.card,cursor:"pointer"}} onClick={()=>{
+                  const newEx={
+                    id:`extra_${Date.now()}`,
+                    exerciseId:ex.id,
+                    name:ex.name,
+                    plannedSets:ex.defaultSets,
+                    plannedReps:ex.defaultReps,
+                    plannedLoad:ex.defaultLoad||"",
+                    plannedRest:ex.defaultRest||"",
+                    observations:ex.instructions||"",
+                    isExtra:true,
+                    sets:Array.from({length:ex.defaultSets},()=>({
+                      reps:ex.defaultReps,
+                      rest:ex.defaultRest||"",
+                      completed:false,
+                    })),
+                  };
+                  setSessionExercises(p=>{
+                    const s={...p[sessionKey]};
+                    s.exercises=[...s.exercises,newEx];
+                    return {...p,[sessionKey]:s};
+                  });
+                  setShowAddExModal(false);
+                }}>
+                  <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{ex.name}</div>
+                  <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{ex.category} · {ex.muscleGroup} · {ex.defaultSets}×{ex.defaultReps}</div>
+                </div>
+              ))}
+              <button style={{...S.btnSecondary,width:"100%",textAlign:"center",marginTop:8}} onClick={()=>setShowAddExModal(false)}>Cancel·lar</button>
+            </div>
+          </div>
+        )}
+        <button style={{...S.btnSecondary,marginTop:8,width:"100%",textAlign:"center"}} onClick={()=>setShowAddExModal(true)}>
+          + Afegir exercici de la biblioteca
+        </button>
+        <button style={{...S.btnSecondary,marginTop:8,width:"100%",textAlign:"center"}} onClick={()=>setSessionExercises(p=>{const np={...p};delete np[sessionKey];return np;})}>
           ← Canviar entrenament
         </button>
       </div>
