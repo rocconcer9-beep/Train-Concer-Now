@@ -1036,11 +1036,25 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
         <div style={{fontWeight:500,fontSize:16,color:T.textPrimary,marginBottom:4}}>{selDay}</div>
         {selDay===TODAY&&<div style={{fontSize:12,color:T.accent,fontWeight:500,marginBottom:12}}>Avui</div>}
         {dayTemplates.length===0?(
-          <div style={{textAlign:"center",padding:"3rem 0",color:T.textSecondary}}>
-            <div style={{fontSize:40,marginBottom:12}}>🛋️</div>
-            <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4}}>Dia de descans</div>
-            <div style={{fontSize:13}}>Descansa i recupera energia</div>
+  <div style={{textAlign:"center",padding:"2rem 0",color:T.textSecondary}}>
+    <div style={{fontSize:40,marginBottom:12}}>🛋️</div>
+    <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4}}>Dia de descans</div>
+    <div style={{fontSize:13,marginBottom:16}}>Descansa i recupera energia</div>
+    <div style={{textAlign:"left"}}>
+      <div style={{fontSize:13,color:T.textSecondary,marginBottom:8}}>O afegeix un entrenament:</div>
+      {templates.map(tpl=>(
+        <div key={tpl.id} style={{...S.card,cursor:"pointer"}} onClick={()=>startSession(tpl)}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div>
+              <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>{tpl.name}</div>
+              <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{tpl.objective} · {tpl.estimatedDuration}</div>
+            </div>
+            <span style={S.tag("purple")}>{tpl.exercises.length} ex</span>
           </div>
+        </div>
+      ))}
+    </div>
+  </div>
         ):(
           <>
             <div style={{fontSize:13,color:T.textSecondary,marginBottom:12}}>Tria l'entrenament d'avui:</div>
