@@ -85,6 +85,7 @@ const DEFAULT_IGNASI = {
   ]
 };
 
+// eslint-disable-next-line no-unused-vars
 const DEFAULT_LIBRARY = [
   {id:"ex_press_banca",name:"Press Banca",category:"Força",muscleGroup:"Pectoral",movementPattern:"Push horitzontal",material:"Barra / Mancuernes",defaultSets:3,defaultReps:"8-10",defaultLoad:"",defaultRest:"90s",instructions:"Controla la baixada i mantén escàpules estables.",observations:"No bloquejar excessivament els colzes.",level:"Intermedi"},
   {id:"ex_press_inclinat",name:"Press Inclinat",category:"Força",muscleGroup:"Pectoral superior",movementPattern:"Push horitzontal inclinat",material:"Barra / Mancuernes",defaultSets:3,defaultReps:"10",defaultLoad:"",defaultRest:"75s",instructions:"Inclinació 30-45 graus.",observations:"",level:"Intermedi"},
@@ -98,6 +99,7 @@ const DEFAULT_LIBRARY = [
   {id:"ex_dead_bug",name:"Dead Bug",category:"Core",muscleGroup:"Core",movementPattern:"Antiextensió",material:"Cap",defaultSets:3,defaultReps:"8-10",defaultLoad:"",defaultRest:"45s",instructions:"Esquena enganxada al terra.",observations:"",level:"Principiant"},
 ];
 
+// eslint-disable-next-line no-unused-vars
 const DEFAULT_TEMPLATES = [
   {id:"tpl_push",name:"Push",description:"Tren superior empenta",type:"Força",objective:"Força tren superior",estimatedDuration:"45-60 min",exercises:[
     {id:"tex_1",exerciseId:"ex_press_banca",name:"Press Banca",plannedSets:3,plannedReps:"8-10",plannedLoad:"",plannedRest:"90s",observations:"",order:1},
@@ -121,6 +123,7 @@ const DEFAULT_TEMPLATES = [
   ]},
 ];
 
+// eslint-disable-next-line no-unused-vars
 const DEFAULT_SCHEDULE = {
   1: {Dilluns:["tpl_push"],Dimarts:[],Dimecres:["tpl_pull"],Dijous:[],Divendres:["tpl_legs","tpl_push","tpl_pull"],Dissabte:[],Diumenge:[]},
   3: {Dilluns:["tpl_push"],Dimarts:[],Dimecres:["tpl_pull"],Dijous:[],Divendres:["tpl_legs"],Dissabte:[],Diumenge:[]},
