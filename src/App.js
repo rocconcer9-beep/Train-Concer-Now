@@ -254,6 +254,8 @@ const [showAddEx, setShowAddEx] = useState(false);
   // Standard client
   const [stdCompleted, setStdCompleted] = useState({});
   const [clientViewTab, setClientViewTab] = useState("entrenament");
+  const [selTemplate, setSelTemplate] = useState(null);
+const [sessionExercises, setSessionExercises] = useState({});
   const [showFinishModal, setShowFinishModal] = useState(false);
 const [finishForm, setFinishForm] = useState({rpe:"",duration:"",feeling:"",notes:""});
   const [adminRoutineTab, setAdminRoutineTab] = useState("rutina");
@@ -761,10 +763,14 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
               <div style={{display:"flex",gap:8}}>
                 <button style={{...S.btnSecondary,flex:1}} onClick={()=>setShowFinishModal(false)}>Cancel·lar</button>
                 <button style={{...S.btnPrimary,flex:2,padding:"12px"}} onClick={async()=>{
-                  await saveStdSession(selClient,selDay,dayExs,finishForm);
-                  setShowFinishModal(false);
-                  setFinishForm({rpe:"",duration:"",feeling:"",notes:""});
-                }}>Guardar sessió</button>
+  const sessionKey=`${selClient}-${selDay}`;
+  const sess = sessionExercises[sessionKey];
+  const exsToSave = sess ? sess.exercises : dayExs;
+  await saveStdSession(selClient,selDay,exsToSave,finishForm);
+  setShowFinishModal(false);
+  setFinishForm({rpe:"",duration:"",feeling:"",notes:""});
+  setSessionExercises(p=>{const np={...p};delete np[sessionKey];return np;});
+}}>Guardar sessió</button>
               </div>
             </div>
           </div>
@@ -784,77 +790,178 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
         </div>
 
         {/* Pestanya Entrenament */}
-        {clientViewTab==="entrenament"&&(
-          <>
-            <div style={{display:"flex",gap:6,padding:"0.85rem 1.25rem 0.5rem",overflowX:"auto"}}>
-              {DAYS.map((d,i)=>{
-                const hasEx=(data.routines[selClient]?.[d]?.length||0)>0;
-                const active=selDay===d;
-                return (
-                  <div key={d} style={{textAlign:"center",flexShrink:0}}>
-                    <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1px solid ${active?T.accent:hasEx?cc.border:T.border}`,background:active?T.accent:T.card,color:active?T.bg:hasEx?cc.text:T.textMuted,cursor:"pointer",fontSize:12,fontWeight:active?500:400}}>
-                      {DAYS_SHORT[i]}
-                    </button>
-                    {hasEx&&!active&&<div style={{width:4,height:4,borderRadius:"50%",background:T.accent,margin:"3px auto 0"}}/>}
-                    {d===TODAY&&<div style={{fontSize:9,color:T.accent,marginTop:2}}>avui</div>}
-                  </div>
-                );
-              })}
-            </div>
-            <div style={S.sec}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                <div>
-                  <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>{selDay}</div>
-                  {selDay===TODAY&&<div style={{fontSize:12,color:T.accent,fontWeight:500}}>Avui</div>}
-                </div>
-                {dayExs.length>0&&(
-                  <div style={{textAlign:"right"}}>
-                    <div style={{fontSize:12,color:T.textSecondary,marginBottom:4}}>{dc}/{dayExs.length}</div>
-                    <ProgressBar value={dc} total={dayExs.length}/>
-                  </div>
-                )}
+{clientViewTab==="entrenament"&&(()=>{
+  const schedule = data.schedule?.[selClient] || {};
+  const templates = data.templates || [];
+  const dayTplIds = schedule[selDay] || [];
+  const dayTemplates = dayTplIds.map(id=>templates.find(t=>t.id===id)).filter(Boolean);
+  const sessionKey = `${selClient}-${selDay}`;
+  const currentSession = sessionExercises[sessionKey] || null;
+  const currentTemplate = currentSession ? templates.find(t=>t.id===currentSession.templateId) : null;
+
+  const startSession = (tpl) => {
+    const exs = tpl.exercises.map(ex=>({
+      ...ex,
+      actualSets: ex.plannedSets,
+      actualReps: ex.plannedReps,
+      actualLoad: ex.plannedLoad||"",
+      completed: false,
+    }));
+    setSessionExercises(p=>({...p,[sessionKey]:{templateId:tpl.id,templateName:tpl.name,exercises:exs}}));
+  };
+
+  const updateSessionEx = (exIdx, field, value) => {
+    setSessionExercises(p=>{
+      const s = {...p[sessionKey]};
+      s.exercises = s.exercises.map((e,i)=>i===exIdx?{...e,[field]:value}:e);
+      return {...p,[sessionKey]:s};
+    });
+  };
+
+  const toggleSessionEx = (exIdx) => {
+    updateSessionEx(exIdx, "completed", !currentSession.exercises[exIdx].completed);
+  };
+
+  if(currentSession) {
+    const exs = currentSession.exercises;
+    const dc = exs.filter(e=>e.completed).length;
+    return (
+      <>
+        {/* Selector de dies */}
+        <div style={{display:"flex",gap:6,padding:"0.85rem 1.25rem 0.5rem",overflowX:"auto"}}>
+          {DAYS.map((d,i)=>{
+            const hasTpls=(data.schedule?.[selClient]?.[d]?.length||0)>0;
+            const active=selDay===d;
+            return (
+              <div key={d} style={{textAlign:"center",flexShrink:0}}>
+                <button onClick={()=>{setSelDay(d);setSessionExercises(p=>{const np={...p};delete np[`${selClient}-${d}`];return np;});}} style={{width:34,height:34,borderRadius:"50%",border:`1px solid ${active?T.accent:hasTpls?cc.border:T.border}`,background:active?T.accent:T.card,color:active?T.bg:hasTpls?cc.text:T.textMuted,cursor:"pointer",fontSize:12,fontWeight:active?500:400}}>
+                  {DAYS_SHORT[i]}
+                </button>
+                {hasTpls&&!active&&<div style={{width:4,height:4,borderRadius:"50%",background:T.accent,margin:"3px auto 0"}}/>}
+                {d===TODAY&&<div style={{fontSize:9,color:T.accent,marginTop:2}}>avui</div>}
               </div>
-              {dayExs.length===0?(
-                <div style={{textAlign:"center",padding:"3rem 0",color:T.textSecondary}}>
-                  <div style={{fontSize:40,marginBottom:12}}>🛋️</div>
-                  <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4}}>Dia de descans</div>
-                  <div style={{fontSize:13}}>Descansa i recupera energia</div>
-                </div>
-              ):(
-                <>
-                  {dayExs.map((ex,i)=>{
-                    const done=isStdDone(selClient,selDay,ex.id);
-                    return (
-                      <div key={ex.id} style={{...S.card,opacity:done?0.5:1}}>
-                        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
-                          <button onClick={()=>toggleStdDone(selClient,selDay,ex.id)} style={{width:26,height:26,borderRadius:"50%",border:`2px solid ${done?T.accent:T.border}`,background:done?T.accent:T.card2,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.2s"}}>
-                            {done&&<svg viewBox="0 0 16 16" width="14" height="14"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                          </button>
-                          <div style={{fontWeight:500,fontSize:14,color:done?T.textMuted:T.textPrimary,textDecoration:done?"line-through":"none"}}>{i+1}. {ex.name}</div>
-                        </div>
-                        <div style={{paddingLeft:36,display:"flex",gap:5,flexWrap:"wrap"}}>
-                          <span style={S.tag("purple")}>{ex.sets} sèries</span>
-                          <span style={S.tag("green")}>{ex.reps} reps</span>
-                          {ex.weight&&<span style={S.tag()}>{ex.weight}</span>}
-                          {ex.notes&&<div style={{fontSize:12,color:T.textSecondary,marginTop:6,width:"100%"}}>💬 {ex.notes}</div>}
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {dc===dayExs.length&&dayExs.length>0&&(
-                    <div style={{background:T.greenBg,border:`1px solid ${T.greenBorder}`,borderRadius:14,padding:"1.25rem",textAlign:"center"}}>
-                      <div style={{fontSize:32,marginBottom:6}}>🎉</div>
-                      <div style={{fontWeight:500,color:T.green,marginBottom:12}}>Tots els exercicis completats!</div>
-                      <button style={{...S.btnPrimary,padding:"12px"}} onClick={()=>{setFinishForm({rpe:"",duration:"",feeling:"",notes:""});setShowFinishModal(true);}}>
-                        🏁 Finalitzar entrenament
-                      </button>
-                    </div>
-                  )}
-                </>
-              )}
+            );
+          })}
+        </div>
+        <div style={S.sec}>
+          {/* Capçalera sessió */}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+            <div>
+              <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>{currentSession.templateName}</div>
+              <div style={{fontSize:12,color:T.textSecondary}}>{selDay}{selDay===TODAY?" · Avui":""}</div>
             </div>
+            <div style={{textAlign:"right"}}>
+              <div style={{fontSize:12,color:T.textSecondary,marginBottom:4}}>{dc}/{exs.length}</div>
+              <ProgressBar value={dc} total={exs.length}/>
+            </div>
+          </div>
+          {/* Exercicis */}
+          {exs.map((ex,i)=>(
+            <div key={i} style={{...S.card,opacity:ex.completed?0.6:1}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                <button onClick={()=>toggleSessionEx(i)} style={{width:26,height:26,borderRadius:"50%",border:`2px solid ${ex.completed?T.accent:T.border}`,background:ex.completed?T.accent:T.card2,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.2s"}}>
+                  {ex.completed&&<svg viewBox="0 0 16 16" width="14" height="14"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                </button>
+                <div style={{fontWeight:500,fontSize:14,color:ex.completed?T.textMuted:T.textPrimary,textDecoration:ex.completed?"line-through":"none"}}>{i+1}. {ex.name}</div>
+              </div>
+              <div style={{paddingLeft:36}}>
+                <div style={{fontSize:11,color:T.textSecondary,marginBottom:6}}>
+                  Planificat: {ex.plannedSets}×{ex.plannedReps}{ex.plannedLoad?` · ${ex.plannedLoad}`:""}
+                  {ex.plannedRest?` · descans ${ex.plannedRest}`:""}
+                </div>
+                <div style={{display:"flex",gap:6}}>
+                  <div style={{flex:1}}>
+                    <label style={S.lbl}>Sèries reals</label>
+                    <input style={S.inp} type="number" value={ex.actualSets} onChange={e=>updateSessionEx(i,"actualSets",e.target.value)}/>
+                  </div>
+                  <div style={{flex:1}}>
+                    <label style={S.lbl}>Reps reals</label>
+                    <input style={S.inp} value={ex.actualReps} onChange={e=>updateSessionEx(i,"actualReps",e.target.value)}/>
+                  </div>
+                  <div style={{flex:1}}>
+                    <label style={S.lbl}>Càrrega</label>
+                    <input style={S.inp} value={ex.actualLoad} placeholder="kg" onChange={e=>updateSessionEx(i,"actualLoad",e.target.value)}/>
+                  </div>
+                </div>
+                {ex.observations&&<div style={{fontSize:12,color:T.textSecondary,marginTop:6}}>💬 {ex.observations}</div>}
+              </div>
+            </div>
+          ))}
+          {/* Completat */}
+          {dc===exs.length&&exs.length>0&&(
+            <div style={{background:T.greenBg,border:`1px solid ${T.greenBorder}`,borderRadius:14,padding:"1.25rem",textAlign:"center"}}>
+              <div style={{fontSize:32,marginBottom:6}}>🎉</div>
+              <div style={{fontWeight:500,color:T.green,marginBottom:12}}>Tots els exercicis completats!</div>
+              <button style={{...S.btnPrimary,padding:"12px"}} onClick={()=>{setFinishForm({rpe:"",duration:"",feeling:"",notes:""});setShowFinishModal(true);}}>
+                🏁 Finalitzar entrenament
+              </button>
+            </div>
+          )}
+          <button style={{...S.btnSecondary,marginTop:12,width:"100%",textAlign:"center"}} onClick={()=>setSessionExercises(p=>{const np={...p};delete np[sessionKey];return np;})}>
+            ← Canviar entrenament
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {/* Selector de dies */}
+      <div style={{display:"flex",gap:6,padding:"0.85rem 1.25rem 0.5rem",overflowX:"auto"}}>
+        {DAYS.map((d,i)=>{
+          const hasTpls=(data.schedule?.[selClient]?.[d]?.length||0)>0;
+          const active=selDay===d;
+          return (
+            <div key={d} style={{textAlign:"center",flexShrink:0}}>
+              <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1px solid ${active?T.accent:hasTpls?cc.border:T.border}`,background:active?T.accent:T.card,color:active?T.bg:hasTpls?cc.text:T.textMuted,cursor:"pointer",fontSize:12,fontWeight:active?500:400}}>
+                {DAYS_SHORT[i]}
+              </button>
+              {hasTpls&&!active&&<div style={{width:4,height:4,borderRadius:"50%",background:T.accent,margin:"3px auto 0"}}/>}
+              {d===TODAY&&<div style={{fontSize:9,color:T.accent,marginTop:2}}>avui</div>}
+            </div>
+          );
+        })}
+      </div>
+      <div style={S.sec}>
+        <div style={{fontWeight:500,fontSize:16,color:T.textPrimary,marginBottom:4}}>{selDay}</div>
+        {selDay===TODAY&&<div style={{fontSize:12,color:T.accent,fontWeight:500,marginBottom:12}}>Avui</div>}
+        {dayTemplates.length===0?(
+          <div style={{textAlign:"center",padding:"3rem 0",color:T.textSecondary}}>
+            <div style={{fontSize:40,marginBottom:12}}>🛋️</div>
+            <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4}}>Dia de descans</div>
+            <div style={{fontSize:13}}>Descansa i recupera energia</div>
+          </div>
+        ):(
+          <>
+            <div style={{fontSize:13,color:T.textSecondary,marginBottom:12}}>Tria l'entrenament d'avui:</div>
+            {dayTemplates.map(tpl=>(
+              <div key={tpl.id} style={{...S.card,cursor:"pointer",borderColor:T.purple}} onClick={()=>startSession(tpl)}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                  <div>
+                    <div style={{fontWeight:500,fontSize:15,color:T.textPrimary}}>{tpl.name}</div>
+                    <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{tpl.objective} · {tpl.estimatedDuration}</div>
+                  </div>
+                  <span style={S.tag("purple")}>{tpl.exercises.length} ex</span>
+                </div>
+                {tpl.exercises.map((ex,i)=>(
+                  <div key={ex.id} style={{display:"flex",alignItems:"center",gap:8,padding:"3px 0",borderBottom:`1px solid ${T.border}`}}>
+                    <span style={{fontSize:11,color:T.textMuted,width:16}}>{i+1}.</span>
+                    <span style={{fontSize:12,flex:1,color:T.textSecondary}}>{ex.name}</span>
+                    <span style={{fontSize:11,color:T.textMuted}}>{ex.plannedSets}×{ex.plannedReps}</span>
+                  </div>
+                ))}
+                <button style={{...S.btnPrimary,marginTop:12,padding:"10px",fontSize:13}}>
+                  Començar entrenament →
+                </button>
+              </div>
+            ))}
           </>
         )}
+      </div>
+    </>
+  );
+})()}
 
         {/* Pestanya Perfil */}
         {clientViewTab==="perfil"&&(()=>{
