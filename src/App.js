@@ -1437,7 +1437,7 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
                     {sess.exercises.map((e,i)=>(
                       <div key={i} style={{fontSize:12,color:e.completed?T.textSecondary:T.textMuted,display:"flex",alignItems:"center",gap:6,padding:"2px 0"}}>
                         <span style={{color:e.completed?T.green:T.textMuted}}>{e.completed?"✓":"○"}</span>
-                        {e.name} — {e.sets}×{e.reps}{e.weight?` · ${e.weight}`:""}
+                        {e.name} — {e.completedSets||e.plannedSets||"?"}×{e.plannedReps||e.reps||"?"}{e.weight?` · ${e.weight}`:""}
                       </div>
                     ))}
                   </div>
