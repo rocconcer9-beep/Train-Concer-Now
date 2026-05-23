@@ -1243,7 +1243,7 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
                                 <div style={{fontSize:12,fontWeight:500,color:e.completed?T.textSecondary:T.textPrimary,marginBottom:3}}>
                                   {e.completed?"✓ ":"○ "}{e.name}{e.plannedLoad?` · ${e.plannedLoad}`:""}
                                 </div>
-                                {(e.sets||[]).map((st,j)=>(
+                                {Object.values(e.sets||{}).map((st,j)=>(
                                   <div key={j} style={{fontSize:11,color:st.completed?T.green:T.textMuted,paddingLeft:14,padding:"1px 0 1px 14px"}}>
                                     S{j+1}: {st.reps||"—"} reps{st.load?` · ${st.load}`:""}{st.rest?` · ${st.rest}`:""} {st.completed?"✓":"○"}
                                   </div>
