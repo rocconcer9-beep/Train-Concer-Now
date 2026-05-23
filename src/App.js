@@ -1708,7 +1708,7 @@ if(libEx) setNewTemplate(p=>({...p,exercises:[...(p.exercises||[]),{id:`tex_${Da
                     <button style={S.btnSecondary} onClick={()=>setShowAddTemplate(false)}>Cancel·lar</button>
                     <button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={()=>{
                       if(!newTemplate.name)return;
-                      updateTemplates([...templates,{...newTemplate,id:`tpl_${Date.now()}`,exercises:[]}]);
+                      updateTemplates([...templates,{...newTemplate,id:`tpl_${Date.now()}`}]);
                       setNewTemplate({name:"",description:"",type:"Força",objective:"",estimatedDuration:"",exercises:[]});
                       setShowAddTemplate(false);
                     }}>Crear</button>
