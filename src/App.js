@@ -1674,10 +1674,31 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
                   <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.inp} value={newTemplate.name} onChange={e=>setNewTemplate(p=>({...p,name:e.target.value}))} placeholder="Ex. Push"/></div>
                   <div style={{marginBottom:8}}><label style={S.lbl}>Objectiu</label><input style={S.inp} value={newTemplate.objective} onChange={e=>setNewTemplate(p=>({...p,objective:e.target.value}))} placeholder="Ex. Força tren superior"/></div>
                   <div style={{...S.row,marginBottom:12}}>
-                    <div style={{flex:1}}><label style={S.lbl}>Tipus</label><input style={S.inp} value={newTemplate.type} onChange={e=>setNewTemplate(p=>({...p,type:e.target.value}))}/></div>
-                    <div style={{flex:1}}><label style={S.lbl}>Durada</label><input style={S.inp} value={newTemplate.estimatedDuration} onChange={e=>setNewTemplate(p=>({...p,estimatedDuration:e.target.value}))} placeholder="45-60 min"/></div>
-                  </div>
-                  <div style={{...S.row,justifyContent:"flex-end"}}>
+    <div style={{flex:1}}><label style={S.lbl}>Tipus</label><input style={S.inp} value={newTemplate.type} onChange={e=>setNewTemplate(p=>({...p,type:e.target.value}))}/></div>
+    <div style={{flex:1}}><label style={S.lbl}>Durada</label><input style={S.inp} value={newTemplate.estimatedDuration} onChange={e=>setNewTemplate(p=>({...p,estimatedDuration:e.target.value}))} placeholder="45-60 min"/></div>
+  </div>
+  {(newTemplate.exercises||[]).length>0&&(
+    <div style={{marginBottom:8}}>
+      <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,marginBottom:6}}>Exercicis afegits</div>
+      {(newTemplate.exercises||[]).map((ex,i)=>(
+        <div key={i} style={{...S.card,marginBottom:4,padding:"6px 10px"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <span style={{fontSize:13,color:T.textPrimary}}>{ex.name}</span>
+            <button style={S.btnDanger} onClick={()=>setNewTemplate(p=>({...p,exercises:p.exercises.filter((_,j)=>j!==i)}))}>×</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+  <select style={{...S.inp,fontSize:12,marginBottom:12}} value="" onChange={e=>{
+    const lib=data.exerciseLibrary||[];
+    const libEx=lib.find(l=>l.id===e.target.value);
+    if(libEx) setNewTemplate(p=>({...p,exercises:[...(p.exercises||[]),{id:`tex_${Date.now()}`,exerciseId:libEx.id,name:libEx.name,plannedSets:libEx.defaultSets,plannedReps:libEx.defaultReps,plannedLoad:libEx.defaultLoad||"",plannedRest:libEx.defaultRest||"",observations:"",order:(p.exercises||[]).length+1}]}));
+  }}>
+    <option value="">+ Afegir exercici de la biblioteca...</option>
+    {(data.exerciseLibrary||[]).map(l=><option key={l.id} value={l.id}>{l.name}</option>)}
+  </select>
+  <div style={{...S.row,justifyContent:"flex-end"}}>
                     <button style={S.btnSecondary} onClick={()=>setShowAddTemplate(false)}>Cancel·lar</button>
                     <button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={()=>{
                       if(!newTemplate.name)return;
