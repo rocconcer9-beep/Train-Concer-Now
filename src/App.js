@@ -127,18 +127,15 @@ const DEFAULT_SCHEDULE = {
 };
 const DEFAULT_DATA = {
   clients:[
-    {id:1,name:"Roc Concernau",  goal:"Ús personal",avatar:"RC",routineType:"weekly"},
-    {id:2,name:"Ignasi Concernau",goal:"Entrenament a casa · 3 dies/setmana · 10-15'",avatar:"IC",routineType:"flexible"},
-    {id:3,name:"Marc Perez",     goal:"Rendiment bàsquet",avatar:"MP",routineType:"weekly"},
+    {id:1,name:"Roc Concernau",  goal:"Ús personal",avatar:"RC",routineType:"weekly",templates:[],exerciseLibrary:[],schedule:{Dilluns:[],Dimarts:[],Dimecres:[],Dijous:[],Divendres:[],Dissabte:[],Diumenge:[]}},
+    {id:2,name:"Ignasi Concernau",goal:"Entrenament a casa · 3 dies/setmana · 10-15'",avatar:"IC",routineType:"flexible",templates:[],exerciseLibrary:[],schedule:{}},
+    {id:3,name:"Marc Perez",     goal:"Rendiment bàsquet",avatar:"MP",routineType:"weekly",templates:[],exerciseLibrary:[],schedule:{Dilluns:[],Dimarts:[],Dimecres:[],Dijous:[],Divendres:[],Dissabte:[],Diumenge:[]}},
   ],
   routines:{
     1: DAYS.reduce((a,d)=>({...a,[d]:[]}),{}),
     2: {flexible:true, ignasi:DEFAULT_IGNASI},
     3: DAYS.reduce((a,d)=>({...a,[d]:[]}),{}),
   },
-  exerciseLibrary: DEFAULT_LIBRARY,
-  templates: DEFAULT_TEMPLATES,
-  schedule: DEFAULT_SCHEDULE,
 };
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
