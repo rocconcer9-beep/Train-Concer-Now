@@ -275,12 +275,13 @@ const [newLibEx, setNewLibEx] = useState({name:"",category:"Força",muscleGroup:
   const loadData = async () => {
   setLoading(true);
   try {
-    const [dr,hr,cr,h1r,h3r] = await Promise.all([
+    const [dr,hr,cr,h1r,h3r,asr] = await Promise.all([
       get(ref(db,"fitcoach-data2")),
       get(ref(db,"history-2")),
       get(ref(db,"fitcoach-completed")),
       get(ref(db,"history-1")),
       get(ref(db,"history-3")),
+      get(ref(db,"active-sessions")),
     ]);
     setData(dr.exists()?dr.val():DEFAULT_DATA);
     setIgnHistory(hr.exists()?Object.values(hr.val()):[]);
@@ -290,6 +291,21 @@ const [newLibEx, setNewLibEx] = useState({name:"",category:"Força",muscleGroup:
       2:hr.exists()?Object.values(hr.val()):[],
       3:h3r.exists()?Object.values(h3r.val()):[],
     });
+    // Carregar sessions actives
+    if(asr.exists()) {
+      const activeSessions = asr.val();
+      const today = new Date().toISOString().slice(0,10);
+      const recovered = {};
+      Object.entries(activeSessions).forEach(([clientId, sessions])=>{
+        Object.entries(sessions).forEach(([key, sess])=>{
+          if(sess && sess.date===today && sess.status==="in_progress") {
+            const sessionKey = `${sess.clientId}-${sess.day}`;
+            recovered[sessionKey] = sess;
+          }
+        });
+      });
+      if(Object.keys(recovered).length>0) setSessionExercises(recovered);
+    }
   } catch {setData(DEFAULT_DATA);}
   setLoading(false);
 };
@@ -297,6 +313,18 @@ const [newLibEx, setNewLibEx] = useState({name:"",category:"Força",muscleGroup:
   const persistHistory = async (h) => {try{await set(ref(db,"history-2"),h);}catch{}};
   const persistStdCompleted = async (c) => {try{await set(ref(db,"fitcoach-completed"),c);}catch{}};
   const updateData = (d) => {setData(d);persist(d);};
+
+  // ── Active session helpers ─────────────────────────────────────────────────
+  const getTodayISO = () => new Date().toISOString().slice(0,10);
+  const getActiveSessionKey = (clientId, day) => `${getTodayISO()}-${day}`;
+  const saveActiveSession = async (clientId, day, session) => {
+    const key = getActiveSessionKey(clientId, day);
+    try { await set(ref(db,`active-sessions/${clientId}/${key}`), {...session, updatedAt: new Date().toISOString()}); } catch {}
+  };
+  const deleteActiveSession = async (clientId, day) => {
+    const key = getActiveSessionKey(clientId, day);
+    try { await set(ref(db,`active-sessions/${clientId}/${key}`), null); } catch {}
+  };
 
   const loadClientHistory = async (clientId) => {
     if(clientHistories[clientId]!==undefined)return;
@@ -786,6 +814,7 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
   const sess = sessionExercises[sessionKey];
   const exsToSave = sess ? sess.exercises : dayExs;
   await saveStdSession(selClient,selDay,exsToSave,finishForm);
+  await deleteActiveSession(selClient, selDay);
   setShowFinishModal(false);
   setFinishForm({rpe:"",duration:"",feeling:"",notes:""});
   setSessionExercises(p=>{const np={...p};delete np[sessionKey];return np;});
@@ -820,6 +849,7 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
   const currentTemplate = currentSession ? templates.find(t=>t.id===currentSession.templateId) : null;
 
   const startSession = (tpl) => {
+  if(sessionExercises[sessionKey]) return; // ja existeix sessió activa
   const exs = tpl.exercises.map(ex=>({
     ...ex,
     sets: Array.from({length:ex.plannedSets}, ()=>({
@@ -829,7 +859,21 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
       completed: false,
     })),
   }));
-  setSessionExercises(p=>({...p,[sessionKey]:{templateId:tpl.id,templateName:tpl.name,exercises:exs}}));
+  const now = new Date().toISOString();
+  const newSession = {
+    id:`active_${selClient}_${new Date().toISOString().slice(0,10)}_${selDay}`,
+    clientId: selClient,
+    date: new Date().toISOString().slice(0,10),
+    day: selDay,
+    templateId: tpl.id,
+    templateName: tpl.name,
+    exercises: exs,
+    status: "in_progress",
+    createdAt: now,
+    updatedAt: now,
+  };
+  setSessionExercises(p=>({...p,[sessionKey]:newSession}));
+  saveActiveSession(selClient, selDay, newSession);
 };
 
   const updateSessionEx = (exIdx, field, value) => {
@@ -848,6 +892,7 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
   if(currentSession) {
   const exs = currentSession.exercises;
   const dc = exs.filter(e=>e.sets&&e.sets.every(s=>s.completed)).length;
+  const wasRecovered = currentSession.status==="in_progress" && currentSession.createdAt !== currentSession.updatedAt;
 
   const toggleSet = (exIdx, setIdx) => {
     setSessionExercises(p=>{
@@ -856,7 +901,9 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
         ...e,
         sets: e.sets.map((st,j)=>j===setIdx?{...st,completed:!st.completed}:st)
       }:e);
-      return {...p,[sessionKey]:s};
+      const updated = {...p,[sessionKey]:s};
+      saveActiveSession(selClient, selDay, s);
+      return updated;
     });
   };
 
@@ -867,7 +914,9 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
         ...e,
         sets: e.sets.map((st,j)=>j===setIdx?{...st,[field]:value}:st)
       }:e);
-      return {...p,[sessionKey]:s};
+      const updated = {...p,[sessionKey]:s};
+      saveActiveSession(selClient, selDay, s);
+      return updated;
     });
   };
 
@@ -880,7 +929,9 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
         ...e,
         sets: [...e.sets, {reps:lastSet?.reps||ex.plannedReps||"", load:lastSet?.load||ex.plannedLoad||"", rest:lastSet?.rest||ex.plannedRest||"", completed:false}]
       }:e);
-      return {...p,[sessionKey]:s};
+      const updated = {...p,[sessionKey]:s};
+      saveActiveSession(selClient, selDay, s);
+      return updated;
     });
   };
 
@@ -903,6 +954,12 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
         })}
       </div>
       <div style={S.sec}>
+        {/* Avís sessió recuperada */}
+        {wasRecovered&&(
+          <div style={{background:"#1A1A00",border:`1px solid ${T.accent}40`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:12,color:T.accent}}>
+            ⚡ Sessió recuperada — continua on ho vas deixar
+          </div>
+        )}
         {/* Capçalera sessió */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
           <div>
@@ -949,7 +1006,7 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
     {st.completed&&<svg viewBox="0 0 16 16" width="12" height="12"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
   </button>
   <span style={{fontSize:13,fontWeight:500,color:T.textPrimary}}>Sèrie {j+1}</span>
-  <button onClick={()=>setSessionExercises(p=>{const s={...p[sessionKey]};s.exercises=s.exercises.map((e,ei)=>ei===i?{...e,sets:e.sets.filter((_,si)=>si!==j)}:e);return {...p,[sessionKey]:s};})} style={{marginLeft:"auto",width:20,height:20,borderRadius:"50%",border:"none",background:T.dangerBg,color:T.danger,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,lineHeight:1}}>×</button>
+  <button onClick={()=>setSessionExercises(p=>{const s={...p[sessionKey]};s.exercises=s.exercises.map((e,ei)=>ei===i?{...e,sets:e.sets.filter((_,si)=>si!==j)}:e);saveActiveSession(selClient,selDay,s);return {...p,[sessionKey]:s};})}
 </div>
                       <div style={{display:"flex",gap:6}}>
                         <div style={{flex:1}}>
@@ -1013,6 +1070,7 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
                   setSessionExercises(p=>{
                     const s={...p[sessionKey]};
                     s.exercises=[...s.exercises,newEx];
+                    saveActiveSession(selClient,selDay,s);
                     return {...p,[sessionKey]:s};
                   });
                   setShowAddExModal(false);
@@ -1028,8 +1086,13 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
         <button style={{...S.btnSecondary,marginTop:8,width:"100%",textAlign:"center"}} onClick={()=>setShowAddExModal(true)}>
           + Afegir exercici de la biblioteca
         </button>
-        <button style={{...S.btnSecondary,marginTop:8,width:"100%",textAlign:"center"}} onClick={()=>setSessionExercises(p=>{const np={...p};delete np[sessionKey];return np;})}>
-          ← Canviar entrenament
+        <button style={{...S.btnSecondary,marginTop:8,width:"100%",textAlign:"center"}} onClick={()=>{
+          if(window.confirm("Segur que vols descartar aquesta sessió en curs?")) {
+            deleteActiveSession(selClient, selDay);
+            setSessionExercises(p=>{const np={...p};delete np[sessionKey];return np;});
+          }
+        }}>
+          ← Descartar sessió i canviar entrenament
         </button>
       </div>
     </>
