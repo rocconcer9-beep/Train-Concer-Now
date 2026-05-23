@@ -300,6 +300,12 @@ const [newLibEx, setNewLibEx] = useState({name:"",category:"Força",muscleGroup:
     catch{setClientHistories(p=>({...p,[clientId]:[]}));}
   };
   const selectAdminClient = (id) => {setAdminClient(id);setAdminTab("routine");setAdminTab("dades");setEditingClient(false);loadClientHistory(id);};
+  const getClientTemplates = (clientId) => data.clients.find(c=>c.id===clientId)?.templates||[];
+  const getClientLibrary = (clientId) => data.clients.find(c=>c.id===clientId)?.exerciseLibrary||[];
+  const getClientSchedule = (clientId) => data.clients.find(c=>c.id===clientId)?.schedule||DAYS.reduce((a,d)=>({...a,[d]:[]}),{});
+  const updateClientTemplates = (clientId, tpls) => {const nd={...data,clients:data.clients.map(c=>c.id===clientId?{...c,templates:tpls}:c)};updateData(nd);};
+  const updateClientLibrary = (clientId, lib) => {const nd={...data,clients:data.clients.map(c=>c.id===clientId?{...c,exerciseLibrary:lib}:c)};updateData(nd);};
+  const updateClientSchedule = (clientId, sch) => {const nd={...data,clients:data.clients.map(c=>c.id===clientId?{...c,schedule:sch}:c)};updateData(nd);};
 
   // Ignasi helpers
   const getIgnasiRoutine = () => data?.routines?.[2]?.ignasi||DEFAULT_IGNASI;
@@ -798,8 +804,8 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
 
         {/* Pestanya Entrenament */}
 {clientViewTab==="entrenament"&&(()=>{
-  const schedule = data.schedule?.[selClient] || {};
-  const templates = data.templates || [];
+  const schedule = getClientSchedule(selClient);
+  const templates = getClientTemplates(selClient);
   const dayTplIds = schedule[selDay] || [];
   const dayTemplates = dayTplIds.map(id=>templates.find(t=>t.id===id)).filter(Boolean);
   const sessionKey = `${selClient}-${selDay}`;
@@ -974,7 +980,7 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
             <div style={{background:T.card,borderRadius:"20px 20px 0 0",padding:"1.5rem 1.25rem",width:"100%",maxWidth:520,border:`1px solid ${T.border}`,maxHeight:"70vh",overflowY:"auto"}}>
               <div style={{fontWeight:500,fontSize:16,color:T.textPrimary,marginBottom:4}}>Afegir exercici</div>
               <div style={{fontSize:13,color:T.textSecondary,marginBottom:16}}>Tria un exercici de la biblioteca</div>
-              {(data.exerciseLibrary||[]).map(ex=>(
+              {getClientLibrary(selClient).map(ex=>(
                 <div key={ex.id} style={{...S.card,cursor:"pointer"}} onClick={()=>{
                   const newEx={
                     id:`extra_${Date.now()}`,
@@ -1543,11 +1549,10 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
 
         {/* Sub-pestanya: Rutina */}
         {adminRoutineTab==="rutina"&&(()=>{
-          const schedule = data.schedule?.[adminClient] || DAYS.reduce((a,d)=>({...a,[d]:[]}),{});
-          const templates = data.templates || [];
+          const schedule = getClientSchedule(adminClient);
+          const templates = getClientTemplates(adminClient);
           const updateSchedule = (day, tplIds) => {
-            const nd = {...data, schedule:{...data.schedule,[adminClient]:{...schedule,[day]:tplIds}}};
-            updateData(nd);
+            updateClientSchedule(adminClient, {...schedule,[day]:tplIds});
           };
           return (
             <div>
@@ -1593,8 +1598,8 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
 
         {/* Sub-pestanya: Plantilles */}
         {adminRoutineTab==="plantilles"&&(()=>{
-          const templates = data.templates || [];
-          const updateTemplates = (tpls) => updateData({...data,templates:tpls});
+          const templates = getClientTemplates(adminClient);
+          const updateTemplates = (tpls) => updateClientTemplates(adminClient, tpls);
           const deleteTemplate = (id) => updateTemplates(templates.filter(t=>t.id!==id));
           const duplicateTemplate = (tpl) => {
             const copy = {...tpl, id:`tpl_${Date.now()}`, name:`${tpl.name} (còpia)`,
@@ -1635,7 +1640,7 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
                       if(libEx) setEditingTemplate(p=>({...p,exercises:[...p.exercises,{id:`tex_${Date.now()}`,exerciseId:libEx.id,name:libEx.name,plannedSets:libEx.defaultSets,plannedReps:libEx.defaultReps,plannedLoad:libEx.defaultLoad||"",plannedRest:libEx.defaultRest||"",observations:"",order:p.exercises.length+1}]}));
                     }}>
                       <option value="">+ Afegir exercici de la biblioteca...</option>
-                      {(data.exerciseLibrary||[]).map(l=><option key={l.id} value={l.id}>{l.name}</option>)}
+                      {getClientLibrary(adminClient).map(l=><option key={l.id} value={l.id}>{l.name}</option>)}
                     </select>
                     <div style={{...S.row,justifyContent:"flex-end"}}>
                       <button style={S.btnSecondary} onClick={()=>setEditingTemplate(null)}>Cancel·lar</button>
@@ -1694,7 +1699,7 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
     if(libEx) setNewTemplate(p=>({...p,exercises:[...(p.exercises||[]),{id:`tex_${Date.now()}`,exerciseId:libEx.id,name:libEx.name,plannedSets:libEx.defaultSets,plannedReps:libEx.defaultReps,plannedLoad:libEx.defaultLoad||"",plannedRest:libEx.defaultRest||"",observations:"",order:(p.exercises||[]).length+1}]}));
   }}>
     <option value="">+ Afegir exercici de la biblioteca...</option>
-    {(data.exerciseLibrary||[]).map(l=><option key={l.id} value={l.id}>{l.name}</option>)}
+                      {getClientLibrary(adminClient).map(l=><option key={l.id} value={l.id}>{l.name}</option>)}
   </select>
   <div style={{...S.row,justifyContent:"flex-end"}}>
                     <button style={S.btnSecondary} onClick={()=>setShowAddTemplate(false)}>Cancel·lar</button>
@@ -1714,9 +1719,9 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
         })()}
 
         {/* Sub-pestanya: Biblioteca */}
-        {adminRoutineTab==="biblioteca"&&(()=>{
-          const lib = data.exerciseLibrary||[];
-          const updateLib = (l) => updateData({...data,exerciseLibrary:l});
+       {adminRoutineTab==="biblioteca"&&(()=>{
+          const lib = getClientLibrary(adminClient);
+          const updateLib = (l) => updateClientLibrary(adminClient, l);
           return (
             <div>
               <div style={{fontSize:12,color:T.textSecondary,marginBottom:12}}>{lib.length} exercicis a la biblioteca</div>
