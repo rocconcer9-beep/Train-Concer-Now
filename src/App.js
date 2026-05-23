@@ -1616,7 +1616,7 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
                       <div style={{flex:1}}><label style={S.lbl}>Durada</label><input style={S.inp} value={editingTemplate.estimatedDuration} onChange={e=>setEditingTemplate(p=>({...p,estimatedDuration:e.target.value}))}/></div>
                     </div>
                     <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,marginBottom:8}}>Exercicis</div>
-                    {editingTemplate.exercises.map((ex,i)=>(
+                    {(editingTemplate.exercises||[]).map((ex,i)=>(
                       <div key={ex.id} style={{...S.card,marginBottom:6}}>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
                           <span style={{fontSize:13,fontWeight:500,color:T.textPrimary}}>{ex.name}</span>
@@ -1657,8 +1657,8 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
                         <button style={S.btnDanger} onClick={()=>deleteTemplate(tpl.id)}>Eliminar</button>
                       </div>
                     </div>
-                    <div style={{fontSize:11,color:T.textSecondary,marginBottom:8}}>{tpl.exercises.length} exercicis</div>
-                    {tpl.exercises.map((ex,i)=>(
+                    <div style={{fontSize:11,color:T.textSecondary,marginBottom:8}}>{tpl.exercises?.length||0} exercicis</div>
+                    {(tpl.exercises||[]).map((ex,i)=>(
                       <div key={ex.id} style={{display:"flex",alignItems:"center",gap:8,padding:"4px 0",borderBottom:`1px solid ${T.border}`}}>
                         <span style={{fontSize:12,color:T.textMuted,width:16}}>{i+1}.</span>
                         <span style={{fontSize:13,flex:1,color:T.textPrimary}}>{ex.name}</span>
