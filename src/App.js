@@ -211,8 +211,10 @@ const FormCard = ({children, style={}}) => (
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const urlClient = urlParams.get("client");
+  const urlIntake = urlParams.get("intake");
   const clienteInicial = urlClient ? parseInt(urlClient) : null;
 const esAccesDirecte = !!urlClient; // eslint-disable-line no-unused-vars
+  const isIntakeMode = urlIntake === "true";
   const [mode, setMode] = useState(clienteInicial ? "client" : "select");
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
@@ -275,13 +277,18 @@ const [expandedHistory, setExpandedHistory] = useState({});
 const [expandedClientCards, setExpandedClientCards] = useState({});
 const [clientSearch, setClientSearch] = useState("");
 const [checkInForm, setCheckInForm] = useState({energy:"",sleep:"",stress:"",fatigue:"",pain:"",painZone:"",notes:""});
+const [intakeForm, setIntakeForm] = useState({name:"",age:"",email:"",phone:"",profession:"",goal:"",secondaryGoal:"",threeMonthGoal:"",priority:"",sport:"",sportYears:"",sportLevel:"",strengthExperience:"",physicalPreparationExperience:"",currentTraining:"",competitions:"",injuries:"",currentPain:"",painZone:"",avoidEx:"",healthNotes:"",availability:"",sessionDuration:"",place:"",material:"",preferredSchedule:"",matchDays:"",likes:"",dislikes:"",trainingPreferences:"",extraNotes:"",source:"",referredBy:""});
+const [intakeSubmitted, setIntakeSubmitted] = useState(false);
+const [intakeError, setIntakeError] = useState("");
+const [intakeSubmissions, setIntakeSubmissions] = useState([]);
+const [viewingIntake, setViewingIntake] = useState(null);
 const [editingHistorySession, setEditingHistorySession] = useState(null);
 const [editingHistoryClientId, setEditingHistoryClientId] = useState(null);
 const [editingHistorySessionId, setEditingHistorySessionId] = useState(null);
 const [editHistoryAddEx, setEditHistoryAddEx] = useState(false);
 const [editHistoryNewEx, setEditHistoryNewEx] = useState({name:"",sets:3,reps:"10",load:"",rest:"60s",observations:""});
 
-  useEffect(()=>{loadData();},[]);
+  useEffect(()=>{loadData();loadIntakeSubmissions();},[]);// eslint-disable-line react-hooks/exhaustive-deps
   useEffect(()=>{document.title="TrainConcerNow App";},[]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(()=>{if(data?.clients) loadAllClientHistories(data.clients);},[data?.clients?.length]);
@@ -322,6 +329,82 @@ const [editHistoryNewEx, setEditHistoryNewEx] = useState({name:"",sets:3,reps:"1
   } catch {setData(DEFAULT_DATA);}
   setLoading(false);
 };
+
+  const loadIntakeSubmissions = async () => {
+    try {
+      const snap = await get(ref(db,"intake-submissions"));
+      if(snap.exists()){
+        const arr = Object.values(snap.val()).sort((a,b)=>b.createdAt>a.createdAt?1:-1);
+        setIntakeSubmissions(arr);
+      } else { setIntakeSubmissions([]); }
+    } catch { setIntakeSubmissions([]); }
+  };
+
+  const submitIntakeForm = async () => {
+    if(!intakeForm.name.trim()||!intakeForm.goal.trim()||(!intakeForm.email.trim()&&!intakeForm.phone.trim())){
+      setIntakeError("Completa com a mínim nom, objectiu i una forma de contacte.");
+      return;
+    }
+    setIntakeError("");
+    const id = `intake_${Date.now()}`;
+    const now = new Date().toISOString();
+    const submission = {id,status:"pending",createdAt:now,updatedAt:now,convertedAt:"",convertedClientId:"",rejectedAt:"",rejectedReason:"",data:intakeForm};
+    try {
+      await set(ref(db,`intake-submissions/${id}`),submission);
+      setIntakeSubmitted(true);
+    } catch { setIntakeError("Error en enviar. Torna-ho a intentar."); }
+  };
+
+  const convertIntakeToClient = async (submission) => {
+    const form = submission.data;
+    const existing = data.clients.find(c=>
+      (form.email&&c.email===form.email)||(form.phone&&c.phone===form.phone)||(c.name===form.name)
+    );
+    if(existing&&!window.confirm(`Potser "${existing.name}" ja existeix. Vols crear-lo igualment?`)) return;
+    const id = Date.now();
+    const avatar = form.name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+    const newClient = {
+      id,name:form.name||"Nou client",goal:form.goal||"",avatar,routineType:"weekly",
+      age:form.age||"",email:form.email||"",phone:form.phone||"",profession:form.profession||"",
+      secondaryGoal:form.secondaryGoal||"",threeMonthGoal:form.threeMonthGoal||"",priority:form.priority||"",
+      sport:form.sport||"",sportYears:form.sportYears||"",sportLevel:form.sportLevel||"",
+      strengthExperience:form.strengthExperience||"",physicalPreparationExperience:form.physicalPreparationExperience||"",
+      currentTraining:form.currentTraining||"",competitions:form.competitions||"",
+      level:form.sportLevel||"principiant",place:form.place||"",material:form.material||"",
+      availability:form.availability||"",sessionDuration:form.sessionDuration||"",
+      preferredSchedule:form.preferredSchedule||"",matchDays:form.matchDays||"",
+      injuries:form.injuries||"",currentPain:form.currentPain||"",painZone:form.painZone||"",
+      avoidEx:form.avoidEx||"",healthNotes:form.healthNotes||"",
+      likes:form.likes||"",dislikes:form.dislikes||"",trainingPreferences:form.trainingPreferences||"",
+      extraNotes:form.extraNotes||"",source:form.source||"",referredBy:form.referredBy||"",
+      coachNotes:"",onboardingNotes:form.extraNotes||"",createdFromIntake:true,
+      intakeSubmissionId:submission.id,status:"new",
+      startDate:new Date().toLocaleDateString("ca-ES"),
+      templates:[],exerciseLibrary:[],
+      schedule:{Dilluns:[],Dimarts:[],Dimecres:[],Dijous:[],Divendres:[],Dissabte:[],Diumenge:[]},
+    };
+    const emptyRoutine = DAYS.reduce((a,d)=>({...a,[d]:[]}),{});
+    updateData({...data,clients:[...data.clients,newClient],routines:{...data.routines,[id]:emptyRoutine}});
+    const updated = {...submission,status:"converted",convertedAt:new Date().toISOString(),convertedClientId:id,updatedAt:new Date().toISOString()};
+    await set(ref(db,`intake-submissions/${submission.id}`),updated);
+    setIntakeSubmissions(p=>p.map(s=>s.id===submission.id?updated:s));
+    setViewingIntake(null);
+    alert(`Client "${newClient.name}" creat correctament!`);
+  };
+
+  const rejectIntakeSubmission = async (submission) => {
+    if(!window.confirm("Segur que vols rebutjar aquesta sol·licitud?")) return;
+    const updated = {...submission,status:"rejected",rejectedAt:new Date().toISOString(),rejectedReason:"",updatedAt:new Date().toISOString()};
+    await set(ref(db,`intake-submissions/${submission.id}`),updated);
+    setIntakeSubmissions(p=>p.map(s=>s.id===submission.id?updated:s));
+    setViewingIntake(null);
+  };
+
+  const deleteIntakeSubmission = async (submissionId) => {
+    if(!window.confirm("Segur que vols eliminar aquesta sol·licitud?")) return;
+    await remove(ref(db,`intake-submissions/${submissionId}`));
+    setIntakeSubmissions(p=>p.filter(s=>s.id!==submissionId));
+  };
 
   const loadAllClientHistories = async (clients) => {
     try {
@@ -559,6 +642,118 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
   const cfStyle = `@keyframes cfPop{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(-60px) rotate(360deg);opacity:0}}`;
 
 
+  // ── INTAKE FORM ──────────────────────────────────────────────────────────
+  if(isIntakeMode) {
+    if(intakeSubmitted) return (
+      <div style={{...S.wrap,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
+        <div style={{textAlign:"center",padding:"2rem 1.25rem"}}>
+          <div style={{fontSize:56,marginBottom:16}}>✅</div>
+          <div style={{fontWeight:500,fontSize:20,color:T.accent,marginBottom:8}}>Formulari enviat!</div>
+          <div style={{fontSize:14,color:T.textSecondary,lineHeight:1.6}}>T'hem rebut correctament la informació. Revisarem les teves respostes i prepararem la teva fitxa.</div>
+        </div>
+      </div>
+    );
+    const IF = intakeForm;
+    const setIF = (k,v) => setIntakeForm(p=>({...p,[k]:v}));
+    const SectionTitle = ({children}) => <div style={{fontSize:12,fontWeight:500,color:T.accent,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:12,marginTop:20}}>{children}</div>;
+    return (
+      <div style={S.wrap}>
+        <div style={{padding:"1.5rem 1.25rem 0.5rem",borderBottom:`1px solid ${T.border}`}}>
+          <div style={{fontWeight:500,fontSize:20,color:T.textPrimary,marginBottom:4}}>Formulari inicial</div>
+          <div style={{fontSize:13,color:T.textSecondary}}>Respon aquestes preguntes per poder adaptar millor el teu entrenament.</div>
+        </div>
+        <div style={{padding:"0.5rem 1.25rem 3rem"}}>
+          <SectionTitle>Dades personals</SectionTitle>
+          <div style={{marginBottom:10}}><label style={S.lbl}>Nom i cognoms *</label><input style={S.inp} value={IF.name} onChange={e=>setIF("name",e.target.value)} placeholder="Ex. Marc Pérez"/></div>
+          <div style={{display:"flex",gap:8,marginBottom:10}}>
+            <div style={{flex:1}}><label style={S.lbl}>Edat</label><input style={S.inp} type="number" value={IF.age} onChange={e=>setIF("age",e.target.value)} placeholder="28"/></div>
+            <div style={{flex:2}}><label style={S.lbl}>Email *</label><input style={S.inp} type="email" value={IF.email} onChange={e=>setIF("email",e.target.value)} placeholder="correu@email.com"/></div>
+          </div>
+          <div style={{display:"flex",gap:8,marginBottom:10}}>
+            <div style={{flex:1}}><label style={S.lbl}>Telèfon</label><input style={S.inp} value={IF.phone} onChange={e=>setIF("phone",e.target.value)} placeholder="600 000 000"/></div>
+            <div style={{flex:1}}><label style={S.lbl}>Professió</label><input style={S.inp} value={IF.profession} onChange={e=>setIF("profession",e.target.value)} placeholder="Ex. Oficinista"/></div>
+          </div>
+
+          <SectionTitle>Objectius</SectionTitle>
+          <div style={{marginBottom:10}}>
+            <label style={S.lbl}>Objectiu principal *</label>
+            <select style={S.inp} value={IF.goal} onChange={e=>setIF("goal",e.target.value)}>
+              <option value="">Selecciona...</option>
+              {["Pèrdua de greix","Guany de massa muscular","Millora de força","Rendiment esportiu","Preparació física per esport","Readaptació / tornada a l'esport","Prevenció de lesions","Salut general","Altres"].map(o=><option key={o} value={o}>{o}</option>)}
+            </select>
+          </div>
+          <div style={{marginBottom:10}}><label style={S.lbl}>Objectiu secundari</label><input style={S.inp} value={IF.secondaryGoal} onChange={e=>setIF("secondaryGoal",e.target.value)} placeholder="Ex. Guanyar força"/></div>
+          <div style={{marginBottom:10}}><label style={S.lbl}>Què t'agradaria aconseguir en 3 mesos?</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={IF.threeMonthGoal} onChange={e=>setIF("threeMonthGoal",e.target.value)} placeholder="Descriu el teu objectiu a curt termini..."/></div>
+
+          <SectionTitle>Experiència esportiva</SectionTitle>
+          <div style={{display:"flex",gap:8,marginBottom:10}}>
+            <div style={{flex:2}}><label style={S.lbl}>Esport principal</label><input style={S.inp} value={IF.sport} onChange={e=>setIF("sport",e.target.value)} placeholder="Ex. Pàdel"/></div>
+            <div style={{flex:1}}><label style={S.lbl}>Anys practicant</label><input style={S.inp} value={IF.sportYears} onChange={e=>setIF("sportYears",e.target.value)} placeholder="10"/></div>
+          </div>
+          <div style={{display:"flex",gap:8,marginBottom:10}}>
+            <div style={{flex:1}}>
+              <label style={S.lbl}>Nivell esportiu</label>
+              <select style={S.inp} value={IF.sportLevel} onChange={e=>setIF("sportLevel",e.target.value)}>
+                <option value="">Selecciona...</option>
+                {["Principiant","Intermedi","Avançat","Competidor","Professional"].map(o=><option key={o} value={o}>{o}</option>)}
+              </select>
+            </div>
+            <div style={{flex:1}}><label style={S.lbl}>Anys a gimnàs / força</label><input style={S.inp} value={IF.strengthExperience} onChange={e=>setIF("strengthExperience",e.target.value)} placeholder="4 anys"/></div>
+          </div>
+          <div style={{marginBottom:10}}><label style={S.lbl}>Entrenament actual (descriu una setmana típica)</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={IF.currentTraining} onChange={e=>setIF("currentTraining",e.target.value)} placeholder="Ex. 2 partits de pàdel i 2 dies de gimnàs"/></div>
+          <div style={{marginBottom:10}}><label style={S.lbl}>Competicions o partits setmanals</label><input style={S.inp} value={IF.competitions} onChange={e=>setIF("competitions",e.target.value)} placeholder="Ex. 1-2 partits/setmana"/></div>
+
+          <SectionTitle>Salut i molèsties</SectionTitle>
+          <div style={{fontSize:12,color:T.textSecondary,marginBottom:10}}>Informació rellevant de salut, lesions o molèsties que vulguis compartir per adaptar millor l'entrenament.</div>
+          <div style={{marginBottom:10}}><label style={S.lbl}>Lesions prèvies</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={IF.injuries} onChange={e=>setIF("injuries",e.target.value)} placeholder="Ex. Esguinç de turmell fa 2 anys"/></div>
+          <div style={{display:"flex",gap:8,marginBottom:10}}>
+            <div style={{flex:1}}><label style={S.lbl}>Dolor actual</label><input style={S.inp} value={IF.currentPain} onChange={e=>setIF("currentPain",e.target.value)} placeholder="Ex. Cap / lumbar"/></div>
+            <div style={{flex:1}}><label style={S.lbl}>Zona de dolor</label><input style={S.inp} value={IF.painZone} onChange={e=>setIF("painZone",e.target.value)} placeholder="Ex. Espatlla dreta"/></div>
+          </div>
+          <div style={{marginBottom:10}}><label style={S.lbl}>Exercicis o moviments a evitar</label><input style={S.inp} value={IF.avoidEx} onChange={e=>setIF("avoidEx",e.target.value)} placeholder="Ex. Sentadilla profunda"/></div>
+          <div style={{marginBottom:10}}><label style={S.lbl}>Altres notes de salut</label><textarea style={{...S.inp,minHeight:50,resize:"vertical"}} value={IF.healthNotes} onChange={e=>setIF("healthNotes",e.target.value)} placeholder="Qualsevol informació addicional..."/></div>
+
+          <SectionTitle>Logística</SectionTitle>
+          <div style={{display:"flex",gap:8,marginBottom:10}}>
+            <div style={{flex:1}}><label style={S.lbl}>Dies disponibles</label><input style={S.inp} value={IF.availability} onChange={e=>setIF("availability",e.target.value)} placeholder="Ex. 3 dies/setmana"/></div>
+            <div style={{flex:1}}><label style={S.lbl}>Durada per sessió</label><input style={S.inp} value={IF.sessionDuration} onChange={e=>setIF("sessionDuration",e.target.value)} placeholder="Ex. 45-60 min"/></div>
+          </div>
+          <div style={{marginBottom:10}}>
+            <label style={S.lbl}>Lloc d'entrenament</label>
+            <select style={S.inp} value={IF.place} onChange={e=>setIF("place",e.target.value)}>
+              <option value="">Selecciona...</option>
+              {["Gimnàs","Casa","Exterior","Pista","Altres"].map(o=><option key={o} value={o}>{o}</option>)}
+            </select>
+          </div>
+          <div style={{display:"flex",gap:8,marginBottom:10}}>
+            <div style={{flex:1}}><label style={S.lbl}>Material disponible</label><input style={S.inp} value={IF.material} onChange={e=>setIF("material",e.target.value)} placeholder="Ex. Mancuernes, gomes..."/></div>
+            <div style={{flex:1}}><label style={S.lbl}>Horaris preferits</label><input style={S.inp} value={IF.preferredSchedule} onChange={e=>setIF("preferredSchedule",e.target.value)} placeholder="Ex. Matins"/></div>
+          </div>
+
+          <SectionTitle>Preferències</SectionTitle>
+          <div style={{marginBottom:10}}><label style={S.lbl}>Exercicis que t'agraden</label><input style={S.inp} value={IF.likes} onChange={e=>setIF("likes",e.target.value)} placeholder="Ex. Rem, dominades, força..."/></div>
+          <div style={{marginBottom:10}}><label style={S.lbl}>Exercicis que no t'agraden</label><input style={S.inp} value={IF.dislikes} onChange={e=>setIF("dislikes",e.target.value)} placeholder="Ex. Burpees..."/></div>
+          <div style={{marginBottom:10}}><label style={S.lbl}>Tipus d'entrenament que prefereixes</label><input style={S.inp} value={IF.trainingPreferences} onChange={e=>setIF("trainingPreferences",e.target.value)} placeholder="Ex. Força, circuits, funcional..."/></div>
+          <div style={{marginBottom:10}}><label style={S.lbl}>Comentaris addicionals</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={IF.extraNotes} onChange={e=>setIF("extraNotes",e.target.value)} placeholder="Qualsevol cosa que vulguis afegir..."/></div>
+
+          <SectionTitle>Com ens has trobat?</SectionTitle>
+          <div style={{marginBottom:10}}>
+            <select style={S.inp} value={IF.source} onChange={e=>setIF("source",e.target.value)}>
+              <option value="">Selecciona...</option>
+              {["Recomanació","Instagram","Internet / Google","Club esportiu","Client actual","Amic/familiar","Altres"].map(o=><option key={o} value={o}>{o}</option>)}
+            </select>
+          </div>
+          {(IF.source==="Recomanació"||IF.source==="Client actual"||IF.source==="Amic/familiar")&&(
+            <div style={{marginBottom:10}}><label style={S.lbl}>Qui t'ha recomanat?</label><input style={S.inp} value={IF.referredBy} onChange={e=>setIF("referredBy",e.target.value)} placeholder="Nom de la persona"/></div>
+          )}
+
+          {intakeError&&<div style={{background:T.dangerBg,border:`1px solid ${T.danger}40`,borderRadius:10,padding:"10px 12px",marginBottom:12,fontSize:13,color:T.danger}}>{intakeError}</div>}
+          <button style={{...S.btnPrimary,padding:"14px",marginTop:16}} onClick={submitIntakeForm}>Enviar formulari</button>
+        </div>
+      </div>
+    );
+  }
+
   if(loading) return (
     <div style={{...S.wrap,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
       <div style={{textAlign:"center"}}>
@@ -781,6 +976,42 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
           )}
 
           <button style={{...S.btnPrimary,padding:"13px"}} onClick={saveEditedHistorySession}>Guardar canvis</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Modal veure intake ─────────────────────────────────────────────────
+  if(viewingIntake) {
+    const sub = viewingIntake;
+    const d = sub.data||{};
+    const Row = ({label,value}) => value ? <div style={{marginBottom:8}}><div style={{fontSize:11,color:T.textSecondary}}>{label}</div><div style={{fontSize:13,color:T.textPrimary}}>{value}</div></div> : null;
+    const SecT = ({children}) => <div style={{fontSize:11,fontWeight:500,color:T.accent,textTransform:"uppercase",letterSpacing:"0.5px",marginTop:16,marginBottom:8}}>{children}</div>;
+    return (
+      <div style={S.wrap}>
+        <div style={{position:"sticky",top:0,background:T.card,borderBottom:`1px solid ${T.border}`,padding:"1rem 1.25rem",zIndex:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>{d.name||"Sol·licitud"}</div>
+          <button style={S.btnSecondary} onClick={()=>setViewingIntake(null)}>Tancar</button>
+        </div>
+        <div style={{padding:"1rem 1.25rem"}}>
+          <SecT>Dades personals</SecT>
+          <Row label="Nom" value={d.name}/><Row label="Edat" value={d.age}/><Row label="Email" value={d.email}/><Row label="Telèfon" value={d.phone}/><Row label="Professió" value={d.profession}/>
+          <SecT>Objectius</SecT>
+          <Row label="Objectiu principal" value={d.goal}/><Row label="Objectiu secundari" value={d.secondaryGoal}/><Row label="Objectiu 3 mesos" value={d.threeMonthGoal}/>
+          <SecT>Experiència esportiva</SecT>
+          <Row label="Esport" value={d.sport}/><Row label="Anys practicant" value={d.sportYears}/><Row label="Nivell" value={d.sportLevel}/><Row label="Experiència força" value={d.strengthExperience}/><Row label="Entrenament actual" value={d.currentTraining}/><Row label="Competicions" value={d.competitions}/>
+          <SecT>Salut i molèsties</SecT>
+          <Row label="Lesions prèvies" value={d.injuries}/><Row label="Dolor actual" value={d.currentPain}/><Row label="Zona de dolor" value={d.painZone}/><Row label="Exercicis a evitar" value={d.avoidEx}/><Row label="Notes de salut" value={d.healthNotes}/>
+          <SecT>Logística</SecT>
+          <Row label="Dies disponibles" value={d.availability}/><Row label="Durada sessió" value={d.sessionDuration}/><Row label="Lloc" value={d.place}/><Row label="Material" value={d.material}/><Row label="Horaris" value={d.preferredSchedule}/>
+          <SecT>Preferències</SecT>
+          <Row label="Li agraden" value={d.likes}/><Row label="No li agraden" value={d.dislikes}/><Row label="Preferències" value={d.trainingPreferences}/><Row label="Notes extra" value={d.extraNotes}/>
+          <SecT>Origen</SecT>
+          <Row label="Com ens ha trobat" value={d.source}/><Row label="Recomanat per" value={d.referredBy}/>
+          <div style={{display:"flex",gap:8,marginTop:20}}>
+            <button style={{...S.btnSecondary,flex:1,fontSize:12}} onClick={()=>rejectIntakeSubmission(sub)}>Rebutjar</button>
+            <button style={{...S.btnPrimary,flex:2,padding:"12px",fontSize:13}} onClick={()=>convertIntakeToClient(sub)}>✓ Crear client</button>
+          </div>
         </div>
       </div>
     );
@@ -2018,6 +2249,46 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
             <button style={S.btnSecondary} onClick={()=>setShowAddClient(true)}>+ Afegir</button>
           </div>
 
+         {/* Sol·licituds pendents */}
+          {(()=>{
+            const pending = intakeSubmissions.filter(s=>s.status==="pending");
+            return (
+              <div style={{marginBottom:16}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                  <div style={{fontSize:13,fontWeight:500,color:T.textPrimary}}>
+                    Sol·licituds pendents
+                    {pending.length>0&&<span style={{...S.tag("purple"),marginLeft:6,fontSize:10}}>{pending.length}</span>}
+                  </div>
+                  <button style={{...S.btnSecondary,fontSize:11}} onClick={loadIntakeSubmissions}>↻ Actualitzar</button>
+                </div>
+                {pending.length===0?(
+                  <div style={{fontSize:12,color:T.textMuted,textAlign:"center",padding:"8px 0"}}>Cap sol·licitud pendent</div>
+                ):(
+                  pending.map(sub=>(
+                    <div key={sub.id} style={{background:T.card,border:`1px solid ${T.purple}40`,borderRadius:12,padding:"0.75rem",marginBottom:8}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+                        <div>
+                          <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{sub.data?.name||"Sense nom"}</div>
+                          <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>
+                            {sub.data?.goal||"—"}{sub.data?.sport?` · ${sub.data.sport}`:""} · {new Date(sub.createdAt).toLocaleDateString("ca-ES")}
+                          </div>
+                          {(sub.data?.email||sub.data?.phone)&&<div style={{fontSize:11,color:T.purple,marginTop:2}}>{sub.data?.email||sub.data?.phone}</div>}
+                        </div>
+                        <span style={S.tag("purple")}>Pendent</span>
+                      </div>
+                      <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+                        <button style={{...S.btnSecondary,fontSize:11}} onClick={()=>setViewingIntake(sub)}>👁 Veure</button>
+                        <button style={{...S.btnPrimary,fontSize:11,padding:"4px 10px",width:"auto"}} onClick={()=>convertIntakeToClient(sub)}>✓ Crear client</button>
+                        <button style={{...S.btnDanger,fontSize:11}} onClick={()=>rejectIntakeSubmission(sub)}>Rebutjar</button>
+                        <button style={{...S.btnDanger,fontSize:11}} onClick={()=>deleteIntakeSubmission(sub.id)}>🗑️</button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            );
+          })()}
+
           {/* Cercador */}
           <input style={{...S.inp,marginBottom:14}} value={clientSearch} onChange={e=>setClientSearch(e.target.value)} placeholder="Cercar client..."/>
 
@@ -2183,7 +2454,17 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
           {key:"avoidEx",label:"Exercicis a evitar",placeholder:"Ex. sentadilla profunda..."},
           {key:"likes",label:"Exercicis que li agraden",placeholder:"Ex. rem, dominades..."},
           {key:"dislikes",label:"Exercicis que no li agraden",placeholder:"Ex. burpees..."},
-          {key:"coachNotes",label:"Notes internes",placeholder:"Notes privades de l'entrenador..."},
+          {key:"email",label:"Email",placeholder:"correu@email.com"},
+          {key:"phone",label:"Telèfon",placeholder:"600 000 000"},
+          {key:"sport",label:"Esport principal",placeholder:"Ex. Pàdel"},
+          {key:"availability",label:"Dies disponibles",placeholder:"Ex. 3 dies/setmana"},
+          {key:"secondaryGoal",label:"Objectiu secundari",placeholder:""},
+          {key:"injuries",label:"Lesions prèvies",placeholder:""},
+          {key:"healthNotes",label:"Notes de salut",placeholder:""},
+          {key:"trainingPreferences",label:"Preferències d'entrenament",placeholder:""},
+          {key:"source",label:"Com ha trobat el servei",placeholder:""},
+          {key:"coachNotes",label:"Notes internes (admin)",placeholder:"Notes privades de l'entrenador..."},
+          {key:"onboardingNotes",label:"Notes d'incorporació (admin)",placeholder:""},
         ];
         const saveClientData=()=>{
           const nd={...data,clients:data.clients.map(c=>c.id===adminClient?{...c,...clientDraft}:c)};
