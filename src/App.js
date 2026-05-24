@@ -127,6 +127,57 @@ const getRpeLabel = (value) => {
 const getSessionInternalLoad = (sess) =>
   sess.internalLoad ?? calculateInternalLoad(sess.durationReal, sess.rpe);
 
+const getClientAlerts = (stats) => {
+  const alerts = [];
+  const lastSession = stats.lastSession;
+  const checkIn = lastSession?.checkIn || {};
+  const pain = Number(checkIn.pain ?? -1);
+  const rpe = Number(lastSession?.rpe || 0);
+  const energy = Number(checkIn.energy || 0);
+  const sleep = Number(checkIn.sleep || 0);
+  const fatigue = Number(checkIn.fatigue || 0);
+  const stress = Number(checkIn.stress || 0);
+
+  // Danger
+  if(pain >= 5) {
+    const detail = checkIn.painZone ? `${checkIn.painZone} · ${pain}/10` : `${pain}/10`;
+    alerts.push({type:"pain",label:"Dolor elevat",detail,severity:"danger"});
+  }
+  if(lastSession?.feeling==="Molèsties") {
+    alerts.push({type:"feeling",label:"Molèsties",detail:"Última sessió",severity:"danger"});
+  }
+
+  // Warning
+  if(rpe >= 8) {
+    alerts.push({type:"rpe",label:"RPE alt",detail:`Última sessió: ${rpe}/10`,severity:"warning"});
+  } else if(stats.avgRpeRecent != null && stats.avgRpeRecent >= 8) {
+    alerts.push({type:"rpe",label:"RPE mitjà alt",detail:`Mitjana recent: ${stats.avgRpeRecent}`,severity:"warning"});
+  }
+  if(stats.weeklyInternalLoad != null && stats.weeklyInternalLoad >= 1000) {
+    alerts.push({type:"load",label:"Càrrega alta",detail:`${stats.weeklyInternalLoad} UA aquesta setmana`,severity:"warning"});
+  }
+  const recoveryFactors = [];
+  if(energy > 0 && energy <= 2) recoveryFactors.push(`energia ${energy}/5`);
+  if(sleep > 0 && sleep <= 2) recoveryFactors.push(`son ${sleep}/5`);
+  if(fatigue >= 4) recoveryFactors.push(`fatiga ${fatigue}/5`);
+  if(stress >= 4) recoveryFactors.push(`estrès ${stress}/5`);
+  if(recoveryFactors.length > 0 && lastSession?.checkIn?.completedAt) {
+    alerts.push({type:"recovery",label:"Recuperació baixa",detail:recoveryFactors.join(" · "),severity:"warning"});
+  }
+  if(stats.totalSessions > 0 && stats.sessionsThisWeek === 0) {
+    alerts.push({type:"inactive",label:"Sense activitat",detail:"Cap sessió en 7 dies",severity:"warning"});
+  }
+
+  // Info
+  if(lastSession && (lastSession.completionPercentage ?? 100) < 100) {
+    alerts.push({type:"partial",label:"Sessió parcial",detail:`${lastSession.completionPercentage || 0}% completat`,severity:"info"});
+  }
+
+  // Ordenar: danger primer, warning segon, info tercer
+  const order = {danger:0,warning:1,info:2};
+  return alerts.sort((a,b)=>order[a.severity]-order[b.severity]);
+};
+
 // ══════════════════════════════════════════════════════════════════════════════
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -1665,17 +1716,34 @@ export default function App() {
           {filteredClients.map((c)=>{
             const cc=cClr(data.clients.findIndex(cl=>cl.id===c.id));
             const stats=getClientDashboardStats(c);
+            const alerts=getClientAlerts(stats);
+            const hasDanger=alerts.some(a=>a.severity==="danger");
+            const hasWarning=alerts.some(a=>a.severity==="warning");
+            const computedStatus = alerts.length===0&&stats.totalSessions===0?"Nou":hasDanger?"Alerta":hasWarning?"Revisar":stats.status;
             const isExpanded=!!expandedClientCards[c.id];
+            const alertSeverityStyle = (severity) => {
+              if(severity==="danger") return {fontSize:11,padding:"2px 8px",borderRadius:20,background:T.dangerBg,color:T.danger,border:`1px solid ${T.danger}40`};
+              if(severity==="warning") return {fontSize:11,padding:"2px 8px",borderRadius:20,background:T.orangeBg,color:T.orange,border:`1px solid #7C2D1240`};
+              return {fontSize:11,padding:"2px 8px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1px solid #3A3A6040`};
+            };
             return (
-              <div key={c.id} style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"1rem",marginBottom:10}}>
+              <div key={c.id} style={{background:T.card,border:`1px solid ${hasDanger?T.danger+"40":hasWarning?"#FB923C40":T.border}`,borderRadius:16,padding:"1rem",marginBottom:10}}>
                 <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
                   <div style={S.avatar(cc)}>{c.avatar}</div>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontWeight:500,fontSize:15,color:T.textPrimary}}>{c.name}</div>
                     <div style={{fontSize:12,color:cc.text,marginTop:1}}>{c.goal}</div>
                   </div>
-                  <span style={statusStyle(stats.status)}>{stats.status}</span>
+                  <span style={statusStyle(computedStatus)}>{computedStatus}</span>
                 </div>
+                {alerts.length>0&&(
+                  <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:10}}>
+                    {alerts.slice(0,3).map((a,i)=>(
+                      <span key={i} style={alertSeverityStyle(a.severity)}>{a.label}</span>
+                    ))}
+                    {alerts.length>3&&<span style={{fontSize:11,padding:"2px 8px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1px solid ${T.border}`}}>+{alerts.length-3} més</span>}
+                  </div>
+                )}
                 <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:10}}>
                   {[{label:"Setmana",value:stats.sessionsThisWeek},{label:"RPE mitjà",value:stats.avgRpeRecent??"-"},{label:"Càrrega set.",value:stats.weeklyInternalLoad!=null?`${stats.weeklyInternalLoad} UA`:"—"}].map(st=>(
                     <div key={st.label} style={{background:T.card2,borderRadius:8,padding:"6px 8px",textAlign:"center"}}>
@@ -1716,6 +1784,19 @@ export default function App() {
                       </div>
                     ))}
                     {stats.history.length===0&&<div style={{fontSize:12,color:T.textMuted,textAlign:"center",padding:"8px 0"}}>Sense sessions</div>}
+                    <div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${T.border}`}}>
+                      <div style={{fontSize:11,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:6}}>Alertes recents</div>
+                      {alerts.length===0?(
+                        <div style={{fontSize:12,color:T.textMuted}}>Sense alertes recents.</div>
+                      ):(
+                        alerts.map((a,i)=>(
+                          <div key={i} style={{display:"flex",alignItems:"flex-start",gap:8,marginBottom:6}}>
+                            <span style={{...alertSeverityStyle(a.severity),flexShrink:0}}>{a.label}</span>
+                            <span style={{fontSize:11,color:T.textSecondary,paddingTop:2}}>{a.detail}</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
