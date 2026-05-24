@@ -499,149 +499,6 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
   // ── keyframes injected once ───────────────────────────────────────────────
   const cfStyle = `@keyframes cfPop{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(-60px) rotate(360deg);opacity:0}}`;
 
-  // ── Modal edició historial ────────────────────────────────────────────────
-  const EditHistoryModal = () => {
-    if(!editingHistorySession) return null;
-    const sess = editingHistorySession;
-    const updateSess = (field, value) => setEditingHistorySession(p=>({...p,[field]:value}));
-    const updateEx = (ei, field, value) => setEditingHistorySession(p=>({...p,exercises:p.exercises.map((e,i)=>i===ei?{...e,[field]:value}:e)}));
-    const updateSt = (ei, si, field, value) => setEditingHistorySession(p=>({...p,exercises:p.exercises.map((e,i)=>i===ei?{...e,sets:e.sets.map((st,j)=>j===si?{...st,[field]:value}:st)}:e)}));
-    const addSt = (ei) => setEditingHistorySession(p=>({...p,exercises:p.exercises.map((e,i)=>{
-      if(i!==ei) return e;
-      const last = e.sets[e.sets.length-1];
-      return {...e,sets:[...e.sets,{reps:last?.reps||e.plannedReps||"",load:last?.load||e.plannedLoad||"",rest:last?.rest||e.plannedRest||"",completed:false}]};
-    })}));
-    const removeSt = (ei, si) => setEditingHistorySession(p=>({...p,exercises:p.exercises.map((e,i)=>i===ei?{...e,sets:e.sets.filter((_,j)=>j!==si)}:e)}));
-    const removeEx = (ei) => {if(window.confirm("Segur que vols eliminar aquest exercici?")) setEditingHistorySession(p=>({...p,exercises:p.exercises.filter((_,i)=>i!==ei)}));};
-
-    return (
-      <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",zIndex:200,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
-        <div style={{background:T.card,borderRadius:"20px 20px 0 0",width:"100%",maxWidth:520,maxHeight:"90vh",overflowY:"auto",border:`1px solid ${T.border}`}}>
-          <div style={{padding:"1.25rem 1.25rem 0.5rem",position:"sticky",top:0,background:T.card,borderBottom:`1px solid ${T.border}`,zIndex:1}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>Editar sessió</div>
-              <button style={S.btnSecondary} onClick={()=>{setEditingHistorySession(null);setEditingHistoryClientId(null);setEditingHistorySessionId(null);}}>Cancel·lar</button>
-            </div>
-          </div>
-          <div style={{padding:"1rem 1.25rem"}}>
-            {/* Dades generals */}
-            <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Dades generals</div>
-            <div style={{marginBottom:8}}><label style={S.lbl}>Títol</label><input style={S.inp} value={sess.sessionTitle||""} onChange={e=>updateSess("sessionTitle",e.target.value)} placeholder="Títol de la sessió"/></div>
-            <div style={{display:"flex",gap:8,marginBottom:8}}>
-              <div style={{flex:1}}><label style={S.lbl}>Data</label><input style={S.inp} value={sess.date||""} onChange={e=>updateSess("date",e.target.value)}/></div>
-              <div style={{flex:1}}><label style={S.lbl}>Dia</label><input style={S.inp} value={sess.day||""} onChange={e=>updateSess("day",e.target.value)}/></div>
-            </div>
-            <div style={{marginBottom:8}}>
-              <label style={S.lbl}>RPE (1-10)</label>
-              <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-                {[1,2,3,4,5,6,7,8,9,10].map(n=>(
-                  <button key={n} onClick={()=>updateSess("rpe",n)}
-                    style={{width:36,height:36,borderRadius:8,border:`1px solid ${sess.rpe===n?T.accent:T.border}`,background:sess.rpe===n?T.accent:T.card2,color:sess.rpe===n?T.bg:T.textSecondary,cursor:"pointer",fontSize:12}}>
-                    {n}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div style={{display:"flex",gap:8,marginBottom:8}}>
-              <div style={{flex:1}}><label style={S.lbl}>Durada (min)</label><input style={S.inp} type="number" value={sess.durationReal||""} onChange={e=>updateSess("durationReal",e.target.value)} placeholder="45"/></div>
-            </div>
-            <div style={{marginBottom:8}}>
-              <label style={S.lbl}>Sensació</label>
-              <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-                {[["😄","Molt bé"],["🙂","Bé"],["😐","Normal"],["😓","Cansat"],["😣","Molèsties"]].map(([emoji,label])=>(
-                  <button key={label} onClick={()=>updateSess("feeling",label)}
-                    style={{padding:"5px 9px",borderRadius:8,border:`1px solid ${sess.feeling===label?T.accent:T.border}`,background:sess.feeling===label?T.accent:T.card2,color:sess.feeling===label?T.bg:T.textSecondary,cursor:"pointer",fontSize:11}}>
-                    {emoji} {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div style={{marginBottom:16}}><label style={S.lbl}>Notes finals</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={sess.clientNotes||""} onChange={e=>updateSess("clientNotes",e.target.value)} placeholder="Notes de la sessió..."/></div>
-
-            {/* Exercicis */}
-            <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Exercicis</div>
-            {(sess.exercises||[]).map((ex,ei)=>(
-              <div key={ei} style={{...S.card,marginBottom:10}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                  <div style={{flex:1}}>
-                    <input style={{...S.inp,fontWeight:500}} value={ex.name||""} onChange={e=>updateEx(ei,"name",e.target.value)} placeholder="Nom exercici"/>
-                  </div>
-                  <button style={{...S.btnDanger,marginLeft:8}} onClick={()=>removeEx(ei)}>×</button>
-                </div>
-                <div style={{display:"flex",gap:6,marginBottom:8}}>
-                  <div style={{flex:1}}><label style={S.lbl}>Reps plan.</label><input style={S.inp} value={ex.plannedReps||""} onChange={e=>updateEx(ei,"plannedReps",e.target.value)}/></div>
-                  <div style={{flex:1}}><label style={S.lbl}>Càrrega plan.</label><input style={S.inp} value={ex.plannedLoad||""} onChange={e=>updateEx(ei,"plannedLoad",e.target.value)} placeholder="kg"/></div>
-                  <div style={{flex:1}}><label style={S.lbl}>Descans plan.</label><input style={S.inp} value={ex.plannedRest||""} onChange={e=>updateEx(ei,"plannedRest",e.target.value)}/></div>
-                </div>
-                <div style={{marginBottom:8}}><label style={S.lbl}>Observacions</label><input style={S.inp} value={ex.observations||""} onChange={e=>updateEx(ei,"observations",e.target.value)} placeholder="Observacions..."/></div>
-                {/* Sèries */}
-                <div style={{fontSize:11,fontWeight:500,color:T.textSecondary,marginBottom:6}}>Sèries</div>
-                {(ex.sets||[]).map((st,si)=>(
-                  <div key={si} style={{background:T.card2,borderRadius:8,padding:"8px 10px",marginBottom:5,border:`1px solid ${st.completed?T.accent:T.border}`}}>
-                    <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6}}>
-                      <button onClick={()=>updateSt(ei,si,"completed",!st.completed)}
-                        style={{width:22,height:22,borderRadius:"50%",border:`2px solid ${st.completed?T.accent:T.border}`,background:st.completed?T.accent:T.bg,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                        {st.completed&&<svg viewBox="0 0 16 16" width="11" height="11"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                      </button>
-                      <span style={{fontSize:12,color:T.textPrimary,fontWeight:500}}>S{si+1}</span>
-                      <button onClick={()=>removeSt(ei,si)} style={{marginLeft:"auto",width:18,height:18,borderRadius:"50%",border:"none",background:T.dangerBg,color:T.danger,cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
-                    </div>
-                    <div style={{display:"flex",gap:5}}>
-                      <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} value={st.reps||""} onChange={e=>updateSt(ei,si,"reps",e.target.value)} placeholder={ex.plannedReps||"reps"}/></div>
-                      <div style={{flex:1}}><label style={S.lbl}>Càrrega</label><input style={S.inp} value={st.load||""} onChange={e=>updateSt(ei,si,"load",e.target.value)} placeholder={ex.plannedLoad||"kg"}/></div>
-                      <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={st.rest||""} onChange={e=>updateSt(ei,si,"rest",e.target.value)} placeholder={ex.plannedRest||"60s"}/></div>
-                    </div>
-                  </div>
-                ))}
-                <button style={{...S.btnSecondary,width:"100%",textAlign:"center",fontSize:11,marginTop:4}} onClick={()=>addSt(ei)}>+ Afegir sèrie</button>
-              </div>
-            ))}
-
-            {/* Afegir exercici personalitzat */}
-            {editHistoryAddEx?(
-              <div style={{background:"#1A1A24",border:"1px solid #E8FF4740",borderRadius:14,padding:"0.9rem",marginBottom:10}}>
-                <div style={{fontWeight:500,fontSize:13,color:T.textPrimary,marginBottom:10}}>Nou exercici</div>
-                <div style={{marginBottom:8}}><label style={S.lbl}>Nom *</label><input style={S.inp} value={editHistoryNewEx.name} onChange={e=>setEditHistoryNewEx(p=>({...p,name:e.target.value}))} placeholder="Nom de l'exercici"/></div>
-                <div style={{display:"flex",gap:6,marginBottom:8}}>
-                  <div style={{flex:1}}><label style={S.lbl}>Sèries</label><input style={S.inp} type="number" value={editHistoryNewEx.sets} onChange={e=>setEditHistoryNewEx(p=>({...p,sets:e.target.value}))}/></div>
-                  <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} value={editHistoryNewEx.reps} onChange={e=>setEditHistoryNewEx(p=>({...p,reps:e.target.value}))}/></div>
-                </div>
-                <div style={{display:"flex",gap:6,marginBottom:8}}>
-                  <div style={{flex:1}}><label style={S.lbl}>Càrrega</label><input style={S.inp} value={editHistoryNewEx.load} onChange={e=>setEditHistoryNewEx(p=>({...p,load:e.target.value}))} placeholder="kg"/></div>
-                  <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={editHistoryNewEx.rest} onChange={e=>setEditHistoryNewEx(p=>({...p,rest:e.target.value}))}/></div>
-                </div>
-                <div style={{marginBottom:10}}><label style={S.lbl}>Observacions</label><input style={S.inp} value={editHistoryNewEx.observations} onChange={e=>setEditHistoryNewEx(p=>({...p,observations:e.target.value}))}/></div>
-                <div style={{display:"flex",gap:8}}>
-                  <button style={{...S.btnSecondary,flex:1}} onClick={()=>setEditHistoryAddEx(false)}>Cancel·lar</button>
-                  <button style={{...S.btnPrimary,flex:2,padding:"10px",fontSize:13}} onClick={()=>{
-                    if(!editHistoryNewEx.name.trim()) return;
-                    const numSets = Number(editHistoryNewEx.sets)||1;
-                    const newEx = {
-                      id:`hist_custom_${Date.now()}`,exerciseId:null,
-                      name:editHistoryNewEx.name.trim(),
-                      plannedSets:numSets,plannedReps:editHistoryNewEx.reps||"",
-                      plannedLoad:editHistoryNewEx.load||"",plannedRest:editHistoryNewEx.rest||"",
-                      observations:editHistoryNewEx.observations||"",
-                      isExtra:true,isCustom:true,
-                      sets:Array.from({length:numSets},()=>({reps:editHistoryNewEx.reps||"",load:editHistoryNewEx.load||"",rest:editHistoryNewEx.rest||"",completed:false})),
-                    };
-                    setEditingHistorySession(p=>({...p,exercises:[...(p.exercises||[]),newEx]}));
-                    setEditHistoryAddEx(false);
-                    setEditHistoryNewEx({name:"",sets:3,reps:"10",load:"",rest:"60s",observations:""});
-                  }}>Afegir</button>
-                </div>
-              </div>
-            ):(
-              <button style={{...S.btnSecondary,width:"100%",textAlign:"center",fontSize:12,marginBottom:16}} onClick={()=>setEditHistoryAddEx(true)}>+ Afegir exercici</button>
-            )}
-
-            {/* Botons finals */}
-            <button style={{...S.btnPrimary,padding:"13px"}} onClick={saveEditedHistorySession}>Guardar canvis</button>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   if(loading) return (
     <div style={{...S.wrap,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
@@ -657,7 +514,187 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
 
   // ══════════════════════════════════════════════════════════════════════════
   // ── SELECT ────────────────────────────────────────────────────────────────
-  if(editingHistorySession) return <EditHistoryModal/>;
+  if(editingHistorySession) {
+    const sess = editingHistorySession;
+    const updateSess = (field, value) => setEditingHistorySession(p=>({...p,[field]:value}));
+    const updateEx = (ei, field, value) => setEditingHistorySession(p=>({...p,exercises:p.exercises.map((e,i)=>i===ei?{...e,[field]:value}:e)}));
+    const updateSt = (ei, si, field, value) => setEditingHistorySession(p=>({...p,exercises:p.exercises.map((e,i)=>i===ei?{...e,sets:e.sets.map((st,j)=>j===si?{...st,[field]:value}:st)}:e)}));
+    const addSt = (ei) => setEditingHistorySession(p=>({...p,exercises:p.exercises.map((e,i)=>{
+      if(i!==ei) return e;
+      const last = e.sets[e.sets.length-1];
+      return {...e,sets:[...e.sets,{reps:last?.reps||e.plannedReps||"",load:last?.load||e.plannedLoad||"",rest:last?.rest||e.plannedRest||"",completed:false}]};
+    })}));
+    const removeSt = (ei, si) => setEditingHistorySession(p=>({...p,exercises:p.exercises.map((e,i)=>i===ei?{...e,sets:e.sets.filter((_,j)=>j!==si)}:e)}));
+    const removeEx = (ei) => {if(window.confirm("Segur que vols eliminar aquest exercici?")) setEditingHistorySession(p=>({...p,exercises:p.exercises.filter((_,i)=>i!==ei)}));};
+    const histLib = getClientLibrary(editingHistoryClientId);
+    const [editHistAddTab, setEditHistAddTab] = [editHistoryAddEx?"custom":"biblioteca", ()=>{}];
+    void editHistAddTab;
+
+    return (
+      <div style={S.wrap}>
+        <style>{cfStyle}</style>
+        <div style={{position:"sticky",top:0,background:T.card,borderBottom:`1px solid ${T.border}`,padding:"1rem 1.25rem",zIndex:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>Editar sessió</div>
+          <button style={S.btnSecondary} onClick={()=>{setEditingHistorySession(null);setEditingHistoryClientId(null);setEditingHistorySessionId(null);}}>Cancel·lar</button>
+        </div>
+        <div style={{padding:"1rem 1.25rem"}}>
+          {/* Dades generals */}
+          <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Dades generals</div>
+          <div style={{marginBottom:8}}><label style={S.lbl}>Títol</label><input style={S.inp} value={sess.sessionTitle||""} onChange={e=>updateSess("sessionTitle",e.target.value)} placeholder="Títol de la sessió"/></div>
+          <div style={{display:"flex",gap:8,marginBottom:8}}>
+            <div style={{flex:1}}><label style={S.lbl}>Data</label><input style={S.inp} value={sess.date||""} onChange={e=>updateSess("date",e.target.value)}/></div>
+            <div style={{flex:1}}><label style={S.lbl}>Dia</label><input style={S.inp} value={sess.day||""} onChange={e=>updateSess("day",e.target.value)}/></div>
+          </div>
+          <div style={{marginBottom:8}}>
+            <label style={S.lbl}>RPE (1-10)</label>
+            <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+              {[1,2,3,4,5,6,7,8,9,10].map(n=>(
+                <button key={n} onClick={()=>updateSess("rpe",n)}
+                  style={{width:36,height:36,borderRadius:8,border:`1px solid ${sess.rpe===n?T.accent:T.border}`,background:sess.rpe===n?T.accent:T.card2,color:sess.rpe===n?T.bg:T.textSecondary,cursor:"pointer",fontSize:12}}>
+                  {n}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={{display:"flex",gap:8,marginBottom:8}}>
+            <div style={{flex:1}}><label style={S.lbl}>Durada (min)</label><input style={S.inp} type="number" value={sess.durationReal||""} onChange={e=>updateSess("durationReal",e.target.value)} placeholder="45"/></div>
+          </div>
+          <div style={{marginBottom:8}}>
+            <label style={S.lbl}>Sensació</label>
+            <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+              {[["😄","Molt bé"],["🙂","Bé"],["😐","Normal"],["😓","Cansat"],["😣","Molèsties"]].map(([emoji,label])=>(
+                <button key={label} onClick={()=>updateSess("feeling",label)}
+                  style={{padding:"5px 9px",borderRadius:8,border:`1px solid ${sess.feeling===label?T.accent:T.border}`,background:sess.feeling===label?T.accent:T.card2,color:sess.feeling===label?T.bg:T.textSecondary,cursor:"pointer",fontSize:11}}>
+                  {emoji} {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={{marginBottom:16}}><label style={S.lbl}>Notes finals</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={sess.clientNotes||""} onChange={e=>updateSess("clientNotes",e.target.value)} placeholder="Notes de la sessió..."/></div>
+
+          {/* Exercicis */}
+          <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Exercicis</div>
+          {(sess.exercises||[]).map((ex,ei)=>(
+            <div key={ei} style={{...S.card,marginBottom:10}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                <div style={{flex:1}}>
+                  <input style={{...S.inp,fontWeight:500}} value={ex.name||""} onChange={e=>updateEx(ei,"name",e.target.value)} placeholder="Nom exercici"/>
+                </div>
+                <button style={{...S.btnDanger,marginLeft:8}} onClick={()=>removeEx(ei)}>×</button>
+              </div>
+              <div style={{display:"flex",gap:6,marginBottom:8}}>
+                <div style={{flex:1}}><label style={S.lbl}>Reps plan.</label><input style={S.inp} value={ex.plannedReps||""} onChange={e=>updateEx(ei,"plannedReps",e.target.value)}/></div>
+                <div style={{flex:1}}><label style={S.lbl}>Càrrega plan.</label><input style={S.inp} value={ex.plannedLoad||""} onChange={e=>updateEx(ei,"plannedLoad",e.target.value)} placeholder="kg"/></div>
+                <div style={{flex:1}}><label style={S.lbl}>Descans plan.</label><input style={S.inp} value={ex.plannedRest||""} onChange={e=>updateEx(ei,"plannedRest",e.target.value)}/></div>
+              </div>
+              <div style={{marginBottom:8}}><label style={S.lbl}>Observacions</label><input style={S.inp} value={ex.observations||""} onChange={e=>updateEx(ei,"observations",e.target.value)} placeholder="Observacions..."/></div>
+              <div style={{fontSize:11,fontWeight:500,color:T.textSecondary,marginBottom:6}}>Sèries</div>
+              {(ex.sets||[]).map((st,si)=>(
+                <div key={si} style={{background:T.card2,borderRadius:8,padding:"8px 10px",marginBottom:5,border:`1px solid ${st.completed?T.accent:T.border}`}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6}}>
+                    <button onClick={()=>updateSt(ei,si,"completed",!st.completed)}
+                      style={{width:22,height:22,borderRadius:"50%",border:`2px solid ${st.completed?T.accent:T.border}`,background:st.completed?T.accent:T.bg,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                      {st.completed&&<svg viewBox="0 0 16 16" width="11" height="11"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                    </button>
+                    <span style={{fontSize:12,color:T.textPrimary,fontWeight:500}}>S{si+1}</span>
+                    <button onClick={()=>removeSt(ei,si)} style={{marginLeft:"auto",width:18,height:18,borderRadius:"50%",border:"none",background:T.dangerBg,color:T.danger,cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
+                  </div>
+                  <div style={{display:"flex",gap:5}}>
+                    <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} value={st.reps||""} onChange={e=>updateSt(ei,si,"reps",e.target.value)} placeholder={ex.plannedReps||"reps"}/></div>
+                    <div style={{flex:1}}><label style={S.lbl}>Càrrega</label><input style={S.inp} value={st.load||""} onChange={e=>updateSt(ei,si,"load",e.target.value)} placeholder={ex.plannedLoad||"kg"}/></div>
+                    <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={st.rest||""} onChange={e=>updateSt(ei,si,"rest",e.target.value)} placeholder={ex.plannedRest||"60s"}/></div>
+                  </div>
+                </div>
+              ))}
+              <button style={{...S.btnSecondary,width:"100%",textAlign:"center",fontSize:11,marginTop:4}} onClick={()=>addSt(ei)}>+ Afegir sèrie</button>
+            </div>
+          ))}
+
+          {/* Afegir exercici */}
+          {editHistoryAddEx?(
+            <div style={{background:"#1A1A24",border:"1px solid #E8FF4740",borderRadius:14,padding:"0.9rem",marginBottom:10}}>
+              {/* Pestanyes biblioteca / personalitzat */}
+              <div style={{display:"flex",gap:0,marginBottom:12,borderBottom:`1px solid ${T.border}`}}>
+                {[["biblioteca","📚 Biblioteca"],["custom","✏️ Nou exercici"]].map(([tab,label])=>(
+                  <button key={tab} onClick={()=>setEditHistoryNewEx(p=>({...p,_tab:tab}))}
+                    style={{padding:"6px 12px",fontSize:11,cursor:"pointer",background:"none",border:"none",
+                      borderBottom:`2px solid ${(editHistoryNewEx._tab||"biblioteca")===tab?T.accent:"transparent"}`,
+                      color:(editHistoryNewEx._tab||"biblioteca")===tab?T.accent:T.textSecondary,marginBottom:-1}}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Pestanya Biblioteca */}
+              {(editHistoryNewEx._tab||"biblioteca")==="biblioteca"&&(
+                <>
+                  <div style={{fontSize:12,color:T.textSecondary,marginBottom:8}}>Tria un exercici de la biblioteca</div>
+                  {histLib.length===0&&<div style={{fontSize:12,color:T.textMuted,textAlign:"center",padding:"1rem 0"}}>La biblioteca està buida</div>}
+                  {histLib.map(libEx=>(
+                    <div key={libEx.id} style={{...S.card,cursor:"pointer",padding:"0.6rem 0.8rem"}} onClick={()=>{
+                      const numSets = libEx.defaultSets||1;
+                      const newEx = {
+                        id:`hist_lib_${Date.now()}`,exerciseId:libEx.id,
+                        name:libEx.name,plannedSets:numSets,
+                        plannedReps:libEx.defaultReps||"",plannedLoad:libEx.defaultLoad||"",
+                        plannedRest:libEx.defaultRest||"",observations:libEx.instructions||"",
+                        isExtra:true,isCustom:false,
+                        sets:Array.from({length:numSets},()=>({reps:libEx.defaultReps||"",load:libEx.defaultLoad||"",rest:libEx.defaultRest||"",completed:false})),
+                      };
+                      setEditingHistorySession(p=>({...p,exercises:[...(p.exercises||[]),newEx]}));
+                      setEditHistoryAddEx(false);
+                      setEditHistoryNewEx({name:"",sets:3,reps:"10",load:"",rest:"60s",observations:""});
+                    }}>
+                      <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{libEx.name}</div>
+                      <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{libEx.category} · {libEx.muscleGroup} · {libEx.defaultSets}×{libEx.defaultReps}</div>
+                    </div>
+                  ))}
+                </>
+              )}
+
+              {/* Pestanya Nou exercici */}
+              {(editHistoryNewEx._tab||"biblioteca")==="custom"&&(
+                <>
+                  <div style={{marginBottom:8}}><label style={S.lbl}>Nom *</label><input style={S.inp} value={editHistoryNewEx.name||""} onChange={e=>setEditHistoryNewEx(p=>({...p,name:e.target.value}))} placeholder="Nom de l'exercici"/></div>
+                  <div style={{display:"flex",gap:6,marginBottom:8}}>
+                    <div style={{flex:1}}><label style={S.lbl}>Sèries</label><input style={S.inp} type="number" value={editHistoryNewEx.sets||3} onChange={e=>setEditHistoryNewEx(p=>({...p,sets:e.target.value}))}/></div>
+                    <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} value={editHistoryNewEx.reps||""} onChange={e=>setEditHistoryNewEx(p=>({...p,reps:e.target.value}))}/></div>
+                  </div>
+                  <div style={{display:"flex",gap:6,marginBottom:8}}>
+                    <div style={{flex:1}}><label style={S.lbl}>Càrrega</label><input style={S.inp} value={editHistoryNewEx.load||""} onChange={e=>setEditHistoryNewEx(p=>({...p,load:e.target.value}))} placeholder="kg"/></div>
+                    <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={editHistoryNewEx.rest||""} onChange={e=>setEditHistoryNewEx(p=>({...p,rest:e.target.value}))}/></div>
+                  </div>
+                  <div style={{marginBottom:10}}><label style={S.lbl}>Observacions</label><input style={S.inp} value={editHistoryNewEx.observations||""} onChange={e=>setEditHistoryNewEx(p=>({...p,observations:e.target.value}))}/></div>
+                  <button style={{...S.btnPrimary,padding:"10px",fontSize:13}} onClick={()=>{
+                    if(!(editHistoryNewEx.name||"").trim()) return;
+                    const numSets = Number(editHistoryNewEx.sets)||1;
+                    const newEx = {
+                      id:`hist_custom_${Date.now()}`,exerciseId:null,
+                      name:(editHistoryNewEx.name||"").trim(),
+                      plannedSets:numSets,plannedReps:editHistoryNewEx.reps||"",
+                      plannedLoad:editHistoryNewEx.load||"",plannedRest:editHistoryNewEx.rest||"",
+                      observations:editHistoryNewEx.observations||"",
+                      isExtra:true,isCustom:true,
+                      sets:Array.from({length:numSets},()=>({reps:editHistoryNewEx.reps||"",load:editHistoryNewEx.load||"",rest:editHistoryNewEx.rest||"",completed:false})),
+                    };
+                    setEditingHistorySession(p=>({...p,exercises:[...(p.exercises||[]),newEx]}));
+                    setEditHistoryAddEx(false);
+                    setEditHistoryNewEx({name:"",sets:3,reps:"10",load:"",rest:"60s",observations:""});
+                  }}>Afegir</button>
+                </>
+              )}
+
+              <button style={{...S.btnSecondary,width:"100%",textAlign:"center",fontSize:12,marginTop:10}} onClick={()=>{setEditHistoryAddEx(false);setEditHistoryNewEx({name:"",sets:3,reps:"10",load:"",rest:"60s",observations:""});}}>Cancel·lar</button>
+            </div>
+          ):(
+            <button style={{...S.btnSecondary,width:"100%",textAlign:"center",fontSize:12,marginBottom:16}} onClick={()=>setEditHistoryAddEx(true)}>+ Afegir exercici</button>
+          )}
+
+          <button style={{...S.btnPrimary,padding:"13px"}} onClick={saveEditedHistorySession}>Guardar canvis</button>
+        </div>
+      </div>
+    );
+  }
 
   if(mode==="select") return (
     <div style={S.wrap}>
