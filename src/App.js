@@ -96,10 +96,14 @@ export default function App() {
   const esAccesDirecte = !!urlClient;
   const isIntakeMode = urlIntake === "true";
 
-  const [mode, setMode] = useState(clienteInicial ? "client" : "select");
+  const storedClientId = localStorage.getItem("tcn_client_id");
+  const clientIdEfectiu = clienteInicial || (storedClientId ? parseInt(storedClientId) : null);
+  const urlAdmin = urlParams.get("admin");
+
+  const [mode, setMode] = useState(clientIdEfectiu ? "client" : urlAdmin==="true" ? "pin" : "public");
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
-  const [selClient, setSelClient] = useState(clienteInicial);
+  const [selClient, setSelClient] = useState(clientIdEfectiu);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -153,7 +157,13 @@ export default function App() {
 
   const cfStyle = `@keyframes cfPop{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(-60px) rotate(360deg);opacity:0}}`;
 
-  useEffect(()=>{ loadData(); loadIntakeSubmissions(); },[]);// eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(()=>{
+    if(clienteInicial) {
+      localStorage.setItem("tcn_client_id", String(clienteInicial));
+      localStorage.setItem("tcn_access_mode", "client");
+    }
+    loadData(); loadIntakeSubmissions();
+  },[]);// eslint-disable-line react-hooks/exhaustive-deps
   useEffect(()=>{ document.title="TrainConcerNow App"; },[]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(()=>{ if(data?.clients) loadAllClientHistories(data.clients); },[data?.clients?.length]);
@@ -484,7 +494,7 @@ export default function App() {
   };
 
   // ── INTAKE FORM ──────────────────────────────────────────────────────────
-  if(isIntakeMode) {
+  if(isIntakeMode||mode==="intake") {
     if(intakeSubmitted) return (
       <div style={{...S.wrap,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
         <div style={{textAlign:"center",padding:"2rem 1.25rem"}}>
@@ -811,29 +821,36 @@ export default function App() {
   }
 
   // ── SELECT ────────────────────────────────────────────────────────────────
-  if(mode==="select"||!data?.clients) return (
-    <div style={S.wrap}>
+  // Verificar si el client guardat encara existeix
+  if(mode==="client" && data && selClient) {
+    const clientExisteix = data.clients.find(c=>c.id===selClient);
+    if(!clientExisteix) {
+      localStorage.removeItem("tcn_client_id");
+      localStorage.removeItem("tcn_access_mode");
+      return (
+        <div style={{...S.wrap,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
+          <div style={{textAlign:"center",padding:"2rem 1.25rem"}}>
+            <img src="/logotcn.PNG" alt="TrainConcerNow" style={{width:180,maxWidth:"80%",margin:"0 auto 24px",display:"block"}}/>
+            <div style={{fontSize:18,fontWeight:500,color:T.danger,marginBottom:8}}>Accés no disponible</div>
+            <div style={{fontSize:14,color:T.textSecondary,lineHeight:1.6,marginBottom:24}}>Aquest accés ja no està disponible. Demana un nou enllaç al teu preparador.</div>
+            <button style={{...S.btnSecondary,fontSize:13}} onClick={()=>{setSelClient(null);setMode("public");}}>Tornar</button>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  if(mode==="public"||mode==="select"||!data?.clients) return (
+    <div style={{...S.wrap,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
       <style>{cfStyle}</style>
-      <div style={{padding:"2.5rem 1.25rem 1.5rem",textAlign:"center"}}>
-        <img src="/logotcn.PNG" alt="Train Concer Now" style={{width:220,maxWidth:"85%",margin:"0 auto 16px",display:"block"}}/>
-        <div style={{fontSize:13,color:T.textSecondary}}>Qui ets avui?</div>
-      </div>
-      <div style={{padding:"0 1.25rem 2rem"}}>
-        <button style={S.btnPrimary} onClick={()=>setMode("pin")}>Soc el preparador</button>
-        <div style={{fontSize:12,color:T.textMuted,textAlign:"center",margin:"16px 0"}}>— o selecciona el teu perfil —</div>
-        {data.clients.map((c,i)=>{
-          const cc=cClr(i);
-          return (
-            <div key={c.id} style={S.cCard(false,cc)} onClick={()=>{setSelClient(c.id);setMode("client");}}>
-              <div style={S.avatar(cc)}>{c.avatar}</div>
-              <div style={{flex:1}}>
-                <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>{c.name}</div>
-                <div style={{fontSize:12,color:cc.text,marginTop:2}}>{c.goal}</div>
-              </div>
-              <svg viewBox="0 0 16 16" width="14" height="14"><polyline points="5,3 11,8 5,13" fill="none" stroke={T.textMuted} strokeWidth="1.5" strokeLinecap="round"/></svg>
-            </div>
-          );
-        })}
+      <div style={{textAlign:"center",padding:"2rem 1.25rem 1.5rem"}}>
+        <img src="/logotcn.PNG" alt="TrainConcerNow" style={{width:220,maxWidth:"85%",margin:"0 auto 20px",display:"block"}}/>
+        <div style={{fontSize:16,fontWeight:500,color:T.textPrimary,marginBottom:8}}>Accés no configurat</div>
+        <div style={{fontSize:13,color:T.textSecondary,lineHeight:1.6,marginBottom:32}}>Obre l'enllaç que t'ha enviat el teu preparador.</div>
+        <button style={{...S.btnPrimary,maxWidth:280,margin:"0 auto 12px"}} onClick={()=>setMode("intake")}>📋 Formulari inicial</button>
+        <div style={{marginTop:16}}>
+          <button style={{...S.btnSecondary,fontSize:11,color:T.textMuted}} onClick={()=>setMode("pin")}>Accés preparador</button>
+        </div>
       </div>
     </div>
   );
@@ -882,7 +899,14 @@ export default function App() {
               <div style={{fontSize:11,color:cc.text}}>{client.goal}</div>
             </div>
           </div>
-          {!esAccesDirecte&&<button style={S.btnSecondary} onClick={()=>setMode("select")}>Sortir</button>}
+          <button style={{...S.btnSecondary,fontSize:11}} onClick={()=>{
+            if(window.confirm("Vols desvincular aquest dispositiu d'aquest client?")) {
+              localStorage.removeItem("tcn_client_id");
+              localStorage.removeItem("tcn_access_mode");
+              setSelClient(null);
+              setMode("public");
+            }
+          }}>Canviar accés</button>
         </div>
 
         {showFinishModal&&(
