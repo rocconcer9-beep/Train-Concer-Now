@@ -272,6 +272,8 @@ const [newLibEx, setNewLibEx] = useState({name:"",category:"Força",muscleGroup:
 const [addExTab, setAddExTab] = useState("biblioteca");
 const [customExForm, setCustomExForm] = useState({name:"",sets:3,reps:"10",load:"",rest:"60s",notes:""});
 const [expandedHistory, setExpandedHistory] = useState({});
+const [expandedClientCards, setExpandedClientCards] = useState({});
+const [clientSearch, setClientSearch] = useState("");
 const [editingHistorySession, setEditingHistorySession] = useState(null);
 const [editingHistoryClientId, setEditingHistoryClientId] = useState(null);
 const [editingHistorySessionId, setEditingHistorySessionId] = useState(null);
@@ -280,6 +282,7 @@ const [editHistoryNewEx, setEditHistoryNewEx] = useState({name:"",sets:3,reps:"1
 
   useEffect(()=>{loadData();},[]);
   useEffect(()=>{document.title="TrainConcerNow App";},[]);
+  useEffect(()=>{if(data?.clients) loadAllClientHistories(data.clients);},[data?.clients?.length]);
 
   const loadData = async () => {
   setLoading(true);
@@ -318,6 +321,24 @@ const [editHistoryNewEx, setEditHistoryNewEx] = useState({name:"",sets:3,reps:"1
   } catch {setData(DEFAULT_DATA);}
   setLoading(false);
 };
+
+  const loadAllClientHistories = async (clients) => {
+    try {
+      const entries = await Promise.all(
+        clients.map(async (c) => {
+          try {
+            const h = await get(ref(db,`history-${c.id}`));
+            return [c.id, h.exists() ? Object.values(h.val()) : []];
+          } catch { return [c.id, []]; }
+        })
+      );
+      setClientHistories(p => {
+        const updated = {...p};
+        entries.forEach(([id, hist]) => { updated[id] = hist; });
+        return updated;
+      });
+    } catch {}
+  };
   const persist = async (nd) => {setSaving(true);try{await set(ref(db,"fitcoach-data2"),nd);}catch{}setSaving(false);};
   const persistHistory = async (h) => {try{await set(ref(db,"history-2"),h);}catch{}};
   const persistStdCompleted = async (c) => {try{await set(ref(db,"fitcoach-completed"),c);}catch{}};
@@ -369,6 +390,41 @@ const [editHistoryNewEx, setEditHistoryNewEx] = useState({name:"",sets:3,reps:"1
     setEditingHistorySession(null);
     setEditingHistoryClientId(null);
     setEditingHistorySessionId(null);
+  };
+
+  const getClientDashboardStats = (client) => {
+    const history = (clientHistories[client.id]||[]).slice().sort((a,b)=>{
+      const da = a.createdAt||a.updatedAt||"";
+      const db2 = b.createdAt||b.updatedAt||"";
+      return da>db2?-1:1;
+    });
+    const now = new Date();
+    const isThisWeek = (s) => {
+      const d = new Date(s.createdAt||s.updatedAt||"");
+      return !isNaN(d) && (now-d)/(1000*60*60*24)<=7;
+    };
+    const sessionsThisWeek = history.filter(isThisWeek);
+    const lastSession = history[0]||null;
+    const recentRpes = history.slice(0,5).map(s=>s.rpe).filter(r=>r!=null&&r!=="");
+    const avgRpeRecent = recentRpes.length>0 ? Math.round((recentRpes.reduce((a,b)=>a+Number(b),0)/recentRpes.length)*10)/10 : null;
+    const totalDurationThisWeek = sessionsThisWeek.reduce((a,s)=>a+(Number(s.durationReal)||0),0);
+    const templatesCount = client.templates?.length||0;
+    const libraryCount = client.exerciseLibrary?.length||0;
+    const schedule = client.schedule||{};
+    const trainingDaysCount = Object.values(schedule).filter(d=>Array.isArray(d)&&d.length>0).length;
+    const lastCompletion = lastSession?.completionPercentage??100;
+    const lastFeeling = lastSession?.feeling||null;
+
+    let status = "Sense historial";
+    if(history.length>0){
+      if(lastFeeling==="Molèsties") status="Molèsties";
+      else if(avgRpeRecent!=null&&avgRpeRecent>=8) status="RPE alt";
+      else if(lastCompletion<100) status="Sessió parcial";
+      else if(sessionsThisWeek.length>0) status="Actiu";
+      else status="Sense activitat";
+    }
+
+    return {history,totalSessions:history.length,sessionsThisWeek:sessionsThisWeek.length,lastSession,lastFeeling,lastRpe:lastSession?.rpe||null,avgRpeRecent,lastCompletion,totalDurationThisWeek,templatesCount,libraryCount,trainingDaysCount,status};
   };
 
   const persistClientHistory = async (clientId, history) => {
@@ -1746,53 +1802,167 @@ const routine=getIgnasiRoutine();
 const dayExercises=data.routines[adminClient]?.[selDay]||[];
 
   // ── ADMIN DASHBOARD (llista de clients) ──────────────────────────────────────
-  if(mode==="admin"&&adminView==="clients") return (
-    <div style={S.wrap}>
-      <style>{cfStyle}</style>
-      <div style={S.hdr}>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <div style={{width:8,height:8,borderRadius:"50%",background:T.accent}}/>
-          <span style={{fontWeight:500,fontSize:15,color:T.textPrimary}}>TrainConcerNow</span>
-          <span style={{fontSize:11,color:saving?T.textSecondary:T.green}}>{saving?"Guardant...":"✓ Guardat"}</span>
-        </div>
-        <button style={S.btnSecondary} onClick={()=>setMode("select")}>Sortir</button>
-      </div>
-      <div style={S.sec}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-          <div>
-            <div style={{fontWeight:500,fontSize:18,color:T.textPrimary}}>Clients</div>
-            <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{data.clients.length} clients registrats</div>
+  if(mode==="admin"&&adminView==="clients") {
+    const filteredClients = data.clients.filter(c=>
+      c.name?.toLowerCase().includes(clientSearch.toLowerCase()) ||
+      c.goal?.toLowerCase().includes(clientSearch.toLowerCase())
+    );
+    const allStats = data.clients.map(c=>getClientDashboardStats(c));
+    const totalSessionsWeek = allStats.reduce((a,s)=>a+s.sessionsThisWeek,0);
+    const alertStatuses = ["Molèsties","RPE alt","Sense activitat","Sessió parcial"];
+    const alertsCount = allStats.filter(s=>alertStatuses.includes(s.status)).length;
+
+    const statusStyle = (status) => {
+      if(status==="Actiu") return S.tag("green");
+      if(status==="Molèsties") return {...S.tag(),color:T.danger,background:T.dangerBg,border:`1px solid ${T.dangerBg}`};
+      if(status==="RPE alt"||status==="Sense activitat"||status==="Sessió parcial") return {...S.tag(),color:T.orange,background:T.orangeBg,border:`1px solid #7C2D12`};
+      return S.tag();
+    };
+
+    return (
+      <div style={S.wrap}>
+        <style>{cfStyle}</style>
+        <div style={S.hdr}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:8,height:8,borderRadius:"50%",background:T.accent}}/>
+            <span style={{fontWeight:500,fontSize:15,color:T.textPrimary}}>TrainConcerNow</span>
+            <span style={{fontSize:11,color:saving?T.textSecondary:T.green}}>{saving?"Guardant...":"✓ Guardat"}</span>
           </div>
-          <button style={S.btnSecondary} onClick={()=>setShowAddClient(true)}>+ Afegir</button>
+          <button style={S.btnSecondary} onClick={()=>setMode("select")}>Sortir</button>
         </div>
-        {data.clients.map((c,i)=>{
-          const cc=cClr(i);
-          return (
-            <div key={c.id} style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"1rem",marginBottom:10}}>
-              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
-                <div style={S.avatar(cc)}>{c.avatar}</div>
-                <div style={{flex:1}}>
-                  <div style={{fontWeight:500,fontSize:15,color:T.textPrimary}}>{c.name}</div>
-                  <div style={{fontSize:12,color:cc.text,marginTop:2}}>{c.goal}</div>
-                </div>
+        <div style={S.sec}>
+          {/* Resum superior */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:8,marginBottom:20}}>
+            {[
+              {label:"Clients",value:data.clients.length,color:T.accent},
+              {label:"Sessió setmana",value:totalSessionsWeek,color:T.green},
+              {label:"Alertes",value:alertsCount,color:alertsCount>0?T.orange:T.textMuted},
+            ].map(st=>(
+              <div key={st.label} style={{background:T.card,borderRadius:12,padding:"0.75rem",textAlign:"center",border:`1px solid ${T.border}`}}>
+                <div style={{fontSize:22,fontWeight:500,color:st.color}}>{st.value}</div>
+                <div style={{fontSize:10,color:T.textSecondary,marginTop:2}}>{st.label}</div>
               </div>
-              <button style={{...S.btnPrimary,fontSize:13,padding:"9px"}} onClick={()=>selectAdminClient(c.id)}>
-                Seleccionar →
-              </button>
-            </div>
-          );
-        })}
-        {showAddClient&&(
-          <FormCard>
-            <div style={{fontWeight:500,fontSize:14,color:T.textPrimary,marginBottom:12}}>Nou client</div>
-            <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.inp} value={newClient.name} onChange={e=>setNewClient(p=>({...p,name:e.target.value}))} placeholder="Ex. Ana García"/></div>
-            <div style={{marginBottom:12}}><label style={S.lbl}>Objectiu</label><input style={S.inp} value={newClient.goal} onChange={e=>setNewClient(p=>({...p,goal:e.target.value}))} placeholder="Ex. Hipertròfia..."/></div>
-            <div style={{...S.row,justifyContent:"flex-end"}}><button style={S.btnSecondary} onClick={()=>setShowAddClient(false)}>Cancel·lar</button><button style={{...S.btnPrimary,width:"auto",padding:"8px 18px",fontSize:13,marginLeft:8}} onClick={addClient}>Guardar</button></div>
-          </FormCard>
-        )}
+            ))}
+          </div>
+
+          {/* Capçalera + afegir */}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+            <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>Clients</div>
+            <button style={S.btnSecondary} onClick={()=>setShowAddClient(true)}>+ Afegir</button>
+          </div>
+
+          {/* Cercador */}
+          <input style={{...S.inp,marginBottom:14}} value={clientSearch} onChange={e=>setClientSearch(e.target.value)} placeholder="Cercar client..."/>
+
+          {/* Llista clients */}
+          {filteredClients.map((c,i)=>{
+            const cc = cClr(data.clients.findIndex(cl=>cl.id===c.id));
+            const stats = getClientDashboardStats(c);
+            const isExpanded = !!expandedClientCards[c.id];
+            return (
+              <div key={c.id} style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"1rem",marginBottom:10}}>
+                {/* Capçalera targeta */}
+                <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
+                  <div style={S.avatar(cc)}>{c.avatar}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontWeight:500,fontSize:15,color:T.textPrimary}}>{c.name}</div>
+                    <div style={{fontSize:12,color:cc.text,marginTop:1}}>{c.goal}</div>
+                  </div>
+                  <span style={statusStyle(stats.status)}>{stats.status}</span>
+                </div>
+
+                {/* Info ràpida */}
+                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:10}}>
+                  <div style={{background:T.card2,borderRadius:8,padding:"6px 8px",textAlign:"center"}}>
+                    <div style={{fontSize:13,fontWeight:500,color:T.textPrimary}}>{stats.sessionsThisWeek}</div>
+                    <div style={{fontSize:10,color:T.textSecondary}}>Setmana</div>
+                  </div>
+                  <div style={{background:T.card2,borderRadius:8,padding:"6px 8px",textAlign:"center"}}>
+                    <div style={{fontSize:13,fontWeight:500,color:T.textPrimary}}>{stats.avgRpeRecent??"-"}</div>
+                    <div style={{fontSize:10,color:T.textSecondary}}>RPE mitjà</div>
+                  </div>
+                  <div style={{background:T.card2,borderRadius:8,padding:"6px 8px",textAlign:"center"}}>
+                    <div style={{fontSize:13,fontWeight:500,color:T.textPrimary}}>{stats.totalSessions}</div>
+                    <div style={{fontSize:10,color:T.textSecondary}}>Total sess.</div>
+                  </div>
+                </div>
+
+                {/* Última sessió */}
+                {stats.lastSession?(
+                  <div style={{fontSize:12,color:T.textSecondary,marginBottom:10}}>
+                    Última: <span style={{color:T.textPrimary,fontWeight:500}}>{stats.lastSession.sessionTitle||stats.lastSession.day||"Sessió"}</span>
+                    {stats.lastSession.date?` · ${stats.lastSession.date}`:""}
+                    {stats.lastSession.completionPercentage!=null?` · ${stats.lastSession.completionPercentage}%`:""}
+                  </div>
+                ):(
+                  <div style={{fontSize:12,color:T.textMuted,marginBottom:10}}>Sense sessions registrades</div>
+                )}
+
+                {/* Botons */}
+                <div style={{display:"flex",gap:6}}>
+                  <button style={{...S.btnSecondary,flex:1,fontSize:11,textAlign:"center"}}
+                    onClick={()=>setExpandedClientCards(p=>({...p,[c.id]:!p[c.id]}))}>
+                    {isExpanded?"▲ Amagar":"▼ Resum"}
+                  </button>
+                  <button style={{...S.btnPrimary,flex:2,fontSize:13,padding:"9px"}} onClick={()=>selectAdminClient(c.id)}>
+                    Seleccionar →
+                  </button>
+                </div>
+
+                {/* Desplegable resum */}
+                {isExpanded&&(
+                  <div style={{marginTop:12,paddingTop:12,borderTop:`1px solid ${T.border}`}}>
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:10}}>
+                      {[
+                        {label:"Total sessions",value:stats.totalSessions},
+                        {label:"Dies assignats",value:stats.trainingDaysCount},
+                        {label:"Plantilles",value:stats.templatesCount},
+                        {label:"Biblioteca",value:`${stats.libraryCount} ex`},
+                        {label:"Durada setmana",value:stats.totalDurationThisWeek>0?`${stats.totalDurationThisWeek} min`:"—"},
+                        {label:"Última sensació",value:stats.lastFeeling||"—"},
+                      ].map(item=>(
+                        <div key={item.label} style={{background:T.card2,borderRadius:8,padding:"6px 10px"}}>
+                          <div style={{fontSize:11,color:T.textSecondary}}>{item.label}</div>
+                          <div style={{fontSize:13,fontWeight:500,color:T.textPrimary,marginTop:2}}>{item.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Últimes sessions */}
+                    {stats.history.slice(0,3).map((sess,idx)=>(
+                      <div key={idx} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderBottom:`1px solid ${T.border}`}}>
+                        <div>
+                          <div style={{fontSize:12,color:T.textPrimary,fontWeight:500}}>{sess.sessionTitle||sess.day||"Sessió"}</div>
+                          <div style={{fontSize:11,color:T.textSecondary}}>{sess.date||""}</div>
+                        </div>
+                        <div style={{display:"flex",gap:4,alignItems:"center"}}>
+                          {sess.rpe&&<span style={{...S.tag("purple"),fontSize:10}}>RPE {sess.rpe}</span>}
+                          {sess.completionPercentage!=null&&<span style={{...S.tag(sess.completionPercentage===100?"green":""),fontSize:10}}>{sess.completionPercentage}%</span>}
+                        </div>
+                      </div>
+                    ))}
+                    {stats.history.length===0&&<div style={{fontSize:12,color:T.textMuted,textAlign:"center",padding:"8px 0"}}>Sense sessions</div>}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {filteredClients.length===0&&clientSearch&&(
+            <div style={{textAlign:"center",padding:"2rem 0",color:T.textSecondary,fontSize:13}}>Cap client coincideix amb "{clientSearch}"</div>
+          )}
+
+          {/* Formulari nou client */}
+          {showAddClient&&(
+            <FormCard>
+              <div style={{fontWeight:500,fontSize:14,color:T.textPrimary,marginBottom:12}}>Nou client</div>
+              <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.inp} value={newClient.name} onChange={e=>setNewClient(p=>({...p,name:e.target.value}))} placeholder="Ex. Ana García"/></div>
+              <div style={{marginBottom:12}}><label style={S.lbl}>Objectiu</label><input style={S.inp} value={newClient.goal} onChange={e=>setNewClient(p=>({...p,goal:e.target.value}))} placeholder="Ex. Hipertròfia..."/></div>
+              <div style={{...S.row,justifyContent:"flex-end"}}><button style={S.btnSecondary} onClick={()=>setShowAddClient(false)}>Cancel·lar</button><button style={{...S.btnPrimary,width:"auto",padding:"8px 18px",fontSize:13,marginLeft:8}} onClick={addClient}>Guardar</button></div>
+            </FormCard>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 
   // ── ADMIN DETALL CLIENT ───────────────────────────────────────────────────────
   const adminClientData = data.clients.find(c=>c.id===adminClient);
