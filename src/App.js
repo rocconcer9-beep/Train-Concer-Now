@@ -526,11 +526,11 @@ export default function App() {
     };
     const emptyRoutine = DAYS.reduce((a,d)=>({...a,[d]:[]}),{});
     updateData({...data,clients:[...data.clients,newClient],routines:{...data.routines,[id]:emptyRoutine}});
-    const updated = {...submission,status:"converted",
+    const updated = {...submission,status:"converted",convertedAt:new Date().toISOString(),convertedClientId:id,updatedAt:new Date().toISOString()};
     await set(ref(db,`intake-submissions/${submission.id}`),updated);
     setIntakeSubmissions(p=>p.map(s=>s.id===submission.id?updated:s));
     setViewingIntake(null);
-    const link = getClientAccessLink(id);
+    const link = getClientAccessLink(newClient);
     const msg = `Hola ${newClient.name.split(" ")[0]}! Ja tens activa la teva zona d'entrenament a TrainConcerNow 💪\n\nPots accedir des d'aquest enllaç:\n${link}`;
     try { await navigator.clipboard.writeText(msg); } catch {}
     alert(`Client "${newClient.name}" creat correctament!\n\nMissatge d'invitació copiat al portapapers ✓\n\nEnllaç: ${link}`);
