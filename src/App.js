@@ -1152,8 +1152,8 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
   );
 
   // ══════════════════════════════════════════════════════════════════════════
-  // ── CLIENT IGNASI (desactivat) ────────────────────────────────────────────
-  if(false&&mode==="client"&&selClient===2){
+  // ── CLIENT IGNASI (eliminat) ──────────────────────────────────────────────
+  if(false){
     const routine=getIgnasiRoutine();
     const dc=doneCount();
     const pct=Math.round((dc/totalExs)*100);
