@@ -2442,11 +2442,12 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
               clients: data.clients.filter(c=>c.id!==adminClient),
               routines: Object.fromEntries(Object.entries(data.routines||{}).filter(([k])=>String(k)!==String(adminClient)))
             };
-            updateData(nd);
+            setAdminView("clients");
+            setData(nd);
+            setClientHistories(p=>{const np={...p};delete np[adminClient];return np;});
+            persist(nd);
             try { await remove(ref(db,`history-${adminClient}`)); } catch {}
             try { await remove(ref(db,`active-sessions/${adminClient}`)); } catch {}
-            setClientHistories(p=>{const np={...p};delete np[adminClient];return np;});
-            setAdminView("clients");
           }}>🗑️ Eliminar client</button>
         </div>
       </div>
