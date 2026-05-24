@@ -251,7 +251,7 @@ export default function App() {
         return {...c, accessToken: token};
       });
       const finalDataWithTokens = dataUpdated ? {...finalData, clients:migratedClients} : finalData;
-      if(dataUpdated) { try { await set(ref(db,"fitcoach-data2"),finalDataWithTokens); } catch {} }
+      if(dataUpdated) { set(ref(db,"fitcoach-data2"),finalDataWithTokens).catch(()=>{}); }
       setData(finalDataWithTokens);
 
       // Resoldre accés per ?access=TOKEN
