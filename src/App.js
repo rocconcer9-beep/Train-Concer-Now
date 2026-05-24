@@ -36,7 +36,7 @@ const CLIENT_COLORS = [
   { text: T.green,  bg: T.greenBg,  border: T.greenBorder },
   { text: T.orange, bg: T.orangeBg, border: "#7C2D12" },
 ];
-const cClr = (i) => CLIENT_COLORS[i % 3];
+const cClr = (i) => CLIENT_COLORS[Math.max(0,i) % 3];
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
 const S = {
@@ -1100,7 +1100,7 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
     );
   }
 
-  if(mode==="select") return (
+  if(mode==="select"||!data?.clients) return (
     <div style={S.wrap}>
       <style>{cfStyle}</style>
       <div style={{padding:"2.5rem 1.25rem 1.5rem",textAlign:"center"}}>
@@ -1401,6 +1401,7 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
   // ── CLIENT ESTÀNDARD ──────────────────────────────────────────────────────
   if(mode==="client"){
     const client=data.clients.find(c=>c.id===selClient);
+    if(!client){setMode("select");return null;}
     const ci=data.clients.findIndex(c=>c.id===selClient);
     const cc=cClr(ci);
     const dayExs=data.routines[selClient]?.[selDay]||[];
