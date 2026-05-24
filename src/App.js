@@ -303,7 +303,9 @@ const [editHistoryNewEx, setEditHistoryNewEx] = useState({name:"",sets:3,reps:"1
       get(ref(db,"history-3")),
       get(ref(db,"active-sessions")),
     ]);
-    setData(dr.exists()?dr.val():DEFAULT_DATA);
+    const loadedData = dr.exists()?dr.val():DEFAULT_DATA;
+    const seeded = await seedIgnasiNou(loadedData);
+    setData(seeded||loadedData);
     setIgnHistory(hr.exists()?Object.values(hr.val()):[]);
     setStdCompleted(cr.exists()?cr.val():{});
     setClientHistories({
@@ -407,6 +409,55 @@ const [editHistoryNewEx, setEditHistoryNewEx] = useState({name:"",sets:3,reps:"1
     if(!window.confirm("Segur que vols eliminar aquesta sol·licitud?")) return;
     await remove(ref(db,`intake-submissions/${submissionId}`));
     setIntakeSubmissions(p=>p.filter(s=>s.id!==submissionId));
+  };
+
+  const IGNASI_NOU_ID = 1779623480215;
+  const IGNASI_NOU_LIBRARY = [
+    {id:"ign_jj",name:"Jumping jacks",category:"Activació",muscleGroup:"Cos complet",movementPattern:"Cardio",material:"Cap",defaultSets:1,defaultReps:"15",defaultLoad:"",defaultRest:"15s",instructions:"Versió tranquil·la: sense salt, obre braços mentre separes un peu cap al costat. Alterna peu dret/esquerra.",observations:"",level:"Principiant"},
+    {id:"ign_cbf",name:"Cercles de braços endavant",category:"Activació",muscleGroup:"Espatlles",movementPattern:"Mobilitat",material:"Cap",defaultSets:1,defaultReps:"10",defaultLoad:"",defaultRest:"10s",instructions:"Primeres 4 reps lentes amb rang ampli. Últimes 4-6 reps augmenta la velocitat.",observations:"",level:"Principiant"},
+    {id:"ign_cba",name:"Cercles de braços enrere",category:"Activació",muscleGroup:"Espatlles",movementPattern:"Mobilitat",material:"Cap",defaultSets:1,defaultReps:"10",defaultLoad:"",defaultRest:"10s",instructions:"Primeres 4 reps lentes amb rang ampli. Últimes 4-6 reps augmenta la velocitat.",observations:"",level:"Principiant"},
+    {id:"ign_cm",name:"Cercles de maluc",category:"Activació",muscleGroup:"Maluc",movementPattern:"Mobilitat",material:"Cap",defaultSets:1,defaultReps:"8",defaultLoad:"",defaultRest:"10s",instructions:"8 reps sentit horari + 8 reps antihorari. Primeres 4 lentes, últimes 4 més ràpides.",observations:"reps/costat",level:"Principiant"},
+    {id:"ign_flex",name:"Flexions al llit (amb genolls)",category:"Força",muscleGroup:"Pectoral",movementPattern:"Push horitzontal",material:"Llit",defaultSets:2,defaultReps:"12",defaultLoad:"",defaultRest:"20s",instructions:"Esterilla al terra davant dels peus del llit. Mans separades una mica més d'amplada d'espatlles. Baixa poc a poc fins tocar el pit amb el matalàs. Puja ràpid.",observations:"",level:"Principiant"},
+    {id:"ign_trx",name:"Rem a la cintura (TRX)",category:"Força",muscleGroup:"Esquena",movementPattern:"Pull horitzontal",material:"TRX",defaultSets:2,defaultReps:"12",defaultLoad:"",defaultRest:"20s",instructions:"Cos alineat (cap, esquena i malucs). Pensa en portar el pit cap al TRX. Colzes enganxats al cos. Baixa lentament i puja amb força.",observations:"",level:"Principiant"},
+    {id:"ign_squat",name:"Squat (sentadilles)",category:"Força",muscleGroup:"Quàdriceps / Glutis",movementPattern:"Squat",material:"Cap",defaultSets:2,defaultReps:"12",defaultLoad:"",defaultRest:"20s",instructions:"Esquena recta. Genolls alineats amb els peus. Baixa controlat. Empeny amb els talons.",observations:"",level:"Principiant"},
+    {id:"ign_elev",name:"Elevacions alternes amb manuelles",category:"Força",muscleGroup:"Deltoides",movementPattern:"Push lateral",material:"Manuelles",defaultSets:2,defaultReps:"12",defaultLoad:"",defaultRest:"20s",instructions:"Un braç s'eleva lateralment i l'altre frontalment. A cada rep alternes l'elevació. Baixa lentament els braços.",observations:"",level:"Principiant"},
+    {id:"ign_pont",name:"Pont de glutis",category:"Força",muscleGroup:"Glutis",movementPattern:"Hip hinge",material:"Cap",defaultSets:2,defaultReps:"10",defaultLoad:"",defaultRest:"20s",instructions:"Estirat a terra, genolls flexionats. Eleva malucs activant bé el gluti. Puja 1\" → aguanta 2\" → baixa 1\".",observations:"",level:"Principiant"},
+    {id:"ign_plank",name:'Planxa "Tuki Tuki"',category:"Core",muscleGroup:"Core",movementPattern:"Antiextensió",material:"Cap",defaultSets:2,defaultReps:"20",defaultLoad:"",defaultRest:"20s",instructions:"Col·loca't en planxa (cos alineat). Amb una mà, toca l'espatlla contrària. Alterna el toc de mans mantenint la cadera estàtica. QUE NO BALLI!",observations:"",level:"Principiant"},
+  ];
+  const IGNASI_NOU_TEMPLATE = {
+    id:"tpl_circuit_ignasi",
+    name:"Circuit Ignasi",
+    description:"Activació + Circuit de Força",
+    type:"Força",
+    objective:"Entrenament complet a casa · 10-15'",
+    estimatedDuration:"10-15 min",
+    exercises:[
+      {id:"tex_ign_1",exerciseId:"ign_jj",name:"Jumping jacks",plannedSets:1,plannedReps:"15",plannedLoad:"",plannedRest:"15s",observations:"Versió tranquil·la: sense salt",order:1},
+      {id:"tex_ign_2",exerciseId:"ign_cbf",name:"Cercles de braços endavant",plannedSets:1,plannedReps:"10",plannedLoad:"",plannedRest:"10s",observations:"",order:2},
+      {id:"tex_ign_3",exerciseId:"ign_cba",name:"Cercles de braços enrere",plannedSets:1,plannedReps:"10",plannedLoad:"",plannedRest:"10s",observations:"",order:3},
+      {id:"tex_ign_4",exerciseId:"ign_cm",name:"Cercles de maluc",plannedSets:1,plannedReps:"8",plannedLoad:"",plannedRest:"10s",observations:"reps/costat",order:4},
+      {id:"tex_ign_5",exerciseId:"ign_flex",name:"Flexions al llit (amb genolls)",plannedSets:2,plannedReps:"12",plannedLoad:"",plannedRest:"20s",observations:"",order:5},
+      {id:"tex_ign_6",exerciseId:"ign_trx",name:"Rem a la cintura (TRX)",plannedSets:2,plannedReps:"12",plannedLoad:"",plannedRest:"20s",observations:"",order:6},
+      {id:"tex_ign_7",exerciseId:"ign_squat",name:"Squat (sentadilles)",plannedSets:2,plannedReps:"12",plannedLoad:"",plannedRest:"20s",observations:"",order:7},
+      {id:"tex_ign_8",exerciseId:"ign_elev",name:"Elevacions alternes amb manuelles",plannedSets:2,plannedReps:"12",plannedLoad:"",plannedRest:"20s",observations:"",order:8},
+      {id:"tex_ign_9",exerciseId:"ign_pont",name:"Pont de glutis",plannedSets:2,plannedReps:"10",plannedLoad:"",plannedRest:"20s",observations:"",order:9},
+      {id:"tex_ign_10",exerciseId:"ign_plank",name:'Planxa "Tuki Tuki"',plannedSets:2,plannedReps:"20",plannedLoad:"",plannedRest:"20s",observations:"",order:10},
+    ],
+  };
+
+  const seedIgnasiNou = async (currentData) => {
+    const ignasi = currentData.clients.find(c=>c.id===IGNASI_NOU_ID);
+    if(!ignasi) return;
+    const alreadySeeded = ignasi.exerciseLibrary?.length>0 || ignasi.templates?.length>0;
+    if(alreadySeeded) return;
+    const updatedClients = currentData.clients.map(c=>
+      c.id===IGNASI_NOU_ID
+        ? {...c, exerciseLibrary:IGNASI_NOU_LIBRARY, templates:[IGNASI_NOU_TEMPLATE]}
+        : c
+    );
+    const nd = {...currentData, clients:updatedClients};
+    try { await set(ref(db,"fitcoach-data2"),nd); } catch {}
+    return nd;
   };
 
   const loadAllClientHistories = async (clients) => {
