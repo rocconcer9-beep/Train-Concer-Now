@@ -389,7 +389,10 @@ const [editHistoryNewEx, setEditHistoryNewEx] = useState({name:"",sets:3,reps:"1
     await set(ref(db,`intake-submissions/${submission.id}`),updated);
     setIntakeSubmissions(p=>p.map(s=>s.id===submission.id?updated:s));
     setViewingIntake(null);
-    alert(`Client "${newClient.name}" creat correctament!`);
+    const link = getClientAccessLink(id);
+    const msg = `Hola ${newClient.name.split(" ")[0]}! Ja tens activa la teva zona d'entrenament a TrainConcerNow 💪\n\nPots accedir des d'aquest enllaç:\n${link}`;
+    try { await navigator.clipboard.writeText(msg); } catch {}
+    alert(`Client "${newClient.name}" creat correctament!\n\nMissatge d'invitació copiat al portapapers ✓\n\nEnllaç: ${link}`);
   };
 
   const rejectIntakeSubmission = async (submission) => {
@@ -641,6 +644,18 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
   // ── keyframes injected once ───────────────────────────────────────────────
   const cfStyle = `@keyframes cfPop{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(-60px) rotate(360deg);opacity:0}}`;
 
+
+  // ── Helpers d'accés client ───────────────────────────────────────────────
+  const getClientAccessLink = (clientId) => `${window.location.origin}${window.location.pathname}?client=${clientId}`;
+  const getClientInviteMessage = (client) => {
+    const link = getClientAccessLink(client.id);
+    const firstName = client.name?.split(" ")[0]||"";
+    return `Hola ${firstName}! Ja tens activa la teva zona d'entrenament a TrainConcerNow 💪\n\nPots accedir des d'aquest enllaç:\n${link}`;
+  };
+  const copyToClipboard = async (text, msg="Copiat!") => {
+    try { await navigator.clipboard.writeText(text); alert(msg); }
+    catch { window.prompt("Copia aquest text:",text); }
+  };
 
   // ── INTAKE FORM ──────────────────────────────────────────────────────────
   if(isIntakeMode) {
@@ -2354,7 +2369,7 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
                 )}
 
                 {/* Botons */}
-                <div style={{display:"flex",gap:6}}>
+                <div style={{display:"flex",gap:6,marginBottom:6}}>
                   <button style={{...S.btnSecondary,flex:1,fontSize:11,textAlign:"center"}}
                     onClick={()=>setExpandedClientCards(p=>({...p,[c.id]:!p[c.id]}))}>
                     {isExpanded?"▲ Amagar":"▼ Resum"}
@@ -2362,6 +2377,10 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
                   <button style={{...S.btnPrimary,flex:2,fontSize:13,padding:"9px"}} onClick={()=>selectAdminClient(c.id)}>
                     Seleccionar →
                   </button>
+                </div>
+                <div style={{display:"flex",gap:6}}>
+                  <button style={{...S.btnSecondary,flex:1,fontSize:11,textAlign:"center"}} onClick={()=>copyToClipboard(getClientAccessLink(c.id),"Enllaç copiat!")}>🔗 Enllaç</button>
+                  <button style={{...S.btnSecondary,flex:1,fontSize:11,textAlign:"center"}} onClick={()=>copyToClipboard(getClientInviteMessage(c),"Missatge copiat!")}>✉️ Missatge</button>
                 </div>
 
                 {/* Desplegable resum */}
@@ -2455,9 +2474,14 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
       {/* Capçalera client */}
       <div style={{padding:"0.85rem 1.25rem 0.75rem",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",gap:12}}>
         <div style={S.avatar(adminCc)}>{adminClientData?.avatar}</div>
-        <div>
+        <div style={{flex:1}}>
           <div style={{fontWeight:500,fontSize:15,color:T.textPrimary}}>{adminClientData?.name}</div>
           <div style={{fontSize:12,color:adminCc.text,marginTop:2}}>{adminClientData?.goal}</div>
+        </div>
+        <div style={{display:"flex",gap:5,flexShrink:0}}>
+          <button style={{...S.btnSecondary,fontSize:11,padding:"4px 8px"}} onClick={()=>copyToClipboard(getClientAccessLink(adminClient),"Enllaç copiat!")}>🔗</button>
+          <button style={{...S.btnSecondary,fontSize:11,padding:"4px 8px"}} onClick={()=>copyToClipboard(getClientInviteMessage(adminClientData),"Missatge copiat!")}>✉️</button>
+          <button style={{...S.btnSecondary,fontSize:11,padding:"4px 8px"}} onClick={()=>window.open(getClientAccessLink(adminClient),"_blank")}>👁</button>
         </div>
       </div>
 
