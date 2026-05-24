@@ -2278,7 +2278,7 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
 
   // ══════════════════════════════════════════════════════════════════════════════
   // ── ADMIN ─────────────────────────────────────────────────────────────────
-const routine=getIgnasiRoutine();
+const routine=data?.routines?.[2]?.ignasi||{blocks:[]};
   // eslint-disable-next-line no-unused-vars
 const dayExercises=data.routines[adminClient]?.[selDay]||[];
 
@@ -2538,7 +2538,7 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
 
       {/* Pestanyes */}
       <div style={{display:"flex",borderBottom:`1px solid ${T.border}`,padding:"0 1.25rem"}}>
-        {(adminClient===2?[["routine","Rutina"],["history","Historial"]]:[["dades","Dades"],["routine","Entrenaments"],["history","Historial"]]).map(([tab,label])=>(
+        {[["dades","Dades"],["routine","Entrenaments"],["history","Historial"]].map(([tab,label])=>(
           <button key={tab} onClick={()=>{if(tab==="history"){setAdminTab("history");loadClientHistory(adminClient);}else if(tab==="dades"){setAdminTab("dades");}else{setAdminTab("routine");}}}
             style={{padding:"10px 16px",fontSize:13,cursor:"pointer",background:"none",border:"none",borderBottom:`2px solid ${adminTab===tab?T.accent:"transparent"}`,color:adminTab===tab?T.accent:T.textSecondary,fontWeight:adminTab===tab?500:400,marginBottom:-1}}>
             {label}
@@ -2768,7 +2768,7 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
       {/* Routine tab */}
       {adminTab==="routine"&&(
         <div style={S.sec}>
-          {adminClient===2?(
+          {false?(
             <div>
               <div style={{fontWeight:500,fontSize:14,color:T.textPrimary,marginBottom:4}}>Rutina — Ignasi Concernau</div>
               <div style={{fontSize:12,color:T.textSecondary,marginBottom:16}}>Rutina flexible · mateixa cada dia que entreni</div>
