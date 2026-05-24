@@ -177,7 +177,7 @@ export default function App() {
       localStorage.setItem("tcn_client_id", String(clienteInicial));
       localStorage.setItem("tcn_access_mode", "client");
     }
-    loadData().then(()=>{}).catch(()=>{});
+    loadData();
     loadIntakeSubmissions();
   },[]);// eslint-disable-line react-hooks/exhaustive-deps
   useEffect(()=>{ document.title="TrainConcerNow App"; },[]);
