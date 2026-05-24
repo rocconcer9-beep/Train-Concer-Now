@@ -916,9 +916,6 @@ export default function App() {
         <div style={{fontSize:16,fontWeight:500,color:T.textPrimary,marginBottom:8}}>Accés no configurat</div>
         <div style={{fontSize:13,color:T.textSecondary,lineHeight:1.6,marginBottom:32}}>Obre l'enllaç que t'ha enviat el teu preparador.</div>
         <button style={{...S.btnPrimary,maxWidth:280,margin:"0 auto 12px"}} onClick={()=>setMode("intake")}>📋 Formulari inicial</button>
-        <div style={{marginTop:16}}>
-          <button style={{...S.btnSecondary,fontSize:11,color:T.textMuted}} onClick={()=>setMode("pin")}>Accés preparador</button>
-        </div>
       </div>
     </div>
   );
@@ -944,7 +941,7 @@ export default function App() {
           <button style={S.btnSecondary} onClick={()=>{setMode("select");setPinInput("");setPinError(false);}}>Tornar</button>
           <button style={{...S.btnPrimary,width:"auto",padding:"8px 20px",fontSize:14}} onClick={()=>{if(pinInput===PIN){setMode("admin");setPinInput("");}else setPinError(true);}}>Entrar</button>
         </div>
-        <div style={{fontSize:11,color:T.textMuted,marginTop:20}}>PIN per defecte: 1234</div>
+        <div style={{width:1}}/>
       </div>
     </div>
   );
@@ -967,15 +964,7 @@ export default function App() {
               <div style={{fontSize:11,color:cc.text}}>{client.goal}</div>
             </div>
           </div>
-          <button style={{...S.btnSecondary,fontSize:11}} onClick={()=>{
-            if(window.confirm("Vols desvincular aquest dispositiu d'aquest client?")) {
-              localStorage.removeItem("tcn_access_token");
-              localStorage.removeItem("tcn_client_id");
-              localStorage.removeItem("tcn_access_mode");
-              setSelClient(null);
-              setMode("public");
-            }
-          }}>Canviar accés</button>
+          <div style={{width:1}}/>
         </div>
 
         {showFinishModal&&(
