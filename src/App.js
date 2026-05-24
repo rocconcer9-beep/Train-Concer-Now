@@ -1181,6 +1181,23 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
                       saveActiveSession(selClient,selDay,s);
                       return {...p,[sessionKey]:s};
                     });
+                    // Afegir també a la biblioteca del client
+                    const libEx = {
+                      id:`ex_${Date.now()}`,
+                      name:customExForm.name.trim(),
+                      category:"Força",
+                      muscleGroup:"",
+                      movementPattern:"",
+                      material:"",
+                      defaultSets:numSets,
+                      defaultReps:customExForm.reps||"10",
+                      defaultLoad:customExForm.load||"",
+                      defaultRest:customExForm.rest||"60s",
+                      instructions:customExForm.notes||"",
+                      observations:"",
+                      level:"Principiant",
+                    };
+                    updateClientLibrary(selClient, [...getClientLibrary(selClient), libEx]);
                     setShowAddExModal(false);
                     setAddExTab("biblioteca");
                     setCustomExForm({name:"",sets:3,reps:"10",load:"",rest:"60s",notes:""});
