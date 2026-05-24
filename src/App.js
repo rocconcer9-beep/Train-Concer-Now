@@ -269,6 +269,8 @@ const [showAddTemplate, setShowAddTemplate] = useState(false);
 const [showAddLibEx, setShowAddLibEx] = useState(false);
 const [newTemplate, setNewTemplate] = useState({name:"",description:"",type:"Força",objective:"",estimatedDuration:"",exercises:[]});
 const [newLibEx, setNewLibEx] = useState({name:"",category:"Força",muscleGroup:"",movementPattern:"",material:"",defaultSets:3,defaultReps:"10",defaultLoad:"",defaultRest:"60s",instructions:"",observations:"",level:"Principiant"});
+const [addExTab, setAddExTab] = useState("biblioteca");
+const [customExForm, setCustomExForm] = useState({name:"",sets:3,reps:"10",load:"",rest:"60s",notes:""});
 
   useEffect(()=>{loadData();},[]);
 
@@ -986,10 +988,14 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
                     {allSetsCompleted&&<svg viewBox="0 0 16 16" width="14" height="14"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                   </div>
                   <div style={{flex:1}}>
+                    <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
                     <div style={{fontWeight:500,fontSize:14,color:allSetsCompleted?T.textMuted:T.textPrimary,textDecoration:allSetsCompleted?"line-through":"none"}}>{i+1}. {ex.name}</div>
-                    <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>
-                      {ex.sets?.filter(s=>s.completed).length||0}/{ex.sets?.length||0} sèries · {ex.plannedReps} reps{ex.plannedLoad?` · ${ex.plannedLoad}`:""}
-                    </div>
+                    {ex.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1px solid #3A3A60`}}>Personalitzat</span>}
+                    {ex.isExtra&&!ex.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1px solid ${T.border}`}}>Extra</span>}
+                  </div>
+                  <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>
+                    {ex.sets?.filter(s=>s.completed).length||0}/{ex.sets?.length||0} sèries · {ex.plannedReps} reps{ex.plannedLoad?` · ${ex.plannedLoad}`:""}
+                  </div>
                   </div>
                   <svg viewBox="0 0 12 12" width="14" height="14" style={{transition:"transform 0.2s",transform:isExpanded?"rotate(180deg)":"rotate(0)",flexShrink:0}}>
                     <polyline points="2,4 6,8 10,4" fill="none" stroke={T.textSecondary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1055,46 +1061,139 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
         </button>
         {showAddExModal&&(
           <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
-            <div style={{background:T.card,borderRadius:"20px 20px 0 0",padding:"1.5rem 1.25rem",width:"100%",maxWidth:520,border:`1px solid ${T.border}`,maxHeight:"70vh",overflowY:"auto"}}>
-              <div style={{fontWeight:500,fontSize:16,color:T.textPrimary,marginBottom:4}}>Afegir exercici</div>
-              <div style={{fontSize:13,color:T.textSecondary,marginBottom:16}}>Tria un exercici de la biblioteca</div>
-              {getClientLibrary(selClient).map(ex=>(
-                <div key={ex.id} style={{...S.card,cursor:"pointer"}} onClick={()=>{
-                  const newEx={
-                    id:`extra_${Date.now()}`,
-                    exerciseId:ex.id,
-                    name:ex.name,
-                    plannedSets:ex.defaultSets,
-                    plannedReps:ex.defaultReps,
-                    plannedLoad:ex.defaultLoad||"",
-                    plannedRest:ex.defaultRest||"",
-                    observations:ex.instructions||"",
-                    isExtra:true,
-                    sets:Array.from({length:ex.defaultSets},()=>({
-                      reps:ex.defaultReps||"",
-                      load:ex.defaultLoad||"",
-                      rest:ex.defaultRest||"",
-                      completed:false,
-                    })),
-                  };
-                  setSessionExercises(p=>{
-                    const s={...p[sessionKey]};
-                    s.exercises=[...s.exercises,newEx];
-                    saveActiveSession(selClient,selDay,s);
-                    return {...p,[sessionKey]:s};
-                  });
-                  setShowAddExModal(false);
-                }}>
-                  <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{ex.name}</div>
-                  <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{ex.category} · {ex.muscleGroup} · {ex.defaultSets}×{ex.defaultReps}</div>
-                </div>
-              ))}
-              <button style={{...S.btnSecondary,width:"100%",textAlign:"center",marginTop:8}} onClick={()=>setShowAddExModal(false)}>Cancel·lar</button>
+            <div style={{background:T.card,borderRadius:"20px 20px 0 0",padding:"1.5rem 1.25rem",width:"100%",maxWidth:520,border:`1px solid ${T.border}`,maxHeight:"80vh",overflowY:"auto"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+                <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>Afegir exercici</div>
+                <button style={{...S.btnSecondary,fontSize:12}} onClick={()=>{setShowAddExModal(false);setAddExTab("biblioteca");setCustomExForm({name:"",sets:3,reps:"10",load:"",rest:"60s",notes:""});}}>Tancar</button>
+              </div>
+
+              {/* Pestanyes */}
+              <div style={{display:"flex",gap:0,marginBottom:16,borderBottom:`1px solid ${T.border}`}}>
+                {[["biblioteca","📚 Biblioteca"],["custom","✏️ Exercici puntual"]].map(([tab,label])=>(
+                  <button key={tab} onClick={()=>setAddExTab(tab)}
+                    style={{padding:"8px 14px",fontSize:12,cursor:"pointer",background:"none",border:"none",
+                      borderBottom:`2px solid ${addExTab===tab?T.accent:"transparent"}`,
+                      color:addExTab===tab?T.accent:T.textSecondary,
+                      fontWeight:addExTab===tab?500:400,marginBottom:-1}}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Pestanya Biblioteca */}
+              {addExTab==="biblioteca"&&(
+                <>
+                  <div style={{fontSize:13,color:T.textSecondary,marginBottom:12}}>Tria un exercici de la biblioteca</div>
+                  {getClientLibrary(selClient).length===0&&(
+                    <div style={{textAlign:"center",padding:"2rem 0",color:T.textSecondary,fontSize:13}}>La biblioteca està buida</div>
+                  )}
+                  {getClientLibrary(selClient).map(ex=>(
+                    <div key={ex.id} style={{...S.card,cursor:"pointer"}} onClick={()=>{
+                      const newEx={
+                        id:`extra_${Date.now()}`,
+                        exerciseId:ex.id,
+                        name:ex.name,
+                        plannedSets:ex.defaultSets,
+                        plannedReps:ex.defaultReps,
+                        plannedLoad:ex.defaultLoad||"",
+                        plannedRest:ex.defaultRest||"",
+                        observations:ex.instructions||"",
+                        isExtra:true,
+                        sets:Array.from({length:ex.defaultSets},()=>({
+                          reps:ex.defaultReps||"",
+                          load:ex.defaultLoad||"",
+                          rest:ex.defaultRest||"",
+                          completed:false,
+                        })),
+                      };
+                      setSessionExercises(p=>{
+                        const s={...p[sessionKey]};
+                        s.exercises=[...s.exercises,newEx];
+                        saveActiveSession(selClient,selDay,s);
+                        return {...p,[sessionKey]:s};
+                      });
+                      setShowAddExModal(false);
+                      setAddExTab("biblioteca");
+                    }}>
+                      <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{ex.name}</div>
+                      <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{ex.category} · {ex.muscleGroup} · {ex.defaultSets}×{ex.defaultReps}</div>
+                    </div>
+                  ))}
+                </>
+              )}
+
+              {/* Pestanya Exercici puntual */}
+              {addExTab==="custom"&&(
+                <>
+                  <div style={{fontSize:13,color:T.textSecondary,marginBottom:16}}>Crea un exercici només per a aquesta sessió</div>
+                  <div style={{marginBottom:10}}>
+                    <label style={S.lbl}>Nom de l'exercici *</label>
+                    <input style={S.inp} value={customExForm.name} onChange={e=>setCustomExForm(p=>({...p,name:e.target.value}))} placeholder="Ex. Press màquina convergent"/>
+                  </div>
+                  <div style={{display:"flex",gap:8,marginBottom:10}}>
+                    <div style={{flex:1}}>
+                      <label style={S.lbl}>Sèries</label>
+                      <input style={S.inp} type="number" min="1" value={customExForm.sets} onChange={e=>setCustomExForm(p=>({...p,sets:e.target.value}))}/>
+                    </div>
+                    <div style={{flex:1}}>
+                      <label style={S.lbl}>Reps</label>
+                      <input style={S.inp} value={customExForm.reps} onChange={e=>setCustomExForm(p=>({...p,reps:e.target.value}))} placeholder="10"/>
+                    </div>
+                  </div>
+                  <div style={{display:"flex",gap:8,marginBottom:10}}>
+                    <div style={{flex:1}}>
+                      <label style={S.lbl}>Kg / càrrega</label>
+                      <input style={S.inp} value={customExForm.load} onChange={e=>setCustomExForm(p=>({...p,load:e.target.value}))} placeholder="kg"/>
+                    </div>
+                    <div style={{flex:1}}>
+                      <label style={S.lbl}>Descans</label>
+                      <input style={S.inp} value={customExForm.rest} onChange={e=>setCustomExForm(p=>({...p,rest:e.target.value}))} placeholder="60s"/>
+                    </div>
+                  </div>
+                  <div style={{marginBottom:16}}>
+                    <label style={S.lbl}>Notes (opcional)</label>
+                    <textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={customExForm.notes} onChange={e=>setCustomExForm(p=>({...p,notes:e.target.value}))} placeholder="Ex. He fet aquest perquè el press banca estava ocupat"/>
+                  </div>
+                  <button style={{...S.btnPrimary,padding:"12px"}} onClick={()=>{
+                    if(!customExForm.name.trim()) return;
+                    const numSets = Number(customExForm.sets)||1;
+                    const newEx={
+                      id:`custom_${Date.now()}`,
+                      exerciseId:null,
+                      name:customExForm.name.trim(),
+                      plannedSets:numSets,
+                      plannedReps:customExForm.reps||"",
+                      plannedLoad:customExForm.load||"",
+                      plannedRest:customExForm.rest||"",
+                      observations:customExForm.notes||"",
+                      isExtra:true,
+                      isCustom:true,
+                      sets:Array.from({length:numSets},()=>({
+                        reps:customExForm.reps||"",
+                        load:customExForm.load||"",
+                        rest:customExForm.rest||"",
+                        completed:false,
+                      })),
+                    };
+                    setSessionExercises(p=>{
+                      const s={...p[sessionKey]};
+                      s.exercises=[...s.exercises,newEx];
+                      saveActiveSession(selClient,selDay,s);
+                      return {...p,[sessionKey]:s};
+                    });
+                    setShowAddExModal(false);
+                    setAddExTab("biblioteca");
+                    setCustomExForm({name:"",sets:3,reps:"10",load:"",rest:"60s",notes:""});
+                  }}>
+                    Afegir a la sessió
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
         <button style={{...S.btnSecondary,marginTop:8,width:"100%",textAlign:"center"}} onClick={()=>setShowAddExModal(true)}>
-          + Afegir exercici de la biblioteca
+          + Afegir exercici
         </button>
         <button style={{...S.btnSecondary,marginTop:8,width:"100%",textAlign:"center"}} onClick={()=>{
           if(window.confirm("Segur que vols descartar aquesta sessió en curs?")) {
@@ -1313,8 +1412,10 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
                           <div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${T.border}`}}>
                             {sess.exercises.map((e,i)=>(
                               <div key={i} style={{marginBottom:8}}>
-                                <div style={{fontSize:12,fontWeight:500,color:e.completed?T.textSecondary:T.textPrimary,marginBottom:3}}>
-                                  {e.completed?"✓ ":"○ "}{e.name}{e.plannedLoad?` · ${e.plannedLoad}`:""}
+                                <div style={{fontSize:12,fontWeight:500,color:e.completed?T.textSecondary:T.textPrimary,marginBottom:3,display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
+                                  <span>{e.completed?"✓ ":"○ "}{e.name}{e.plannedLoad?` · ${e.plannedLoad}`:""}</span>
+                                  {e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1px solid #3A3A60`}}>Personalitzat</span>}
+                                  {e.isExtra&&!e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1px solid ${T.border}`}}>Extra</span>}
                                 </div>
                                 {Object.values(e.sets||{}).map((st,j)=>(
                                   <div key={j} style={{fontSize:11,color:st.completed?T.green:T.textMuted,paddingLeft:14,padding:"1px 0 1px 14px"}}>
@@ -1563,10 +1664,12 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
                   <div style={{marginTop:8,paddingTop:8,borderTop:`1px solid ${T.border}`}}>
                     {sess.exercises.map((e,i)=>(
                       <div key={i} style={{marginBottom:6}}>
-                        <div style={{fontSize:12,color:e.completed?T.textSecondary:T.textMuted,display:"flex",alignItems:"center",gap:6,padding:"2px 0"}}>
+                        <div style={{fontSize:12,color:e.completed?T.textSecondary:T.textMuted,display:"flex",alignItems:"center",gap:6,padding:"2px 0",flexWrap:"wrap"}}>
                           <span style={{color:e.completed?T.green:T.textMuted}}>{e.completed?"✓":"○"}</span>
                           <span style={{fontWeight:500}}>{e.name}</span>
                           <span>— {e.completedSets||0}/{e.plannedSets||0} sèries · {e.plannedReps||"?"}{e.plannedLoad?` · ${e.plannedLoad}`:""}</span>
+                          {e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1px solid #3A3A60`}}>Personalitzat</span>}
+                          {e.isExtra&&!e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1px solid ${T.border}`}}>Extra</span>}
                         </div>
                         {(e.sets||[]).length>0&&(
                           <div style={{paddingLeft:18}}>
