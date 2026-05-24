@@ -279,6 +279,7 @@ const [editHistoryAddEx, setEditHistoryAddEx] = useState(false);
 const [editHistoryNewEx, setEditHistoryNewEx] = useState({name:"",sets:3,reps:"10",load:"",rest:"60s",observations:""});
 
   useEffect(()=>{loadData();},[]);
+  useEffect(()=>{document.title="TrainConcerNow App";},[]);
 
   const loadData = async () => {
   setLoading(true);
@@ -1751,7 +1752,7 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
       <div style={S.hdr}>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
           <div style={{width:8,height:8,borderRadius:"50%",background:T.accent}}/>
-          <span style={{fontWeight:500,fontSize:15,color:T.textPrimary}}>FitCoach</span>
+          <span style={{fontWeight:500,fontSize:15,color:T.textPrimary}}>TrainConcerNow</span>
           <span style={{fontSize:11,color:saving?T.textSecondary:T.green}}>{saving?"Guardant...":"✓ Guardat"}</span>
         </div>
         <button style={S.btnSecondary} onClick={()=>setMode("select")}>Sortir</button>
