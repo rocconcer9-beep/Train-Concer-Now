@@ -1609,10 +1609,9 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
             {key:"avoidEx",label:"Exercicis a evitar",placeholder:"Ex. sentadilla profunda..."},
             {key:"likes",label:"Exercicis que li agraden",placeholder:"Ex. rem, dominades..."},
             {key:"dislikes",label:"Exercicis que no li agraden",placeholder:"Ex. burpees..."},
-            {key:"coachNotes",label:"Notes internes",placeholder:"Notes privades de l'entrenador..."},
           ];
           const saveClientData=()=>{
-            const nd={...data,clients:data.clients.map(c=>c.id===selClient?{...c,...clientDraft}:c)};
+            const nd={...data,clients:data.clients.map(c=>c.id===selClient?{...c,...clientDraft,coachNotes:c.coachNotes}:c)};
             updateData(nd);setEditingClient(false);
           };
           return (
@@ -1620,7 +1619,7 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
                 <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>El meu perfil</div>
                 {!editingClient
-                  ?<button style={{...S.btnSecondary,fontSize:12}} onClick={()=>{setClientDraft({...client});setEditingClient(true);}}>Editar</button>
+                  ?<button style={{...S.btnSecondary,fontSize:12}} onClick={()=>{const {coachNotes,...pub}=client;void coachNotes;setClientDraft(pub);setEditingClient(true);}}>Editar</button>
                   :<div style={{display:"flex",gap:8}}>
                     <button style={{...S.btnSecondary,fontSize:12}} onClick={()=>setEditingClient(false)}>Cancel·lar</button>
                     <button style={{...S.btnPrimary,width:"auto",padding:"6px 14px",fontSize:12}} onClick={saveClientData}>Guardar</button>
