@@ -527,8 +527,8 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
     const removeSt = (ei, si) => setEditingHistorySession(p=>({...p,exercises:p.exercises.map((e,i)=>i===ei?{...e,sets:e.sets.filter((_,j)=>j!==si)}:e)}));
     const removeEx = (ei) => {if(window.confirm("Segur que vols eliminar aquest exercici?")) setEditingHistorySession(p=>({...p,exercises:p.exercises.filter((_,i)=>i!==ei)}));};
     const histLib = getClientLibrary(editingHistoryClientId);
+    // eslint-disable-next-line no-unused-vars
     const [editHistAddTab, setEditHistAddTab] = [editHistoryAddEx?"custom":"biblioteca", ()=>{}];
-    void editHistAddTab;
 
     return (
       <div style={S.wrap}>
