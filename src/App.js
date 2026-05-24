@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { db } from "./firebase";
-import { ref, set, get } from "firebase/database";
+import { ref, set, get, remove } from "firebase/database";
 
 const DAYS = ["Dilluns","Dimarts","Dimecres","Dijous","Divendres","Dissabte","Diumenge"];
 const DAYS_SHORT = ["L","M","X","J","V","S","D"];
@@ -271,6 +271,7 @@ const [newTemplate, setNewTemplate] = useState({name:"",description:"",type:"For
 const [newLibEx, setNewLibEx] = useState({name:"",category:"Força",muscleGroup:"",movementPattern:"",material:"",defaultSets:3,defaultReps:"10",defaultLoad:"",defaultRest:"60s",instructions:"",observations:"",level:"Principiant"});
 const [addExTab, setAddExTab] = useState("biblioteca");
 const [customExForm, setCustomExForm] = useState({name:"",sets:3,reps:"10",load:"",rest:"60s",notes:""});
+const [expandedHistory, setExpandedHistory] = useState({});
 
   useEffect(()=>{loadData();},[]);
 
@@ -326,6 +327,24 @@ const [customExForm, setCustomExForm] = useState({name:"",sets:3,reps:"10",load:
   const deleteActiveSession = async (clientId, day) => {
     const key = getActiveSessionKey(clientId, day);
     try { await set(ref(db,`active-sessions/${clientId}/${key}`), null); } catch {}
+  };
+
+  const persistClientHistory = async (clientId, history) => {
+    try {
+      if(history.length===0){await remove(ref(db,`history-${clientId}`));}
+      else{const obj=history.reduce((a,s,i)=>({...a,[i]:s}),{});await set(ref(db,`history-${clientId}`),obj);}
+    } catch(err){console.error("Error guardant historial",err);}
+  };
+
+  const deleteHistorySession = async (clientId, sessionId) => {
+    if(!window.confirm("Segur que vols eliminar aquesta sessió de l'historial?")) return;
+    const current = clientHistories[clientId]||[];
+    const updated = current.filter((s,idx)=>{
+      const id = s.id||`${clientId}-${idx}`;
+      return id!==sessionId;
+    });
+    setClientHistories(p=>({...p,[clientId]:updated}));
+    await persistClientHistory(clientId, updated);
   };
 
   const loadClientHistory = async (clientId) => {
@@ -1406,44 +1425,79 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
                     ))}
                   </div>
                   {history.map((sess,idx)=>{
-                    const full=sess.completionPercentage===100;
+                    const sessId = sess.id||`${selClient}-${idx}`;
+                    const isExpanded = !!expandedHistory[sessId];
+                    const full = sess.completionPercentage===100;
+                    const exercises = sess.exercises||[];
+                    const extraCount = exercises.filter(e=>e.isExtra&&!e.isCustom).length;
+                    const customCount = exercises.filter(e=>e.isCustom).length;
                     return (
-                      <div key={idx} style={S.card}>
+                      <div key={sessId} style={S.card}>
+                        {/* Resum */}
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                          <div>
-                            <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>{sess.sessionTitle}</div>
-                            <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{sess.date}</div>
+                          <div style={{flex:1}}>
+                            <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>{sess.sessionTitle||sess.day||"Sessió"}</div>
+                            <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>
+                              {sess.date}{sess.durationReal?` · ${sess.durationReal} min`:""}
+                            </div>
                           </div>
-                          <span style={full?S.tag("green"):S.tag()}>{sess.completionPercentage}%</span>
+                          <button style={{...S.btnDanger,fontSize:11,padding:"3px 8px"}} onClick={()=>deleteHistorySession(selClient,sessId)}>🗑️</button>
                         </div>
-                        <div style={{fontSize:12,color:T.textSecondary,marginBottom:8}}>{sess.completedExercises}/{sess.totalExercises} exercicis</div>
-                        {(sess.rpe||sess.feeling||sess.durationReal)&&(
-                          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
-                            {sess.rpe&&<span style={S.tag("purple")}>RPE {sess.rpe}</span>}
-                            {sess.durationReal&&<span style={S.tag()}>⏱ {sess.durationReal} min</span>}
-                            {sess.feeling&&<span style={S.tag()}>{sess.feeling}</span>}
-                          </div>
-                        )}
-                        <ProgressBar value={sess.completedExercises} total={sess.totalExercises} color={full?T.green:T.accent}/>
-                        {sess.exercises&&sess.exercises.length>0&&(
+                        {/* Tags */}
+                        <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>
+                          <span style={full?S.tag("green"):S.tag()}>{full?"✓ Complet":`${sess.completionPercentage||0}%`}</span>
+                          {sess.rpe&&<span style={S.tag("purple")}>RPE {sess.rpe}</span>}
+                          {sess.feeling&&<span style={S.tag()}>{sess.feeling}</span>}
+                          {extraCount>0&&<span style={S.tag()}>+{extraCount} extra</span>}
+                          {customCount>0&&<span style={{...S.tag("purple"),fontSize:10}}>+{customCount} personalitzat</span>}
+                        </div>
+                        <div style={{fontSize:12,color:T.textSecondary,marginBottom:8}}>
+                          {sess.completedExercises||0}/{sess.totalExercises||0} exercicis
+                        </div>
+                        <ProgressBar value={sess.completedExercises||0} total={sess.totalExercises||1} color={full?T.green:T.accent}/>
+                        {/* Botó desplegar */}
+                        <button onClick={()=>setExpandedHistory(p=>({...p,[sessId]:!p[sessId]}))}
+                          style={{...S.btnSecondary,width:"100%",textAlign:"center",marginTop:10,fontSize:12}}>
+                          {isExpanded?"▲ Amagar detalls":"▼ Veure detalls"}
+                        </button>
+                        {/* Detalls */}
+                        {isExpanded&&(
                           <div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${T.border}`}}>
-                            {sess.exercises.map((e,i)=>(
-                              <div key={i} style={{marginBottom:8}}>
-                                <div style={{fontSize:12,fontWeight:500,color:e.completed?T.textSecondary:T.textPrimary,marginBottom:3,display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
-                                  <span>{e.completed?"✓ ":"○ "}{e.name}{e.plannedLoad?` · ${e.plannedLoad}`:""}</span>
+                            {sess.clientNotes&&(
+                              <div style={{fontSize:12,color:T.textSecondary,marginBottom:10,fontStyle:"italic",background:T.card2,borderRadius:8,padding:"6px 10px"}}>
+                                💬 {sess.clientNotes}
+                              </div>
+                            )}
+                            {exercises.length===0&&<div style={{fontSize:12,color:T.textMuted}}>Sense detalls d'exercicis</div>}
+                            {exercises.map((e,i)=>(
+                              <div key={i} style={{marginBottom:10,paddingBottom:10,borderBottom:`1px solid ${T.border}`}}>
+                                <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap",marginBottom:4}}>
+                                  <span style={{fontSize:13,fontWeight:500,color:e.completed?T.green:T.textPrimary}}>
+                                    {e.completed?"✓":"○"} {e.name}
+                                  </span>
                                   {e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1px solid #3A3A60`}}>Personalitzat</span>}
                                   {e.isExtra&&!e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1px solid ${T.border}`}}>Extra</span>}
                                 </div>
-                                {Object.values(e.sets||{}).map((st,j)=>(
-                                  <div key={j} style={{fontSize:11,color:st.completed?T.green:T.textMuted,paddingLeft:14,padding:"1px 0 1px 14px"}}>
-                                    S{j+1}: {st.reps||"—"} reps{st.load?` · ${st.load}`:""}{st.rest?` · ${st.rest}`:""} {st.completed?"✓":"○"}
-                                  </div>
-                                ))}
+                                <div style={{fontSize:11,color:T.textSecondary,marginBottom:4}}>
+                                  {e.plannedSets||0} sèries · {e.plannedReps||"?"} reps{e.plannedLoad?` · ${e.plannedLoad}`:""}
+                                  {e.plannedRest?` · ${e.plannedRest}`:""}
+                                </div>
+                                {e.observations&&<div style={{fontSize:11,color:T.textMuted,marginBottom:4,fontStyle:"italic"}}>💬 {e.observations}</div>}
+                                {Object.values(e.sets||{}).map((st,j)=>{
+                                  const parts=[];
+                                  if(st.reps) parts.push(`${st.reps} reps`);
+                                  if(st.load) parts.push(st.load);
+                                  if(st.rest) parts.push(st.rest);
+                                  return (
+                                    <div key={j} style={{fontSize:11,color:st.completed?T.green:T.textMuted,paddingLeft:10,padding:"1px 0 1px 10px"}}>
+                                      S{j+1}: {parts.length>0?parts.join(" · "):"—"} {st.completed?"✓":"○"}
+                                    </div>
+                                  );
+                                })}
                               </div>
                             ))}
                           </div>
                         )}
-                        {sess.clientNotes&&<div style={{fontSize:12,color:T.textSecondary,marginTop:8,fontStyle:"italic"}}>💬 {sess.clientNotes}</div>}
                       </div>
                     );
                   })}
@@ -1658,49 +1712,80 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
                   ))}
                 </div>
                 {history.map((sess,idx)=>{
+                  const sessId = sess.id||`${adminClient}-${idx}`;
+                  const isExpanded = !!expandedHistory[sessId];
                   const full = sess.completionPercentage===100;
+                  const exercises = sess.exercises||[];
+                  const extraCount = exercises.filter(e=>e.isExtra&&!e.isCustom).length;
+                  const customCount = exercises.filter(e=>e.isCustom).length;
                   return (
-                    <div key={idx} style={S.card}>
+                    <div key={sessId} style={S.card}>
+                      {/* Resum */}
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                        <div>
-                          <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{sess.sessionTitle||sess.day}</div>
-                          <div style={{fontSize:12,color:T.textSecondary}}>{sess.date}</div>
+                        <div style={{flex:1}}>
+                          <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{sess.sessionTitle||sess.day||"Sessió"}</div>
+                          <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>
+                            {sess.date}{sess.durationReal?` · ${sess.durationReal} min`:""}
+                          </div>
                         </div>
-                        {full?<span style={S.tag("green")}>✓ Complet</span>:<span style={{fontSize:12,color:T.textSecondary}}>{sess.completedExercises}/{sess.totalExercises}</span>}
+                        <button style={{...S.btnDanger,fontSize:11,padding:"3px 8px"}} onClick={()=>deleteHistorySession(adminClient,sessId)}>🗑️</button>
                       </div>
-                      {(sess.rpe||sess.feeling||sess.durationReal)&&(
-                        <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
-                          {sess.rpe&&<span style={S.tag("purple")}>RPE {sess.rpe}</span>}
-                          {sess.durationReal&&<span style={S.tag()}>⏱ {sess.durationReal} min</span>}
-                          {sess.feeling&&<span style={S.tag()}>{sess.feeling}</span>}
+                      {/* Tags */}
+                      <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>
+                        <span style={full?S.tag("green"):S.tag()}>{full?"✓ Complet":`${sess.completionPercentage||0}%`}</span>
+                        {sess.rpe&&<span style={S.tag("purple")}>RPE {sess.rpe}</span>}
+                        {sess.durationReal&&<span style={S.tag()}>⏱ {sess.durationReal} min</span>}
+                        {sess.feeling&&<span style={S.tag()}>{sess.feeling}</span>}
+                        {extraCount>0&&<span style={S.tag()}>+{extraCount} extra</span>}
+                        {customCount>0&&<span style={{...S.tag("purple"),fontSize:10}}>+{customCount} personalitzat</span>}
+                      </div>
+                      <div style={{fontSize:12,color:T.textSecondary,marginBottom:8}}>
+                        {sess.completedExercises||0}/{sess.totalExercises||0} exercicis
+                      </div>
+                      <ProgressBar value={sess.completedExercises||0} total={sess.totalExercises||1} color={full?T.green:T.accent}/>
+                      {/* Botó desplegar */}
+                      <button onClick={()=>setExpandedHistory(p=>({...p,[sessId]:!p[sessId]}))}
+                        style={{...S.btnSecondary,width:"100%",textAlign:"center",marginTop:10,fontSize:12}}>
+                        {isExpanded?"▲ Amagar detalls":"▼ Veure detalls"}
+                      </button>
+                      {/* Detalls */}
+                      {isExpanded&&(
+                        <div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${T.border}`}}>
+                          {sess.clientNotes&&(
+                            <div style={{fontSize:12,color:T.textSecondary,marginBottom:10,fontStyle:"italic",background:T.card2,borderRadius:8,padding:"6px 10px"}}>
+                              💬 {sess.clientNotes}
+                            </div>
+                          )}
+                          {exercises.length===0&&<div style={{fontSize:12,color:T.textMuted}}>Sense detalls d'exercicis</div>}
+                          {exercises.map((e,i)=>(
+                            <div key={i} style={{marginBottom:10,paddingBottom:10,borderBottom:`1px solid ${T.border}`}}>
+                              <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap",marginBottom:4}}>
+                                <span style={{fontSize:13,fontWeight:500,color:e.completed?T.green:T.textPrimary}}>
+                                  {e.completed?"✓":"○"} {e.name}
+                                </span>
+                                {e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1px solid #3A3A60`}}>Personalitzat</span>}
+                                {e.isExtra&&!e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1px solid ${T.border}`}}>Extra</span>}
+                              </div>
+                              <div style={{fontSize:11,color:T.textSecondary,marginBottom:4}}>
+                                {e.plannedSets||0} sèries · {e.plannedReps||"?"} reps{e.plannedLoad?` · ${e.plannedLoad}`:""}
+                                {e.plannedRest?` · ${e.plannedRest}`:""}
+                              </div>
+                              {e.observations&&<div style={{fontSize:11,color:T.textMuted,marginBottom:4,fontStyle:"italic"}}>💬 {e.observations}</div>}
+                              {Object.values(e.sets||{}).map((st,j)=>{
+                                const parts=[];
+                                if(st.reps) parts.push(`${st.reps} reps`);
+                                if(st.load) parts.push(st.load);
+                                if(st.rest) parts.push(st.rest);
+                                return (
+                                  <div key={j} style={{fontSize:11,color:st.completed?T.green:T.textMuted,paddingLeft:10,padding:"1px 0 1px 10px"}}>
+                                    S{j+1}: {parts.length>0?parts.join(" · "):"—"} {st.completed?"✓":"○"}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ))}
                         </div>
                       )}
-                      <ProgressBar value={sess.completedExercises} total={sess.totalExercises} color={full?T.green:T.accent}/>
-                      {sess.clientNotes&&<div style={{fontSize:12,color:T.textSecondary,marginTop:6,fontStyle:"italic"}}>💬 {sess.clientNotes}</div>}
-                      {sess.exercises&&(
-                  <div style={{marginTop:8,paddingTop:8,borderTop:`1px solid ${T.border}`}}>
-                    {sess.exercises.map((e,i)=>(
-                      <div key={i} style={{marginBottom:6}}>
-                        <div style={{fontSize:12,color:e.completed?T.textSecondary:T.textMuted,display:"flex",alignItems:"center",gap:6,padding:"2px 0",flexWrap:"wrap"}}>
-                          <span style={{color:e.completed?T.green:T.textMuted}}>{e.completed?"✓":"○"}</span>
-                          <span style={{fontWeight:500}}>{e.name}</span>
-                          <span>— {e.completedSets||0}/{e.plannedSets||0} sèries · {e.plannedReps||"?"}{e.plannedLoad?` · ${e.plannedLoad}`:""}</span>
-                          {e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1px solid #3A3A60`}}>Personalitzat</span>}
-                          {e.isExtra&&!e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1px solid ${T.border}`}}>Extra</span>}
-                        </div>
-                        {(e.sets||[]).length>0&&(
-                          <div style={{paddingLeft:18}}>
-                            {(e.sets||[]).map((st,j)=>(
-                              <div key={j} style={{fontSize:11,color:st.completed?T.green:T.textMuted,padding:"1px 0"}}>
-                                S{j+1}: {st.reps||"—"} reps{st.load?` · ${st.load}`:""}{st.rest?` · ${st.rest}`:""} {st.completed?"✓":"○"}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
                     </div>
                   );
                 })}
