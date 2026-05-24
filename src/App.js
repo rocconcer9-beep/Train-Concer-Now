@@ -2433,7 +2433,22 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
         <button style={{...S.btnSecondary,display:"flex",alignItems:"center",gap:6,fontSize:13}} onClick={()=>setAdminView("clients")}>
           ← Clients
         </button>
-        <span style={{fontSize:11,color:saving?T.textSecondary:T.green}}>{saving?"Guardant...":"✓ Guardat"}</span>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <span style={{fontSize:11,color:saving?T.textSecondary:T.green}}>{saving?"Guardant...":"✓ Guardat"}</span>
+          <button style={{...S.btnDanger,fontSize:11}} onClick={async()=>{
+            if(!window.confirm(`Segur que vols eliminar "${adminClientData?.name}"? Aquesta acció eliminarà totes les seves dades, historial i sessions. No es pot desfer.`)) return;
+            const nd = {
+              ...data,
+              clients: data.clients.filter(c=>c.id!==adminClient),
+              routines: Object.fromEntries(Object.entries(data.routines||{}).filter(([k])=>String(k)!==String(adminClient)))
+            };
+            updateData(nd);
+            try { await remove(ref(db,`history-${adminClient}`)); } catch {}
+            try { await remove(ref(db,`active-sessions/${adminClient}`)); } catch {}
+            setClientHistories(p=>{const np={...p};delete np[adminClient];return np;});
+            setAdminView("clients");
+          }}>🗑️ Eliminar client</button>
+        </div>
       </div>
 
       {/* Capçalera client */}
