@@ -88,20 +88,34 @@ const FormCard = ({children, style={}}) => (
 );
 
 // ══════════════════════════════════════════════════════════════════════════════
+// ── Access token generator ────────────────────────────────────────────────────
+const generateAccessToken = () => {
+  if(window.crypto&&window.crypto.getRandomValues) {
+    const array = new Uint8Array(18);
+    window.crypto.getRandomValues(array);
+    return Array.from(array,b=>b.toString(36).padStart(2,"0")).join("").slice(0,32);
+  }
+  return Math.random().toString(36).slice(2)+Date.now().toString(36);
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const urlClient = urlParams.get("client");
+  const urlAccess = urlParams.get("access");
   const urlIntake = urlParams.get("intake");
+  const urlAdmin = urlParams.get("admin");
   const clienteInicial = urlClient ? parseInt(urlClient) : null;
-  // eslint-disable-next-line no-unused-vars
-  const esAccesDirecte = !!urlClient;
   const isIntakeMode = urlIntake === "true";
 
+  const storedToken = localStorage.getItem("tcn_access_token");
   const storedClientId = localStorage.getItem("tcn_client_id");
+  // clientIdEfectiu s'usa com a fallback si no hi ha token
   const clientIdEfectiu = clienteInicial || (storedClientId ? parseInt(storedClientId) : null);
-  const urlAdmin = urlParams.get("admin");
+  // Mode inicial: si hi ha ?access o ?client o localStorage → "client", sinó public
+  const hasInitialClient = !!(urlAccess || urlClient || storedToken || storedClientId);
 
-  const [mode, setMode] = useState(clientIdEfectiu ? "client" : urlAdmin==="true" ? "pin" : "public");
+  const [mode, setMode] = useState(hasInitialClient ? "client" : urlAdmin==="true" ? "pin" : "public");
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
   const [selClient, setSelClient] = useState(clientIdEfectiu);
@@ -163,7 +177,8 @@ export default function App() {
       localStorage.setItem("tcn_client_id", String(clienteInicial));
       localStorage.setItem("tcn_access_mode", "client");
     }
-    loadData(); loadIntakeSubmissions();
+    loadData().then(()=>{}).catch(()=>{});
+    loadIntakeSubmissions();
   },[]);// eslint-disable-line react-hooks/exhaustive-deps
   useEffect(()=>{ document.title="TrainConcerNow App"; },[]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -223,7 +238,52 @@ export default function App() {
       ]);
       const loadedData = dr.exists() ? dr.val() : DEFAULT_DATA;
       const seeded = await seedIgnasiNou(loadedData);
-      setData(seeded || loadedData);
+      const finalData = seeded || loadedData;
+
+      // Migrar clients sense accessToken
+      let dataUpdated = false;
+      const usedTokens = new Set();
+      const migratedClients = finalData.clients.map(c=>{
+        if(c.accessToken && !usedTokens.has(c.accessToken)) { usedTokens.add(c.accessToken); return c; }
+        const token = generateAccessToken();
+        usedTokens.add(token);
+        dataUpdated = true;
+        return {...c, accessToken: token};
+      });
+      const finalDataWithTokens = dataUpdated ? {...finalData, clients:migratedClients} : finalData;
+      if(dataUpdated) { try { await set(ref(db,"fitcoach-data2"),finalDataWithTokens); } catch {} }
+      setData(finalDataWithTokens);
+
+      // Resoldre accés per ?access=TOKEN
+      if(urlAccess) {
+        const clientByToken = finalDataWithTokens.clients.find(c=>c.accessToken===urlAccess);
+        if(clientByToken) {
+          localStorage.setItem("tcn_access_token", urlAccess);
+          localStorage.setItem("tcn_client_id", String(clientByToken.id));
+          localStorage.setItem("tcn_access_mode", "client");
+          setSelClient(clientByToken.id);
+          setMode("client");
+        } else {
+          localStorage.removeItem("tcn_access_token");
+          localStorage.removeItem("tcn_client_id");
+          localStorage.removeItem("tcn_access_mode");
+          setSelClient(null);
+          setMode("public");
+        }
+      } else if(storedToken && !clienteInicial) {
+        // Resoldre per token guardat
+        const clientByToken = finalDataWithTokens.clients.find(c=>c.accessToken===storedToken);
+        if(clientByToken) {
+          setSelClient(clientByToken.id);
+          setMode("client");
+        } else {
+          localStorage.removeItem("tcn_access_token");
+          localStorage.removeItem("tcn_client_id");
+          localStorage.removeItem("tcn_access_mode");
+          setSelClient(null);
+          setMode("public");
+        }
+      }
       setStdCompleted(cr.exists() ? cr.val() : {});
       if(asr.exists()) {
         const activeSessions = asr.val();
@@ -407,9 +467,15 @@ export default function App() {
   };
 
   // ── Access helpers ────────────────────────────────────────────────────────
-  const getClientAccessLink = (clientId) => `${window.location.origin}${window.location.pathname}?client=${clientId}`;
+  const getClientAccessLink = (client) => {
+    if(!client) return window.location.origin+window.location.pathname;
+    const token = typeof client === "object" ? client.accessToken : null;
+    const id = typeof client === "object" ? client.id : client;
+    if(token) return `${window.location.origin}${window.location.pathname}?access=${token}`;
+    return `${window.location.origin}${window.location.pathname}?client=${id}`;
+  };
   const getClientInviteMessage = (client) => {
-    const link = getClientAccessLink(client.id);
+    const link = getClientAccessLink(client);
     const firstName = client.name?.split(" ")[0]||"";
     return `Hola ${firstName}! Ja tens activa la teva zona d'entrenament a TrainConcerNow 💪\n\nPots accedir des d'aquest enllaç:\n${link}`;
   };
@@ -456,10 +522,11 @@ export default function App() {
       startDate:new Date().toLocaleDateString("ca-ES"),
       templates:[],exerciseLibrary:[],
       schedule:{Dilluns:[],Dimarts:[],Dimecres:[],Dijous:[],Divendres:[],Dissabte:[],Diumenge:[]},
+      accessToken:generateAccessToken(),
     };
     const emptyRoutine = DAYS.reduce((a,d)=>({...a,[d]:[]}),{});
     updateData({...data,clients:[...data.clients,newClient],routines:{...data.routines,[id]:emptyRoutine}});
-    const updated = {...submission,status:"converted",convertedAt:new Date().toISOString(),convertedClientId:id,updatedAt:new Date().toISOString()};
+    const updated = {...submission,status:"converted",
     await set(ref(db,`intake-submissions/${submission.id}`),updated);
     setIntakeSubmissions(p=>p.map(s=>s.id===submission.id?updated:s));
     setViewingIntake(null);
@@ -487,7 +554,7 @@ export default function App() {
     if(!newClientForm.name) return;
     const id = Date.now();
     const avatar = newClientForm.name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
-    const newC = {id,name:newClientForm.name,goal:newClientForm.goal,avatar,routineType:"weekly",age:"",level:"principiant",place:"gimnàs",material:"",injuries:"",currentPain:"",avoidEx:"",likes:"",dislikes:"",coachNotes:"",startDate:new Date().toLocaleDateString("ca-ES"),templates:[],exerciseLibrary:[],schedule:DAYS.reduce((a,d)=>({...a,[d]:[]}),{})};
+    const newC = {id,name:newClientForm.name,goal:newClientForm.goal,avatar,routineType:"weekly",age:"",level:"principiant",place:"gimnàs",material:"",injuries:"",currentPain:"",avoidEx:"",likes:"",dislikes:"",coachNotes:"",startDate:new Date().toLocaleDateString("ca-ES"),templates:[],exerciseLibrary:[],schedule:DAYS.reduce((a,d)=>({...a,[d]:[]}),{}),accessToken:generateAccessToken()};
     updateData({...data,clients:[...data.clients,newC],routines:{...data.routines,[id]:DAYS.reduce((a,d)=>({...a,[d]:[]}),{})}});
     setNewClientForm({name:"",goal:""});
     setShowAddClient(false);
@@ -902,6 +969,7 @@ export default function App() {
           </div>
           <button style={{...S.btnSecondary,fontSize:11}} onClick={()=>{
             if(window.confirm("Vols desvincular aquest dispositiu d'aquest client?")) {
+              localStorage.removeItem("tcn_access_token");
               localStorage.removeItem("tcn_client_id");
               localStorage.removeItem("tcn_access_mode");
               setSelClient(null);
@@ -1563,7 +1631,7 @@ export default function App() {
                   <button style={{...S.btnPrimary,flex:2,fontSize:13,padding:"9px"}} onClick={()=>selectAdminClient(c.id)}>Seleccionar →</button>
                 </div>
                 <div style={{display:"flex",gap:6}}>
-                  <button style={{...S.btnSecondary,flex:1,fontSize:11,textAlign:"center"}} onClick={()=>copyToClipboard(getClientAccessLink(c.id),"Enllaç copiat!")}>🔗 Enllaç</button>
+                  <button style={{...S.btnSecondary,flex:1,fontSize:11,textAlign:"center"}} onClick={()=>copyToClipboard(getClientAccessLink(c),"Enllaç copiat!")}>🔗 Enllaç</button>
                   <button style={{...S.btnSecondary,flex:1,fontSize:11,textAlign:"center"}} onClick={()=>copyToClipboard(getClientInviteMessage(c),"Missatge copiat!")}>✉️ Missatge</button>
                 </div>
                 {isExpanded&&(
@@ -1643,9 +1711,16 @@ export default function App() {
           <div style={{fontSize:12,color:adminCc.text,marginTop:2}}>{adminClientData?.goal}</div>
         </div>
         <div style={{display:"flex",gap:5,flexShrink:0}}>
-          <button style={{...S.btnSecondary,fontSize:11,padding:"4px 8px"}} onClick={()=>copyToClipboard(getClientAccessLink(adminClient),"Enllaç copiat!")}>🔗</button>
+          <button style={{...S.btnSecondary,fontSize:11,padding:"4px 8px"}} onClick={()=>copyToClipboard(getClientAccessLink(adminClientData),"Enllaç copiat!")}>🔗</button>
           <button style={{...S.btnSecondary,fontSize:11,padding:"4px 8px"}} onClick={()=>copyToClipboard(getClientInviteMessage(adminClientData),"Missatge copiat!")}>✉️</button>
-          <button style={{...S.btnSecondary,fontSize:11,padding:"4px 8px"}} onClick={()=>window.open(getClientAccessLink(adminClient),"_blank")}>👁</button>
+          <button style={{...S.btnSecondary,fontSize:11,padding:"4px 8px"}} onClick={()=>window.open(getClientAccessLink(adminClientData),"_blank")}>👁</button>
+          <button style={{...S.btnSecondary,fontSize:11,padding:"4px 8px",color:T.orange}} onClick={()=>{
+            if(!window.confirm("Si regeneres l'accés, l'enllaç anterior deixarà de funcionar. Vols continuar?")) return;
+            const newToken = generateAccessToken();
+            const nd = {...data,clients:data.clients.map(c=>c.id===adminClient?{...c,accessToken:newToken}:c)};
+            updateData(nd);
+            alert("Nou accés generat. Copia el nou enllaç i envia'l al client.");
+          }}>🔄</button>
         </div>
       </div>
       <div style={{display:"flex",borderBottom:`1px solid ${T.border}`,padding:"0 1.25rem"}}>
