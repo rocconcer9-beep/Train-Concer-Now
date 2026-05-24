@@ -98,6 +98,35 @@ const generateAccessToken = () => {
   return Math.random().toString(36).slice(2)+Date.now().toString(36);
 };
 
+// ── RPE + Càrrega interna ─────────────────────────────────────────────────────
+const calculateInternalLoad = (durationReal, rpe) => {
+  const duration = Number(String(durationReal||"").replace(",","."));
+  const rpeValue = Number(String(rpe||"").replace(",","."));
+  if(!duration||!rpeValue) return null;
+  return Math.round(duration * rpeValue);
+};
+
+const getRpeColor = (value) => {
+  if(value<=2) return {bg:"#0F2A1F",border:"#22543D",text:"#4ADE80"};
+  if(value<=4) return {bg:"#1A2A0F",border:"#3A5A1A",text:"#86EFAC"};
+  if(value<=6) return {bg:"#1F1F40",border:"#3A3A70",text:"#A78BFA"};
+  if(value<=8) return {bg:"#2D1A0A",border:"#7C4A12",text:"#FB923C"};
+  return {bg:"#3A1A1A",border:"#7A2020",text:"#F87171"};
+};
+
+const getRpeLabel = (value) => {
+  if(!value) return "";
+  if(value<=2) return "Molt suau";
+  if(value<=4) return "Suau";
+  if(value<=6) return "Moderat";
+  if(value<=8) return "Intens";
+  if(value===9) return "Molt intens";
+  return "Màxim";
+};
+
+const getSessionInternalLoad = (sess) =>
+  sess.internalLoad ?? calculateInternalLoad(sess.durationReal, sess.rpe);
+
 // ══════════════════════════════════════════════════════════════════════════════
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -168,6 +197,8 @@ export default function App() {
   const [intakeError, setIntakeError] = useState("");
   const [intakeSubmissions, setIntakeSubmissions] = useState([]);
   const [viewingIntake, setViewingIntake] = useState(null);
+
+  const [showRpeInfo, setShowRpeInfo] = useState(false);
 
   // History edit
   const [editingHistorySession, setEditingHistorySession] = useState(null);
@@ -386,7 +417,7 @@ export default function App() {
     const totalExercises = exercises.length;
     const completedExercises = exercises.filter(e=>e.completed).length;
     const completionPercentage = totalExercises>0 ? Math.round((completedExercises/totalExercises)*100) : 0;
-    return {...session, exercises, totalExercises, completedExercises, completionPercentage, updatedAt: new Date().toISOString()};
+    return {...session, exercises, totalExercises, completedExercises, completionPercentage, internalLoad:calculateInternalLoad(session.durationReal, session.rpe), updatedAt: new Date().toISOString()};
   };
 
   const openEditHistorySession = (clientId, session, sessionId) => {
@@ -440,7 +471,12 @@ export default function App() {
       else if(sessionsThisWeek.length>0) status="Actiu";
       else status="Sense activitat";
     }
-    return {history,totalSessions:history.length,sessionsThisWeek:sessionsThisWeek.length,lastSession,lastFeeling,avgRpeRecent,lastCompletion,totalDurationThisWeek,templatesCount:client.templates?.length||0,libraryCount:client.exerciseLibrary?.length||0,trainingDaysCount:Object.values(client.schedule||{}).filter(d=>Array.isArray(d)&&d.length>0).length,status};
+    const weeklyLoads = sessionsThisWeek.map(s=>getSessionInternalLoad(s)).filter(l=>l!=null);
+    const weeklyInternalLoad = weeklyLoads.length>0 ? weeklyLoads.reduce((a,b)=>a+b,0) : null;
+    const recentLoads = history.slice(0,5).map(s=>getSessionInternalLoad(s)).filter(l=>l!=null);
+    const avgInternalLoadRecent = recentLoads.length>0 ? Math.round(recentLoads.reduce((a,b)=>a+b,0)/recentLoads.length) : null;
+    const lastInternalLoad = lastSession ? getSessionInternalLoad(lastSession) : null;
+    return {history,totalSessions:history.length,sessionsThisWeek:sessionsThisWeek.length,lastSession,lastFeeling,avgRpeRecent,lastCompletion,totalDurationThisWeek,weeklyInternalLoad,avgInternalLoadRecent,lastInternalLoad,templatesCount:client.templates?.length||0,libraryCount:client.exerciseLibrary?.length||0,trainingDaysCount:Object.values(client.schedule||{}).filter(d=>Array.isArray(d)&&d.length>0).length,status};
   };
 
   const saveStdSession = async (clientId, day, exercises, formData) => {
@@ -464,6 +500,7 @@ export default function App() {
         isExtra:e.isExtra, isCustom:e.isCustom, observations:e.observations||"",
       })),
       rpe:formData.rpe||null, durationReal:formData.duration||null,
+      internalLoad:calculateInternalLoad(formData.duration, formData.rpe),
       feeling:formData.feeling||null, clientNotes:formData.notes||"",
       checkIn:formData.checkIn||null, createdAt:now.toISOString(),
     };
@@ -729,10 +766,16 @@ export default function App() {
           <div style={{marginBottom:8}}>
             <label style={S.lbl}>RPE (1-10)</label>
             <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-              {[1,2,3,4,5,6,7,8,9,10].map(n=>(
-                <button key={n} onClick={()=>updateSess("rpe",n)} style={{width:36,height:36,borderRadius:8,border:`1px solid ${sess.rpe===n?T.accent:T.border}`,background:sess.rpe===n?T.accent:T.card2,color:sess.rpe===n?T.bg:T.textSecondary,cursor:"pointer",fontSize:12}}>{n}</button>
-              ))}
+              {[1,2,3,4,5,6,7,8,9,10].map(n=>{
+                const c=getRpeColor(n);
+                const sel=sess.rpe===n;
+                return <button key={n} onClick={()=>updateSess("rpe",n)} style={{width:36,height:36,borderRadius:8,border:`2px solid ${sel?c.text:T.border}`,background:sel?c.bg:T.card2,color:sel?c.text:T.textSecondary,cursor:"pointer",fontSize:12,fontWeight:sel?600:400}}>{n}</button>;
+              })}
             </div>
+            {sess.rpe&&<div style={{fontSize:11,color:T.textSecondary,marginTop:4}}>{sess.rpe} — {getRpeLabel(sess.rpe)}</div>}
+          </div>
+          <div style={{marginBottom:8,background:T.card2,borderRadius:8,padding:"8px 12px",fontSize:12,color:T.textSecondary}}>
+            Càrrega interna estimada: <span style={{color:T.textPrimary,fontWeight:500}}>{calculateInternalLoad(sess.durationReal,sess.rpe)!=null?`${calculateInternalLoad(sess.durationReal,sess.rpe)} UA`:"—"}</span>
           </div>
           <div style={{display:"flex",gap:8,marginBottom:8}}>
             <div style={{flex:1}}><label style={S.lbl}>Durada (min)</label><input style={S.inp} type="number" value={sess.durationReal||""} onChange={e=>updateSess("durationReal",e.target.value)} placeholder="45"/></div>
@@ -979,12 +1022,32 @@ export default function App() {
               <div style={{fontWeight:500,fontSize:16,color:T.textPrimary,marginBottom:4}}>Finalitzar entrenament</div>
               <div style={{fontSize:13,color:T.textSecondary,marginBottom:20}}>Com ha anat la sessió?</div>
               <div style={{marginBottom:12}}>
-                <label style={S.lbl}>RPE — Esforç percebut (1-10)</label>
-                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                  {[1,2,3,4,5,6,7,8,9,10].map(n=>(
-                    <button key={n} onClick={()=>setFinishForm(p=>({...p,rpe:n}))} style={{width:38,height:38,borderRadius:10,border:`1px solid ${finishForm.rpe===n?T.accent:T.border}`,background:finishForm.rpe===n?T.accent:T.card2,color:finishForm.rpe===n?T.bg:T.textSecondary,cursor:"pointer",fontSize:13,fontWeight:finishForm.rpe===n?500:400}}>{n}</button>
-                  ))}
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                  <label style={{...S.lbl,marginBottom:0}}>RPE — Esforç percebut (1-10)</label>
+                  <button onClick={()=>setShowRpeInfo(p=>!p)} style={{width:18,height:18,borderRadius:"50%",border:`1px solid ${T.border}`,background:T.card2,color:T.textSecondary,cursor:"pointer",fontSize:11,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>i</button>
                 </div>
+                {showRpeInfo&&(
+                  <div style={{background:T.card2,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 12px",marginBottom:10,fontSize:12}}>
+                    <div style={{fontWeight:500,color:T.textPrimary,marginBottom:6}}>Què és l'RPE?</div>
+                    <div style={{color:T.textSecondary,marginBottom:6,lineHeight:1.5}}>Percepció subjectiva de l'esforç de la sessió. "Com de dura t'ha semblat?"</div>
+                    <div style={{color:T.textSecondary,lineHeight:1.8,fontSize:11}}>
+                      <span style={{color:"#4ADE80"}}>1-2</span> Molt suau &nbsp;·&nbsp; <span style={{color:"#86EFAC"}}>3-4</span> Suau &nbsp;·&nbsp; <span style={{color:"#A78BFA"}}>5-6</span> Moderat<br/>
+                      <span style={{color:"#FB923C"}}>7-8</span> Intens &nbsp;·&nbsp; <span style={{color:"#F87171"}}>9-10</span> Molt intens / Màxim
+                    </div>
+                    <button onClick={()=>setShowRpeInfo(false)} style={{...S.btnSecondary,fontSize:11,padding:"3px 10px",marginTop:8}}>Tancar</button>
+                  </div>
+                )}
+                <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+                  {[1,2,3,4,5,6,7,8,9,10].map(n=>{
+                    const c=getRpeColor(n);
+                    const sel=finishForm.rpe===n;
+                    return (
+                      <button key={n} onClick={()=>setFinishForm(p=>({...p,rpe:n}))} style={{width:38,height:38,borderRadius:10,border:`2px solid ${sel?c.text:T.border}`,background:sel?c.bg:T.card2,color:sel?c.text:T.textSecondary,cursor:"pointer",fontSize:13,fontWeight:sel?600:400,transition:"all 0.15s"}}>{n}</button>
+                    );
+                  })}
+                </div>
+                {finishForm.rpe&&<div style={{fontSize:11,color:T.textSecondary,marginTop:5}}>{finishForm.rpe} — {getRpeLabel(finishForm.rpe)}</div>}
+                <div style={{fontSize:10,color:T.textMuted,marginTop:4}}>1-2 Molt suau · 3-4 Suau · 5-6 Moderat · 7-8 Intens · 9-10 Màxim</div>
               </div>
               <div style={{marginBottom:12}}>
                 <label style={S.lbl}>Durada real (minuts)</label>
@@ -1471,6 +1534,7 @@ export default function App() {
                         <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>
                           <span style={full?S.tag("green"):S.tag()}>{full?"✓ Complet":`${sess.completionPercentage||0}%`}</span>
                           {sess.rpe&&<span style={S.tag("purple")}>RPE {sess.rpe}</span>}
+                          {(()=>{const l=getSessionInternalLoad(sess);return l!=null?<span style={S.tag("accent")}>{l} UA</span>:null;})()}
                           {sess.feeling&&<span style={S.tag()}>{sess.feeling}</span>}
                           {exercises.filter(e=>e.isExtra&&!e.isCustom).length>0&&<span style={S.tag()}>+{exercises.filter(e=>e.isExtra&&!e.isCustom).length} extra</span>}
                           {exercises.filter(e=>e.isCustom).length>0&&<span style={{...S.tag("purple"),fontSize:10}}>+{exercises.filter(e=>e.isCustom).length} personalitzat</span>}
@@ -1613,7 +1677,7 @@ export default function App() {
                   <span style={statusStyle(stats.status)}>{stats.status}</span>
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:10}}>
-                  {[{label:"Setmana",value:stats.sessionsThisWeek},{label:"RPE mitjà",value:stats.avgRpeRecent??"-"},{label:"Total sess.",value:stats.totalSessions}].map(st=>(
+                  {[{label:"Setmana",value:stats.sessionsThisWeek},{label:"RPE mitjà",value:stats.avgRpeRecent??"-"},{label:"Càrrega set.",value:stats.weeklyInternalLoad!=null?`${stats.weeklyInternalLoad} UA`:"—"}].map(st=>(
                     <div key={st.label} style={{background:T.card2,borderRadius:8,padding:"6px 8px",textAlign:"center"}}>
                       <div style={{fontSize:13,fontWeight:500,color:T.textPrimary}}>{st.value}</div>
                       <div style={{fontSize:10,color:T.textSecondary}}>{st.label}</div>
@@ -1632,7 +1696,7 @@ export default function App() {
                 {isExpanded&&(
                   <div style={{marginTop:12,paddingTop:12,borderTop:`1px solid ${T.border}`}}>
                     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:10}}>
-                      {[{label:"Total sessions",value:stats.totalSessions},{label:"Dies assignats",value:stats.trainingDaysCount},{label:"Plantilles",value:stats.templatesCount},{label:"Biblioteca",value:`${stats.libraryCount} ex`},{label:"Durada setmana",value:stats.totalDurationThisWeek>0?`${stats.totalDurationThisWeek} min`:"—"},{label:"Última sensació",value:stats.lastFeeling||"—"}].map(item=>(
+                      {[{label:"Total sessions",value:stats.totalSessions},{label:"Dies assignats",value:stats.trainingDaysCount},{label:"Plantilles",value:stats.templatesCount},{label:"Biblioteca",value:`${stats.libraryCount} ex`},{label:"Durada setmana",value:stats.totalDurationThisWeek>0?`${stats.totalDurationThisWeek} min`:"—"},{label:"Última sensació",value:stats.lastFeeling||"—"},{label:"Càrrega setmana",value:stats.weeklyInternalLoad!=null?`${stats.weeklyInternalLoad} UA`:"—"},{label:"Última càrrega",value:stats.lastInternalLoad!=null?`${stats.lastInternalLoad} UA`:"—"},{label:"Mitjana càrrega",value:stats.avgInternalLoadRecent!=null?`${stats.avgInternalLoadRecent} UA`:"—"}].map(item=>(
                         <div key={item.label} style={{background:T.card2,borderRadius:8,padding:"6px 10px"}}>
                           <div style={{fontSize:11,color:T.textSecondary}}>{item.label}</div>
                           <div style={{fontSize:13,fontWeight:500,color:T.textPrimary,marginTop:2}}>{item.value}</div>
@@ -1836,6 +1900,7 @@ export default function App() {
                         <span style={full?S.tag("green"):S.tag()}>{full?"✓ Complet":`${sess.completionPercentage||0}%`}</span>
                         {sess.rpe&&<span style={S.tag("purple")}>RPE {sess.rpe}</span>}
                         {sess.durationReal&&<span style={S.tag()}>⏱ {sess.durationReal} min</span>}
+                        {(()=>{const l=getSessionInternalLoad(sess);return l!=null?<span style={S.tag("accent")}>{l} UA</span>:null;})()}
                         {sess.feeling&&<span style={S.tag()}>{sess.feeling}</span>}
                         {exercises.filter(e=>e.isExtra&&!e.isCustom).length>0&&<span style={S.tag()}>+{exercises.filter(e=>e.isExtra&&!e.isCustom).length} extra</span>}
                         {exercises.filter(e=>e.isCustom).length>0&&<span style={{...S.tag("purple"),fontSize:10}}>+{exercises.filter(e=>e.isCustom).length} personalitzat</span>}
