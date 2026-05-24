@@ -2490,8 +2490,12 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
 
   // ── ADMIN DETALL CLIENT ───────────────────────────────────────────────────────
   const adminClientData = data.clients.find(c=>c.id===adminClient);
+  if(!adminClientData && adminView==="clientDetail") {
+    setAdminView("clients");
+    return null;
+  }
   const adminClientIdx = data.clients.findIndex(c=>c.id===adminClient);
-  const adminCc = cClr(adminClientIdx);
+  const adminCc = cClr(Math.max(0,adminClientIdx));
 
   return (
     <div style={S.wrap}>
