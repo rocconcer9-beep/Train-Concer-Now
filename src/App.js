@@ -714,9 +714,26 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
           <div style={{marginBottom:10}}><label style={S.lbl}>Altres notes de salut</label><textarea style={{...S.inp,minHeight:50,resize:"vertical"}} value={IF.healthNotes} onChange={e=>setIF("healthNotes",e.target.value)} placeholder="Qualsevol informació addicional..."/></div>
 
           <SectionTitle>Logística</SectionTitle>
-          <div style={{display:"flex",gap:8,marginBottom:10}}>
-            <div style={{flex:1}}><label style={S.lbl}>Dies disponibles</label><input style={S.inp} value={IF.availability} onChange={e=>setIF("availability",e.target.value)} placeholder="Ex. 3 dies/setmana"/></div>
+         <div style={{display:"flex",gap:8,marginBottom:10}}>
+            <div style={{flex:1}}><label style={S.lbl}>Dies per setmana</label><input style={S.inp} value={IF.availability} onChange={e=>setIF("availability",e.target.value)} placeholder="Ex. 3-4 dies"/></div>
             <div style={{flex:1}}><label style={S.lbl}>Durada per sessió</label><input style={S.inp} value={IF.sessionDuration} onChange={e=>setIF("sessionDuration",e.target.value)} placeholder="Ex. 45-60 min"/></div>
+          </div>
+          <div style={{marginBottom:10}}>
+            <label style={S.lbl}>Quins dies tens disponibilitat?</label>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:4}}>
+              {DAYS.map(d=>{
+                const sel = (IF.matchDays||"").split(",").map(s=>s.trim()).filter(Boolean).includes(d);
+                return (
+                  <button key={d} type="button" onClick={()=>{
+                    const current = (IF.matchDays||"").split(",").map(s=>s.trim()).filter(Boolean);
+                    const updated = sel ? current.filter(x=>x!==d) : [...current,d];
+                    setIF("matchDays", updated.join(", "));
+                  }} style={{padding:"7px 12px",borderRadius:10,fontSize:12,cursor:"pointer",border:`1px solid ${sel?T.accent:T.border}`,background:sel?T.accent:T.card2,color:sel?T.bg:T.textSecondary,fontWeight:sel?500:400}}>
+                    {d}
+                  </button>
+                );
+              })}
+            </div>
           </div>
           <div style={{marginBottom:10}}>
             <label style={S.lbl}>Lloc d'entrenament</label>
