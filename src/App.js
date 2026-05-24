@@ -115,6 +115,12 @@ export default function App() {
   // Mode inicial: si hi ha ?access o ?client o localStorage → "client", sinó public
   const hasInitialClient = !!(urlAccess || urlClient || storedToken || storedClientId);
 
+  if(urlAdmin==="true") {
+    localStorage.removeItem("tcn_access_token");
+    localStorage.removeItem("tcn_client_id");
+    localStorage.removeItem("tcn_access_mode");
+  }
+
   const [mode, setMode] = useState(urlAdmin==="true" ? "pin" : hasInitialClient ? "client" : "public");
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
