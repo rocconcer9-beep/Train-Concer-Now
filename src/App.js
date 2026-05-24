@@ -3,6 +3,7 @@ import { db } from "./firebase";
 import { ref, set, get, remove } from "firebase/database";
 
 const DAYS = ["Dilluns","Dimarts","Dimecres","Dijous","Divendres","Dissabte","Diumenge"];
+// eslint-disable-next-line no-unused-vars
 const DAYS_SHORT = ["L","M","X","J","V","S","D"];
 const TODAY_IDX = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
 const TODAY = DAYS[TODAY_IDX];
@@ -152,8 +153,9 @@ export default function App() {
 
   const cfStyle = `@keyframes cfPop{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(-60px) rotate(360deg);opacity:0}}`;
 
-  useEffect(()=>{ loadData(); loadIntakeSubmissions(); },[]);
+  useEffect(()=>{ loadData(); loadIntakeSubmissions(); },[]);// eslint-disable-line react-hooks/exhaustive-deps
   useEffect(()=>{ document.title="TrainConcerNow App"; },[]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(()=>{ if(data?.clients) loadAllClientHistories(data.clients); },[data?.clients?.length]);
 
   // ── Data helpers ──────────────────────────────────────────────────────────
@@ -258,6 +260,7 @@ export default function App() {
   };
 
   const persist = async (nd) => { setSaving(true); try { await set(ref(db,"fitcoach-data2"),nd); } catch {} setSaving(false); };
+  // eslint-disable-next-line no-unused-vars
   const persistStdCompleted = async (c) => { try { await set(ref(db,"fitcoach-completed"),c); } catch {} };
   const updateData = (d) => { setData(d); persist(d); };
 
