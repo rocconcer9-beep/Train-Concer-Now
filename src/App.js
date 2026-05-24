@@ -979,20 +979,30 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
           return (
             <div key={i} style={{...S.card,opacity:allSetsCompleted?0.6:1}}>
               {/* Capçalera exercici */}
-              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:isExpanded?10:0}}
-                onClick={()=>setExpandedExercises(p=>({...p,[`${sessionKey}-${i}`]:!isExpanded}))}>
-                <div style={{width:26,height:26,borderRadius:"50%",border:`2px solid ${allSetsCompleted?T.accent:T.border}`,background:allSetsCompleted?T.accent:T.card2,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                  {allSetsCompleted&&<svg viewBox="0 0 16 16" width="14" height="14"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                </div>
-                <div style={{flex:1}}>
-                  <div style={{fontWeight:500,fontSize:14,color:allSetsCompleted?T.textMuted:T.textPrimary,textDecoration:allSetsCompleted?"line-through":"none"}}>{i+1}. {ex.name}</div>
-                  <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>
-                    {ex.sets?.filter(s=>s.completed).length||0}/{ex.sets?.length||0} sèries · {ex.plannedReps} reps{ex.plannedLoad?` · ${ex.plannedLoad}`:""}
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:isExpanded?10:0}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,flex:1,cursor:"pointer"}}
+                  onClick={()=>setExpandedExercises(p=>({...p,[`${sessionKey}-${i}`]:!isExpanded}))}>
+                  <div style={{width:26,height:26,borderRadius:"50%",border:`2px solid ${allSetsCompleted?T.accent:T.border}`,background:allSetsCompleted?T.accent:T.card2,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                    {allSetsCompleted&&<svg viewBox="0 0 16 16" width="14" height="14"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                   </div>
+                  <div style={{flex:1}}>
+                    <div style={{fontWeight:500,fontSize:14,color:allSetsCompleted?T.textMuted:T.textPrimary,textDecoration:allSetsCompleted?"line-through":"none"}}>{i+1}. {ex.name}</div>
+                    <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>
+                      {ex.sets?.filter(s=>s.completed).length||0}/{ex.sets?.length||0} sèries · {ex.plannedReps} reps{ex.plannedLoad?` · ${ex.plannedLoad}`:""}
+                    </div>
+                  </div>
+                  <svg viewBox="0 0 12 12" width="14" height="14" style={{transition:"transform 0.2s",transform:isExpanded?"rotate(180deg)":"rotate(0)",flexShrink:0}}>
+                    <polyline points="2,4 6,8 10,4" fill="none" stroke={T.textSecondary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </div>
-                <svg viewBox="0 0 12 12" width="14" height="14" style={{transition:"transform 0.2s",transform:isExpanded?"rotate(180deg)":"rotate(0)",flexShrink:0}}>
-                  <polyline points="2,4 6,8 10,4" fill="none" stroke={T.textSecondary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                <button onClick={()=>{
+                  setSessionExercises(p=>{
+                    const s={...p[sessionKey]};
+                    s.exercises=s.exercises.filter((_,ei)=>ei!==i);
+                    saveActiveSession(selClient,selDay,s);
+                    return {...p,[sessionKey]:s};
+                  });
+                }} style={{width:22,height:22,borderRadius:"50%",border:"none",background:T.dangerBg,color:T.danger,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,lineHeight:1,flexShrink:0}}>×</button>
               </div>
 
               {/* Sèries desplegables */}
@@ -1035,14 +1045,14 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
 
         {/* Completat */}
         {dc===exs.length&&exs.length>0&&(
-          <div style={{background:T.greenBg,border:`1px solid ${T.greenBorder}`,borderRadius:14,padding:"1.25rem",textAlign:"center"}}>
+          <div style={{background:T.greenBg,border:`1px solid ${T.greenBorder}`,borderRadius:14,padding:"1.25rem",textAlign:"center",marginBottom:8}}>
             <div style={{fontSize:32,marginBottom:6}}>🎉</div>
-            <div style={{fontWeight:500,color:T.green,marginBottom:12}}>Tots els exercicis completats!</div>
-            <button style={{...S.btnPrimary,padding:"12px"}} onClick={()=>{setFinishForm({rpe:"",duration:"",feeling:"",notes:""});setShowFinishModal(true);}}>
-              🏁 Finalitzar entrenament
-            </button>
+            <div style={{fontWeight:500,color:T.green}}>Tots els exercicis completats!</div>
           </div>
         )}
+        <button style={{...S.btnPrimary,padding:"12px",marginTop:8}} onClick={()=>{setFinishForm({rpe:"",duration:"",feeling:"",notes:""});setShowFinishModal(true);}}>
+          {dc===exs.length&&exs.length>0?"🏁 Finalitzar entrenament":`🏁 Finalitzar entrenament (${dc}/${exs.length})`}
+        </button>
         {showAddExModal&&(
           <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
             <div style={{background:T.card,borderRadius:"20px 20px 0 0",padding:"1.5rem 1.25rem",width:"100%",maxWidth:520,border:`1px solid ${T.border}`,maxHeight:"70vh",overflowY:"auto"}}>
