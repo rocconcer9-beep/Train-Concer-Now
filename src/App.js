@@ -93,6 +93,7 @@ export default function App() {
   const urlClient = urlParams.get("client");
   const urlIntake = urlParams.get("intake");
   const clienteInicial = urlClient ? parseInt(urlClient) : null;
+  // eslint-disable-next-line no-unused-vars
   const esAccesDirecte = !!urlClient;
   const isIntakeMode = urlIntake === "true";
 
