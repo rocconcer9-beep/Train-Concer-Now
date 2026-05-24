@@ -274,6 +274,7 @@ const [customExForm, setCustomExForm] = useState({name:"",sets:3,reps:"10",load:
 const [expandedHistory, setExpandedHistory] = useState({});
 const [expandedClientCards, setExpandedClientCards] = useState({});
 const [clientSearch, setClientSearch] = useState("");
+const [checkInForm, setCheckInForm] = useState({energy:"",sleep:"",stress:"",fatigue:"",pain:"",painZone:"",notes:""});
 const [editingHistorySession, setEditingHistorySession] = useState(null);
 const [editingHistoryClientId, setEditingHistoryClientId] = useState(null);
 const [editingHistorySessionId, setEditingHistorySessionId] = useState(null);
@@ -543,6 +544,7 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
     durationReal: formData.duration||null,
     feeling: formData.feeling||null,
     clientNotes: formData.notes||"",
+    checkIn: formData.checkIn||null,
     createdAt: now.toISOString(),
   };
 
@@ -628,6 +630,37 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
             </div>
           </div>
           <div style={{marginBottom:16}}><label style={S.lbl}>Notes finals</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={sess.clientNotes||""} onChange={e=>updateSess("clientNotes",e.target.value)} placeholder="Notes de la sessió..."/></div>
+
+          {/* Check-in */}
+          <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Check-in inicial</div>
+          <div style={{marginBottom:8}}>
+            {[{key:"energy",label:"Energia",max:5},{key:"sleep",label:"Son",max:5},{key:"stress",label:"Estrès",max:5},{key:"fatigue",label:"Fatiga muscular",max:5}].map(({key,label,max})=>(
+              <div key={key} style={{marginBottom:10}}>
+                <label style={S.lbl}>{label} {(sess.checkIn||{})[key]?`${(sess.checkIn||{})[key]}/${max}`:""}</label>
+                <div style={{display:"flex",gap:5}}>
+                  {Array.from({length:max},(_,i)=>i+1).map(n=>(
+                    <button key={n} onClick={()=>updateSess("checkIn",{...(sess.checkIn||{}),[key]:String(n)})}
+                      style={{width:34,height:34,borderRadius:8,border:`1px solid ${Number((sess.checkIn||{})[key])===n?T.accent:T.border}`,background:Number((sess.checkIn||{})[key])===n?T.accent:T.card2,color:Number((sess.checkIn||{})[key])===n?T.bg:T.textSecondary,cursor:"pointer",fontSize:12}}>
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <div style={{marginBottom:10}}>
+              <label style={S.lbl}>Dolor actual {(sess.checkIn||{}).pain!==""&&(sess.checkIn||{}).pain!=null?`${(sess.checkIn||{}).pain}/10`:""}</label>
+              <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+                {Array.from({length:11},(_,i)=>i).map(n=>(
+                  <button key={n} onClick={()=>updateSess("checkIn",{...(sess.checkIn||{}),pain:String(n)})}
+                    style={{width:32,height:32,borderRadius:8,border:`1px solid ${Number((sess.checkIn||{}).pain)===n&&(sess.checkIn||{}).pain!==""?T.accent:T.border}`,background:Number((sess.checkIn||{}).pain)===n&&(sess.checkIn||{}).pain!==""?T.accent:T.card2,color:Number((sess.checkIn||{}).pain)===n&&(sess.checkIn||{}).pain!==""?T.bg:T.textSecondary,cursor:"pointer",fontSize:11}}>
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div style={{marginBottom:10}}><label style={S.lbl}>Zona de dolor</label><input style={S.inp} value={(sess.checkIn||{}).painZone||""} onChange={e=>updateSess("checkIn",{...(sess.checkIn||{}),painZone:e.target.value})} placeholder="Ex. lumbar, genoll…"/></div>
+            <div style={{marginBottom:16}}><label style={S.lbl}>Notes inicials</label><textarea style={{...S.inp,minHeight:50,resize:"vertical"}} value={(sess.checkIn||{}).notes||""} onChange={e=>updateSess("checkIn",{...(sess.checkIn||{}),notes:e.target.value})} placeholder="Com es trobava el client…"/></div>
+          </div>
 
           {/* Exercicis */}
           <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Exercicis</div>
@@ -1115,7 +1148,7 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
   const sessionKey=`${selClient}-${selDay}`;
   const sess = sessionExercises[sessionKey];
   const exsToSave = sess ? sess.exercises : dayExs;
-  await saveStdSession(selClient,selDay,exsToSave,finishForm);
+  await saveStdSession(selClient,selDay,exsToSave,{...finishForm,checkIn:sess?.checkIn||null});
   await deleteActiveSession(selClient, selDay);
   setShowFinishModal(false);
   setFinishForm({rpe:"",duration:"",feeling:"",notes:""});
@@ -1151,7 +1184,7 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
   const currentTemplate = currentSession ? templates.find(t=>t.id===currentSession.templateId) : null;
 
   const startSession = (tpl) => {
-  if(sessionExercises[sessionKey]) return; // ja existeix sessió activa
+  if(sessionExercises[sessionKey]) return;
   const exs = tpl.exercises.map(ex=>({
     ...ex,
     sets: Array.from({length:ex.plannedSets}, ()=>({
@@ -1171,9 +1204,11 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
     templateName: tpl.name,
     exercises: exs,
     status: "in_progress",
+    checkIn: {energy:"",sleep:"",stress:"",fatigue:"",pain:"",painZone:"",notes:"",completedAt:""},
     createdAt: now,
     updatedAt: now,
   };
+  setCheckInForm({energy:"",sleep:"",stress:"",fatigue:"",pain:"",painZone:"",notes:""});
   setSessionExercises(p=>({...p,[sessionKey]:newSession}));
   saveActiveSession(selClient, selDay, newSession);
 };
@@ -1195,6 +1230,112 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
   const exs = currentSession.exercises;
   const dc = exs.filter(e=>e.sets&&e.sets.every(s=>s.completed)).length;
   const wasRecovered = currentSession.status==="in_progress" && currentSession.createdAt !== currentSession.updatedAt;
+  const checkInDone = !!currentSession.checkIn?.completedAt;
+
+  // ── CHECK-IN ────────────────────────────────────────────────────────────
+  if(!checkInDone) {
+    const ScaleBtn = ({value, selected, onClick}) => (
+      <button onClick={onClick} style={{width:36,height:36,borderRadius:8,border:`1px solid ${selected?T.accent:T.border}`,background:selected?T.accent:T.card2,color:selected?T.bg:T.textSecondary,cursor:"pointer",fontSize:13,fontWeight:selected?500:400}}>{value}</button>
+    );
+    const ci = checkInForm;
+    const painVal = Number(ci.pain);
+    const energyVal = Number(ci.energy);
+    const sleepVal = Number(ci.sleep);
+    const showPainAlert = ci.pain!==""&&painVal>=5;
+    const showRecoveryAlert = (ci.energy!==""&&energyVal<=2)||(ci.sleep!==""&&sleepVal<=2);
+
+    const saveCheckIn = () => {
+      const updatedSession = {
+        ...currentSession,
+        checkIn: {...checkInForm, completedAt: new Date().toISOString()},
+        updatedAt: new Date().toISOString(),
+      };
+      setSessionExercises(p=>({...p,[sessionKey]:updatedSession}));
+      saveActiveSession(selClient, selDay, updatedSession);
+    };
+
+    return (
+      <>
+        <div style={{display:"flex",gap:6,padding:"0.85rem 1.25rem 0.5rem",overflowX:"auto"}}>
+          {DAYS.map((d,i)=>{
+            const active=selDay===d;
+            return (
+              <div key={d} style={{textAlign:"center",flexShrink:0}}>
+                <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1px solid ${active?T.accent:T.border}`,background:active?T.accent:T.card,color:active?T.bg:T.textMuted,cursor:"pointer",fontSize:12}}>
+                  {DAYS_SHORT[i]}
+                </button>
+                {d===TODAY&&<div style={{fontSize:9,color:T.accent,marginTop:2}}>avui</div>}
+              </div>
+            );
+          })}
+        </div>
+        <div style={S.sec}>
+          <div style={{fontWeight:500,fontSize:18,color:T.textPrimary,marginBottom:4}}>Com arribes avui?</div>
+          <div style={{fontSize:13,color:T.textSecondary,marginBottom:20}}>Respon ràpid abans de començar l'entrenament.</div>
+
+          {showPainAlert&&(
+            <div style={{background:T.dangerBg,border:`1px solid ${T.danger}40`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:12,color:T.danger}}>
+              ⚠️ Dolor elevat reportat. Ajusta la intensitat o consulta amb l'entrenador.
+            </div>
+          )}
+          {showRecoveryAlert&&(
+            <div style={{background:T.orangeBg,border:`1px solid #7C2D12`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:12,color:T.orange}}>
+              ⚠️ Recuperació baixa. Considera baixar la intensitat.
+            </div>
+          )}
+
+          {[
+            {key:"energy",label:"Energia",max:5},
+            {key:"sleep",label:"Son",max:5},
+            {key:"stress",label:"Estrès",max:5},
+            {key:"fatigue",label:"Fatiga muscular",max:5},
+          ].map(({key,label,max})=>(
+            <div key={key} style={{marginBottom:14}}>
+              <label style={S.lbl}>{label} {checkInForm[key]?`${checkInForm[key]}/${max}`:""}</label>
+              <div style={{display:"flex",gap:6}}>
+                {Array.from({length:max},(_,i)=>i+1).map(n=>(
+                  <ScaleBtn key={n} value={n} selected={Number(checkInForm[key])===n} onClick={()=>setCheckInForm(p=>({...p,[key]:String(n)}))}/>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          <div style={{marginBottom:14}}>
+            <label style={S.lbl}>Dolor actual {checkInForm.pain!==""?`${checkInForm.pain}/10`:""}</label>
+            <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+              {Array.from({length:11},(_,i)=>i).map(n=>(
+                <ScaleBtn key={n} value={n} selected={Number(checkInForm.pain)===n&&checkInForm.pain!==""} onClick={()=>setCheckInForm(p=>({...p,pain:String(n)}))}/>
+              ))}
+            </div>
+          </div>
+
+          {(checkInForm.pain!==""&&Number(checkInForm.pain)>0)&&(
+            <div style={{marginBottom:14}}>
+              <label style={S.lbl}>Zona de dolor</label>
+              <input style={S.inp} value={checkInForm.painZone} onChange={e=>setCheckInForm(p=>({...p,painZone:e.target.value}))} placeholder="Ex. genoll dret, lumbar, espatlla…"/>
+            </div>
+          )}
+
+          <div style={{marginBottom:20}}>
+            <label style={S.lbl}>Comentari inicial (opcional)</label>
+            <textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={checkInForm.notes} onChange={e=>setCheckInForm(p=>({...p,notes:e.target.value}))} placeholder="Com et notes avui?"/>
+          </div>
+
+          <button style={{...S.btnPrimary,padding:"13px"}} onClick={saveCheckIn}>
+            Començar entrenament →
+          </button>
+          <button style={{...S.btnSecondary,width:"100%",textAlign:"center",marginTop:8,fontSize:12}} onClick={()=>{
+            setCheckInForm({energy:"",sleep:"",stress:"",fatigue:"",pain:"",painZone:"",notes:""});
+            const updatedSession = {...currentSession,checkIn:{energy:"",sleep:"",stress:"",fatigue:"",pain:"",painZone:"",notes:"",completedAt:new Date().toISOString()},updatedAt:new Date().toISOString()};
+            setSessionExercises(p=>({...p,[sessionKey]:updatedSession}));
+            saveActiveSession(selClient,selDay,updatedSession);
+          }}>
+            Saltar check-in
+          </button>
+        </div>
+      </>
+    );
+  }
 
   const toggleSet = (exIdx, setIdx) => {
     setSessionExercises(p=>{
@@ -1256,6 +1397,20 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
         })}
       </div>
       <div style={S.sec}>
+       {/* Resum check-in */}
+        {currentSession.checkIn?.completedAt&&(currentSession.checkIn.energy||currentSession.checkIn.pain!=="")&&(
+          <div style={{background:T.card2,border:`1px solid ${T.border}`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:11,color:T.textSecondary}}>
+            <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4,fontSize:12}}>Check-in inicial</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+              {currentSession.checkIn.energy&&<span>⚡ {currentSession.checkIn.energy}/5</span>}
+              {currentSession.checkIn.sleep&&<span>😴 {currentSession.checkIn.sleep}/5</span>}
+              {currentSession.checkIn.stress&&<span>🧠 {currentSession.checkIn.stress}/5</span>}
+              {currentSession.checkIn.fatigue&&<span>💪 {currentSession.checkIn.fatigue}/5</span>}
+              {currentSession.checkIn.pain!==""&&currentSession.checkIn.pain!==undefined&&<span style={{color:Number(currentSession.checkIn.pain)>=5?T.danger:T.textSecondary}}>🩹 {currentSession.checkIn.pain}/10{currentSession.checkIn.painZone?` · ${currentSession.checkIn.painZone}`:""}</span>}
+            </div>
+            {currentSession.checkIn.notes&&<div style={{marginTop:4,fontStyle:"italic"}}>"{currentSession.checkIn.notes}"</div>}
+          </div>
+        )}
         {/* Avís sessió recuperada */}
         {wasRecovered&&(
           <div style={{background:"#1A1A00",border:`1px solid ${T.accent}40`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:12,color:T.accent}}>
@@ -1746,6 +1901,19 @@ const saveStdSession = async (clientId, day, exercises, formData) => {
                         {/* Detalls */}
                         {isExpanded&&(
                           <div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${T.border}`}}>
+                            {sess.checkIn?.completedAt&&(
+                              <div style={{background:T.card2,borderRadius:8,padding:"8px 10px",marginBottom:10}}>
+                                <div style={{fontWeight:500,fontSize:11,color:T.textSecondary,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.5px"}}>Check-in inicial</div>
+                                <div style={{display:"flex",flexWrap:"wrap",gap:8,fontSize:12,color:T.textSecondary}}>
+                                  {sess.checkIn.energy&&<span>⚡ Energia {sess.checkIn.energy}/5</span>}
+                                  {sess.checkIn.sleep&&<span>😴 Son {sess.checkIn.sleep}/5</span>}
+                                  {sess.checkIn.stress&&<span>🧠 Estrès {sess.checkIn.stress}/5</span>}
+                                  {sess.checkIn.fatigue&&<span>💪 Fatiga {sess.checkIn.fatigue}/5</span>}
+                                  {sess.checkIn.pain!==""&&sess.checkIn.pain!=null&&<span style={{color:Number(sess.checkIn.pain)>=5?T.danger:T.textSecondary}}>🩹 Dolor {sess.checkIn.pain}/10{sess.checkIn.painZone?` · ${sess.checkIn.painZone}`:""}</span>}
+                                </div>
+                                {sess.checkIn.notes&&<div style={{fontSize:11,color:T.textMuted,marginTop:4,fontStyle:"italic"}}>"{sess.checkIn.notes}"</div>}
+                              </div>
+                            )}
                             {sess.clientNotes&&(
                               <div style={{fontSize:12,color:T.textSecondary,marginBottom:10,fontStyle:"italic",background:T.card2,borderRadius:8,padding:"6px 10px"}}>
                                 💬 {sess.clientNotes}
@@ -2151,13 +2319,26 @@ const dayExercises=data.routines[adminClient]?.[selDay]||[];
                       {/* Detalls */}
                       {isExpanded&&(
                         <div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${T.border}`}}>
-                          {sess.clientNotes&&(
-                            <div style={{fontSize:12,color:T.textSecondary,marginBottom:10,fontStyle:"italic",background:T.card2,borderRadius:8,padding:"6px 10px"}}>
-                              💬 {sess.clientNotes}
-                            </div>
-                          )}
-                          {exercises.length===0&&<div style={{fontSize:12,color:T.textMuted}}>Sense detalls d'exercicis</div>}
-                          {exercises.map((e,i)=>(
+                          {sess.checkIn?.completedAt&&(
+                              <div style={{background:T.card2,borderRadius:8,padding:"8px 10px",marginBottom:10}}>
+                                <div style={{fontWeight:500,fontSize:11,color:T.textSecondary,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.5px"}}>Check-in inicial</div>
+                                <div style={{display:"flex",flexWrap:"wrap",gap:8,fontSize:12,color:T.textSecondary}}>
+                                  {sess.checkIn.energy&&<span>⚡ Energia {sess.checkIn.energy}/5</span>}
+                                  {sess.checkIn.sleep&&<span>😴 Son {sess.checkIn.sleep}/5</span>}
+                                  {sess.checkIn.stress&&<span>🧠 Estrès {sess.checkIn.stress}/5</span>}
+                                  {sess.checkIn.fatigue&&<span>💪 Fatiga {sess.checkIn.fatigue}/5</span>}
+                                  {sess.checkIn.pain!==""&&sess.checkIn.pain!=null&&<span style={{color:Number(sess.checkIn.pain)>=5?T.danger:T.textSecondary}}>🩹 Dolor {sess.checkIn.pain}/10{sess.checkIn.painZone?` · ${sess.checkIn.painZone}`:""}</span>}
+                                </div>
+                                {sess.checkIn.notes&&<div style={{fontSize:11,color:T.textMuted,marginTop:4,fontStyle:"italic"}}>"{sess.checkIn.notes}"</div>}
+                              </div>
+                            )}
+                            {sess.clientNotes&&(
+                              <div style={{fontSize:12,color:T.textSecondary,marginBottom:10,fontStyle:"italic",background:T.card2,borderRadius:8,padding:"6px 10px"}}>
+                                💬 {sess.clientNotes}
+                              </div>
+                            )}
+                            {exercises.length===0&&<div style={{fontSize:12,color:T.textMuted}}>Sense detalls d'exercicis</div>}
+                            {exercises.map((e,i)=>(
                             <div key={i} style={{marginBottom:10,paddingBottom:10,borderBottom:`1px solid ${T.border}`}}>
                               <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap",marginBottom:4}}>
                                 <span style={{fontSize:13,fontWeight:500,color:e.completed?T.green:T.textPrimary}}>
