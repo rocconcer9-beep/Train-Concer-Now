@@ -115,7 +115,7 @@ export default function App() {
   // Mode inicial: si hi ha ?access o ?client o localStorage → "client", sinó public
   const hasInitialClient = !!(urlAccess || urlClient || storedToken || storedClientId);
 
-  const [mode, setMode] = useState(hasInitialClient ? "client" : urlAdmin==="true" ? "pin" : "public");
+  const [mode, setMode] = useState(urlAdmin==="true" ? "pin" : hasInitialClient ? "client" : "public");
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
   const [selClient, setSelClient] = useState(clientIdEfectiu);
