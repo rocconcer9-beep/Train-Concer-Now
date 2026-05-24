@@ -1865,10 +1865,14 @@ export default function App() {
                         <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,marginBottom:8}}>Exercicis</div>
                         {(editingTemplate.exercises||[]).map((ex,i)=>(
                           <div key={ex.id} style={{...S.card,marginBottom:6}}>
-                            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                              <span style={{fontSize:13,fontWeight:500,color:T.textPrimary}}>{ex.name}</span>
-                              <button style={S.btnDanger} onClick={()=>setEditingTemplate(p=>({...p,exercises:p.exercises.filter((_,j)=>j!==i)}))}>×</button>
-                            </div>
+                              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6,gap:6}}>
+                                <input style={{...S.inp,fontWeight:500,flex:1}} value={ex.name} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,name:e.target.value}:ex2)}))} placeholder="Nom exercici"/>
+                                <div style={{display:"flex",gap:4,flexShrink:0}}>
+                                  <button style={{...S.btnSecondary,padding:"4px 7px",fontSize:13}} onClick={()=>setEditingTemplate(p=>{const exs=[...p.exercises];if(i===0)return p;[exs[i-1],exs[i]]=[exs[i],exs[i-1]];return {...p,exercises:exs};})} disabled={i===0}>↑</button>
+                                  <button style={{...S.btnSecondary,padding:"4px 7px",fontSize:13}} onClick={()=>setEditingTemplate(p=>{const exs=[...p.exercises];if(i===exs.length-1)return p;[exs[i+1],exs[i]]=[exs[i],exs[i+1]];return {...p,exercises:exs};})} disabled={i===editingTemplate.exercises.length-1}>↓</button>
+                                  <button style={S.btnDanger} onClick={()=>setEditingTemplate(p=>({...p,exercises:p.exercises.filter((_,j)=>j!==i)}))}>×</button>
+                                </div>
+                              </div>
                             <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                               <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Sèries</label><input style={S.inp} type="number" value={ex.plannedSets} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedSets:+e.target.value}:ex2)}))}/></div>
                               <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Reps</label><input style={S.inp} value={ex.plannedReps} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedReps:e.target.value}:ex2)}))}/></div>
