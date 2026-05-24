@@ -178,6 +178,64 @@ const getClientAlerts = (stats) => {
   return alerts.sort((a,b)=>order[a.severity]-order[b.severity]);
 };
 
+const getClientTrackingStats = (history) => {
+  if(!history||history.length===0) return null;
+  const now = new Date();
+  const sorted = [...history].sort((a,b)=>{
+    const da = a.createdAt||a.updatedAt||a.date||"";
+    const db2 = b.createdAt||b.updatedAt||b.date||"";
+    return da>db2?-1:1;
+  });
+  const daysAgo = (n) => new Date(now.getTime()-n*24*60*60*1000);
+  const isWithin = (sess,days) => {
+    const d = new Date(sess.createdAt||sess.updatedAt||"");
+    return !isNaN(d)&&d>=daysAgo(days);
+  };
+  const thisWeek = sorted.filter(s=>isWithin(s,7));
+  const last30 = sorted.filter(s=>isWithin(s,30));
+  const safeNum = (v) => { const n=Number(v); return isNaN(n)?null:n; };
+  const avg = (arr) => arr.length>0?Math.round((arr.reduce((a,b)=>a+b,0)/arr.length)*10)/10:null;
+
+  const getLoad = (s) => s.internalLoad??calculateInternalLoad(s.durationReal,s.rpe);
+
+  const weekLoads = thisWeek.map(getLoad).filter(l=>l!=null);
+  const last30Loads = last30.map(getLoad).filter(l=>l!=null);
+  const recentRpes = sorted.slice(0,5).map(s=>safeNum(s.rpe)).filter(v=>v!=null&&v>0);
+  const recentPains = sorted.slice(0,5).map(s=>safeNum(s.checkIn?.pain)).filter(v=>v!=null&&v>=0);
+  const recentEnergies = sorted.slice(0,5).map(s=>safeNum(s.checkIn?.energy)).filter(v=>v!=null&&v>0);
+  const recentSleep = sorted.slice(0,5).map(s=>safeNum(s.checkIn?.sleep)).filter(v=>v!=null&&v>0);
+  const recentStress = sorted.slice(0,5).map(s=>safeNum(s.checkIn?.stress)).filter(v=>v!=null&&v>0);
+  const recentFatigue = sorted.slice(0,5).map(s=>safeNum(s.checkIn?.fatigue)).filter(v=>v!=null&&v>0);
+  const weekDurations = thisWeek.map(s=>safeNum(s.durationReal)).filter(v=>v!=null&&v>0);
+  const last30Durations = last30.map(s=>safeNum(s.durationReal)).filter(v=>v!=null&&v>0);
+  const lastSess = sorted[0]||null;
+  const lastCheckIn = lastSess?.checkIn||{};
+
+  return {
+    totalSessions:sorted.length,
+    sessionsThisWeek:thisWeek.length,
+    sessionsLast30Days:last30.length,
+    weeklyInternalLoad:weekLoads.length>0?weekLoads.reduce((a,b)=>a+b,0):null,
+    last30DaysInternalLoad:last30Loads.length>0?last30Loads.reduce((a,b)=>a+b,0):null,
+    avgRpeRecent:avg(recentRpes),
+    avgPainRecent:avg(recentPains),
+    avgEnergyRecent:avg(recentEnergies),
+    avgSleepRecent:avg(recentSleep),
+    avgStressRecent:avg(recentStress),
+    avgFatigueRecent:avg(recentFatigue),
+    totalDurationThisWeek:weekDurations.length>0?weekDurations.reduce((a,b)=>a+b,0):null,
+    totalDurationLast30Days:last30Durations.length>0?last30Durations.reduce((a,b)=>a+b,0):null,
+    lastSession:lastSess,
+    lastSessionDate:lastSess?.date||"",
+    lastSessionTitle:lastSess?.sessionTitle||lastSess?.day||"",
+    lastInternalLoad:lastSess?getLoad(lastSess):null,
+    lastRpe:lastSess?.rpe||null,
+    lastPain:lastCheckIn.pain!=null&&lastCheckIn.pain!==""?lastCheckIn.pain:null,
+    lastPainZone:lastCheckIn.painZone||null,
+    recentSessions:sorted.slice(0,5),
+  };
+};
+
 // ══════════════════════════════════════════════════════════════════════════════
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -1863,9 +1921,9 @@ export default function App() {
           }}>🔄</button>
         </div>
       </div>
-      <div style={{display:"flex",borderBottom:`1px solid ${T.border}`,padding:"0 1.25rem"}}>
-        {[["dades","Dades"],["routine","Entrenaments"],["history","Historial"]].map(([tab,label])=>(
-          <button key={tab} onClick={()=>{if(tab==="history"){setAdminTab("history");loadClientHistory(adminClient);}else setAdminTab(tab);}} style={{padding:"10px 16px",fontSize:13,cursor:"pointer",background:"none",border:"none",borderBottom:`2px solid ${adminTab===tab?T.accent:"transparent"}`,color:adminTab===tab?T.accent:T.textSecondary,fontWeight:adminTab===tab?500:400,marginBottom:-1}}>{label}</button>
+      <div style={{display:"flex",borderBottom:`1px solid ${T.border}`,padding:"0 1.25rem",overflowX:"auto"}}>
+        {[["dades","Dades"],["routine","Entrenaments"],["history","Historial"],["seguiment","Seguiment"]].map(([tab,label])=>(
+          <button key={tab} onClick={()=>{if(tab==="history"||tab==="seguiment"){loadClientHistory(adminClient);}setAdminTab(tab);}} style={{padding:"10px 14px",fontSize:13,cursor:"pointer",background:"none",border:"none",borderBottom:`2px solid ${adminTab===tab?T.accent:"transparent"}`,color:adminTab===tab?T.accent:T.textSecondary,fontWeight:adminTab===tab?500:400,marginBottom:-1,whiteSpace:"nowrap",flexShrink:0}}>{label}</button>
         ))}
       </div>
 
@@ -2033,6 +2091,169 @@ export default function App() {
                 })}
               </>
             )}
+          </div>
+        );
+      })()}
+
+      {adminTab==="seguiment"&&(()=>{
+        const history = clientHistories[adminClient]||[];
+        const ts = getClientTrackingStats(history);
+        const clientData = data.clients.find(c=>c.id===adminClient);
+        const alertsForTracking = ts ? getClientAlerts({
+          totalSessions:ts.totalSessions, sessionsThisWeek:ts.sessionsThisWeek,
+          lastSession:ts.lastSession, avgRpeRecent:ts.avgRpeRecent,
+          weeklyInternalLoad:ts.weeklyInternalLoad, lastInternalLoad:ts.lastInternalLoad,
+          lastCompletion:ts.lastSession?.completionPercentage??100, lastFeeling:ts.lastSession?.feeling||null,
+        }) : [];
+
+        const StatCard = ({label,value,color}) => (
+          <div style={{background:T.card2,borderRadius:12,padding:"0.75rem",textAlign:"center",border:`1px solid ${T.border}`}}>
+            <div style={{fontSize:18,fontWeight:500,color:color||T.accent}}>{value??"-"}</div>
+            <div style={{fontSize:10,color:T.textSecondary,marginTop:2}}>{label}</div>
+          </div>
+        );
+
+        const SectionTitle = ({children}) => (
+          <div style={{fontSize:11,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10,marginTop:20}}>{children}</div>
+        );
+
+        if(!ts) return (
+          <div style={S.sec}>
+            <div style={{textAlign:"center",padding:"3rem 0",color:T.textSecondary}}>
+              <div style={{fontSize:36,marginBottom:12}}>📊</div>
+              <div style={{fontWeight:500,color:T.textPrimary,marginBottom:8}}>Encara no hi ha dades de seguiment</div>
+              <div style={{fontSize:13,lineHeight:1.6}}>Quan {clientData?.name} completi entrenaments, aquí apareixeran la càrrega, l'RPE, el check-in i l'evolució.</div>
+            </div>
+          </div>
+        );
+
+        return (
+          <div style={S.sec}>
+            {/* Resum ràpid */}
+            <SectionTitle>Resum</SectionTitle>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:4}}>
+              <StatCard label="Sessions totals" value={ts.totalSessions} color={T.accent}/>
+              <StatCard label="Aquesta setmana" value={ts.sessionsThisWeek} color={T.green}/>
+              <StatCard label="Últims 30 dies" value={ts.sessionsLast30Days} color={T.purple}/>
+              <StatCard label="Última sessió" value={ts.lastSessionTitle||(ts.lastSessionDate?ts.lastSessionDate:"—")} color={T.textPrimary}/>
+            </div>
+
+            {/* Càrrega i entrenament */}
+            <SectionTitle>Càrrega i entrenament</SectionTitle>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:10}}>
+              <StatCard label="Càrrega setmana" value={ts.weeklyInternalLoad!=null?`${ts.weeklyInternalLoad} UA`:"-"} color={T.orange}/>
+              <StatCard label="Càrrega 30 dies" value={ts.last30DaysInternalLoad!=null?`${ts.last30DaysInternalLoad} UA`:"-"} color={T.orange}/>
+              <StatCard label="Última càrrega" value={ts.lastInternalLoad!=null?`${ts.lastInternalLoad} UA`:"-"} color={T.accent}/>
+              <StatCard label="Durada setmana" value={ts.totalDurationThisWeek!=null?`${ts.totalDurationThisWeek} min`:"-"} color={T.green}/>
+            </div>
+            {ts.recentSessions.filter(s=>getSessionInternalLoad(s)!=null).length>0&&(
+              <div style={{...S.card,marginBottom:4}}>
+                <div style={{fontSize:11,color:T.textSecondary,marginBottom:8}}>Últimes sessions amb càrrega</div>
+                {ts.recentSessions.filter(s=>getSessionInternalLoad(s)!=null).map((s,i)=>{
+                  const load=getSessionInternalLoad(s);
+                  const maxLoad = Math.max(...ts.recentSessions.map(x=>getSessionInternalLoad(x)||0));
+                  const pct = maxLoad>0?Math.round((load/maxLoad)*100):0;
+                  return (
+                    <div key={i} style={{marginBottom:8}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
+                        <span style={{fontSize:12,color:T.textPrimary}}>{s.sessionTitle||s.day||"Sessió"}</span>
+                        <span style={{fontSize:11,color:T.orange,fontWeight:500}}>{load} UA</span>
+                      </div>
+                      <div style={{height:4,borderRadius:2,background:T.border}}>
+                        <div style={{height:"100%",width:`${pct}%`,background:T.orange,borderRadius:2}}/>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* RPE i esforç */}
+            <SectionTitle>RPE i esforç</SectionTitle>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:10}}>
+              <StatCard label="RPE mitjà recent" value={ts.avgRpeRecent!=null?`${ts.avgRpeRecent}/10`:"-"} color={ts.avgRpeRecent>=8?T.danger:ts.avgRpeRecent>=6?T.orange:T.green}/>
+              <StatCard label="Últim RPE" value={ts.lastRpe!=null?`${ts.lastRpe}/10`:"-"} color={Number(ts.lastRpe)>=8?T.danger:Number(ts.lastRpe)>=6?T.orange:T.green}/>
+            </div>
+            {ts.recentSessions.filter(s=>s.rpe).length>0&&(
+              <div style={{...S.card,marginBottom:4}}>
+                <div style={{fontSize:11,color:T.textSecondary,marginBottom:8}}>Últims RPE</div>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                  {ts.recentSessions.filter(s=>s.rpe).map((s,i)=>{
+                    const c=getRpeColor(Number(s.rpe));
+                    return (
+                      <div key={i} style={{textAlign:"center"}}>
+                        <div style={{width:36,height:36,borderRadius:8,border:`2px solid ${c.text}`,background:c.bg,color:c.text,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:600,fontSize:14}}>{s.rpe}</div>
+                        <div style={{fontSize:9,color:T.textMuted,marginTop:2}}>{s.date?.slice(-5)||""}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Check-in i recuperació */}
+            <SectionTitle>Check-in i recuperació</SectionTitle>
+            {(ts.avgEnergyRecent||ts.avgSleepRecent||ts.avgStressRecent||ts.avgFatigueRecent||ts.avgPainRecent!=null)?(
+              <>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:10}}>
+                  {[
+                    {label:"Energia",value:ts.avgEnergyRecent!=null?`${ts.avgEnergyRecent}/5`:"-",color:ts.avgEnergyRecent!=null&&ts.avgEnergyRecent<=2?T.danger:T.green},
+                    {label:"Son",value:ts.avgSleepRecent!=null?`${ts.avgSleepRecent}/5`:"-",color:ts.avgSleepRecent!=null&&ts.avgSleepRecent<=2?T.danger:T.green},
+                    {label:"Estrès",value:ts.avgStressRecent!=null?`${ts.avgStressRecent}/5`:"-",color:ts.avgStressRecent!=null&&ts.avgStressRecent>=4?T.orange:T.textPrimary},
+                    {label:"Fatiga",value:ts.avgFatigueRecent!=null?`${ts.avgFatigueRecent}/5`:"-",color:ts.avgFatigueRecent!=null&&ts.avgFatigueRecent>=4?T.orange:T.textPrimary},
+                    {label:"Dolor mitjà",value:ts.avgPainRecent!=null?`${ts.avgPainRecent}/10`:"-",color:ts.avgPainRecent!=null&&ts.avgPainRecent>=5?T.danger:T.textPrimary},
+                  ].map(st=><StatCard key={st.label} label={st.label} value={st.value} color={st.color}/>)}
+                </div>
+                {ts.lastPain!=null&&Number(ts.lastPain)>0&&(
+                  <div style={{...S.card,background:T.dangerBg,border:`1px solid ${T.danger}40`,marginBottom:4}}>
+                    <div style={{fontSize:12,color:T.danger,fontWeight:500}}>Últim dolor reportat</div>
+                    <div style={{fontSize:13,color:T.textPrimary,marginTop:4}}>{ts.lastPainZone?`${ts.lastPainZone} · `:""}{ts.lastPain}/10</div>
+                  </div>
+                )}
+              </>
+            ):(
+              <div style={{fontSize:13,color:T.textMuted,padding:"8px 0"}}>Encara no hi ha dades de check-in.</div>
+            )}
+
+            {/* Últimes sessions */}
+            <SectionTitle>Últimes sessions</SectionTitle>
+            <div style={S.card}>
+              {ts.recentSessions.map((s,i)=>{
+                const load=getSessionInternalLoad(s);
+                return (
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 0",borderBottom:i<ts.recentSessions.length-1?`1px solid ${T.border}`:"none"}}>
+                    <div style={{fontSize:11,color:T.textMuted,width:42,flexShrink:0}}>{s.date||""}</div>
+                    <div style={{flex:1,fontSize:12,color:T.textPrimary}}>{s.sessionTitle||s.day||"Sessió"}</div>
+                    <div style={{display:"flex",gap:5,flexShrink:0}}>
+                      {s.rpe&&<span style={{...S.tag("purple"),fontSize:10}}>RPE {s.rpe}</span>}
+                      {load!=null&&<span style={{...S.tag("accent"),fontSize:10}}>{load} UA</span>}
+                      {s.completionPercentage!=null&&<span style={{...S.tag(s.completionPercentage===100?"green":""),fontSize:10}}>{s.completionPercentage}%</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Alertes recents */}
+            <SectionTitle>Alertes recents</SectionTitle>
+            <div style={S.card}>
+              {alertsForTracking.length===0?(
+                <div style={{fontSize:12,color:T.textMuted}}>Sense alertes recents.</div>
+              ):(
+                alertsForTracking.map((a,i)=>{
+                  const col = a.severity==="danger"?T.danger:a.severity==="warning"?T.orange:T.purple;
+                  return (
+                    <div key={i} style={{display:"flex",alignItems:"flex-start",gap:8,marginBottom:i<alertsForTracking.length-1?10:0}}>
+                      <div style={{width:6,height:6,borderRadius:"50%",background:col,marginTop:5,flexShrink:0}}/>
+                      <div>
+                        <div style={{fontSize:12,color:col,fontWeight:500}}>{a.label}</div>
+                        <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{a.detail}</div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
         );
       })()}
