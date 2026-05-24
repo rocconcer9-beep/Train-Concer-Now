@@ -89,6 +89,8 @@ const FormCard = ({children, style={}}) => (
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ── Access token generator ────────────────────────────────────────────────────
+const normalizeClientId = (clientId) => String(clientId);
+
 const generateAccessToken = () => {
   if(window.crypto&&window.crypto.getRandomValues) {
     const array = new Uint8Array(18);
@@ -462,10 +464,13 @@ export default function App() {
     try {
       const entries = await Promise.all(
         clients.map(async (c) => {
+          const id = normalizeClientId(c.id);
           try {
-            const h = await get(ref(db,`history-${c.id}`));
-            return [c.id, h.exists() ? Object.values(h.val()) : []];
-          } catch { return [c.id, []]; }
+            const h = await get(ref(db,`history-${id}`));
+            const val = h.exists() ? h.val() : null;
+            const arr = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+            return [id, arr];
+          } catch { return [id, []]; }
         })
       );
       setClientHistories(p => {
@@ -494,26 +499,44 @@ export default function App() {
   };
 
   const persistClientHistory = async (clientId, history) => {
+    const id = normalizeClientId(clientId);
+    const path = `history-${id}`;
+    if(!Array.isArray(history)) history = [];
     try {
-      if(history.length===0) { await remove(ref(db,`history-${clientId}`)); }
-      else { const obj=history.reduce((a,s,i)=>({...a,[i]:s}),{}); await set(ref(db,`history-${clientId}`),obj); }
-    } catch(err) { console.error("Error guardant historial",err); }
+      if(history.length===0) {
+        await remove(ref(db,path));
+      } else {
+        const obj = history.reduce((a,s,i)=>({...a,[i]:s}),{});
+        await set(ref(db,path),obj);
+      }
+      console.log("Historial guardat OK per client", id, "sessions:", history.length);
+    } catch(err) {
+      console.error("Error guardant historial per client", id, err);
+      throw err;
+    }
   };
 
   const deleteHistorySession = async (clientId, sessionId) => {
     if(!window.confirm("Segur que vols eliminar aquesta sessió de l'historial?")) return;
-    const current = clientHistories[clientId]||[];
-    const updated = current.filter((s,idx)=>(s.id||`${clientId}-${idx}`)!==sessionId);
-    setClientHistories(p=>({...p,[clientId]:updated}));
-    await persistClientHistory(clientId, updated);
+    const id = normalizeClientId(clientId);
+    const current = clientHistories[id]||[];
+    const updated = current.filter((s,idx)=>(s.id||`${id}-${idx}`)!==sessionId);
+    setClientHistories(p=>({...p,[id]:updated}));
+    await persistClientHistory(id, updated);
   };
 
   const loadClientHistory = async (clientId) => {
-    if(clientHistories[clientId]!==undefined) return;
+    const id = normalizeClientId(clientId);
     try {
-      const h = await get(ref(db,`history-${clientId}`));
-      setClientHistories(p=>({...p,[clientId]:h.exists()?Object.values(h.val()):[]}));
-    } catch { setClientHistories(p=>({...p,[clientId]:[]})); }
+      const h = await get(ref(db,`history-${id}`));
+      const val = h.exists() ? h.val() : null;
+      const arr = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+      console.log("Historial carregat per client", id, "sessions:", arr.length);
+      setClientHistories(p=>({...p,[id]:arr}));
+    } catch(err) {
+      console.error("Error carregant historial per client", id, err);
+      setClientHistories(p=>({...p,[id]:[]}));
+    }
   };
 
   const recalcSession = (session) => {
@@ -539,14 +562,15 @@ export default function App() {
 
   const saveEditedHistorySession = async () => {
     if(!editingHistoryClientId||!editingHistorySession) return;
+    const id = normalizeClientId(editingHistoryClientId);
     const recalculated = recalcSession(editingHistorySession);
-    const current = clientHistories[editingHistoryClientId]||[];
+    const current = clientHistories[id]||[];
     const updated = current.map((s,idx)=>{
-      const id = s.id||`${editingHistoryClientId}-${idx}`;
-      return id===editingHistorySessionId ? recalculated : s;
+      const sid = s.id||`${id}-${idx}`;
+      return sid===editingHistorySessionId ? recalculated : s;
     });
-    setClientHistories(p=>({...p,[editingHistoryClientId]:updated}));
-    await persistClientHistory(editingHistoryClientId, updated);
+    setClientHistories(p=>({...p,[id]:updated}));
+    await persistClientHistory(id, updated);
     setEditingHistorySession(null);
     setEditingHistoryClientId(null);
     setEditingHistorySessionId(null);
@@ -559,7 +583,20 @@ export default function App() {
   const updateClientLibrary = (clientId, lib) => updateData({...data,clients:data.clients.map(c=>c.id===clientId?{...c,exerciseLibrary:lib}:c)});
   const updateClientSchedule = (clientId, sch) => updateData({...data,clients:data.clients.map(c=>c.id===clientId?{...c,schedule:sch}:c)});
 
-  const selectAdminClient = (id) => { setAdminClient(id); setAdminTab("dades"); setEditingClient(false); loadClientHistory(id); setAdminView("clientDetail"); };
+  const selectAdminClient = (id) => {
+    const sid = normalizeClientId(id);
+    setAdminClient(id);
+    setAdminTab("dades");
+    setEditingClient(false);
+    setAdminView("clientDetail");
+    // Forçar recàrrega sempre (eliminar cache per veure sessions noves)
+    setClientHistories(p => {
+      const np = {...p};
+      delete np[sid];
+      return np;
+    });
+    loadClientHistory(sid);
+  };
 
   const getClientDashboardStats = (client) => {
     const history = (clientHistories[client.id]||[]).slice().sort((a,b)=>(a.createdAt||"")>(b.createdAt||"")?-1:1);
@@ -589,33 +626,37 @@ export default function App() {
   };
 
   const saveStdSession = async (clientId, day, exercises, formData) => {
+    const id = normalizeClientId(clientId);
     const now = new Date();
     const dateStr = now.toLocaleDateString("ca-ES");
-    const sessionId = `${clientId}-${day}-${dateStr}-${now.getTime()}`;
-    const existing = clientHistories[clientId]||[];
-    if(existing.find(s=>s.clientId===clientId&&s.day===day&&s.date===dateStr)) return;
+    const sessionId = `completed_${id}_${now.getTime()}`;
+    const existing = clientHistories[id]||[];
+    if(existing.find(s=>s.id===sessionId)) return;
     const completedExs = exercises.filter(e=>e.sets?e.sets.every(st=>st.completed):isStdDone(clientId,day,e.id));
+    const total = exercises.length||1;
     const record = {
-      id:sessionId, date:dateStr, day, clientId,
-      sessionTitle:`Entrenament ${day}`,
+      id:sessionId, date:dateStr, day, clientId:id,
+      sessionTitle:formData.templateName||`Entrenament ${day}`,
       completedExercises:completedExs.length, totalExercises:exercises.length,
-      completionPercentage:Math.round((completedExs.length/exercises.length)*100),
+      completionPercentage:Math.round((completedExs.length/total)*100),
       exercises:exercises.map(e=>({
         name:e.name, plannedSets:e.plannedSets||e.sets?.length||0,
         plannedReps:e.plannedReps||e.reps||"", plannedLoad:e.plannedLoad||"",
         sets:(e.sets||[]).map(st=>({reps:st.reps||"",load:st.load||"",rest:st.rest||"",completed:st.completed||false})),
         completedSets:(e.sets||[]).filter(st=>st.completed).length,
         completed:e.sets?e.sets.every(st=>st.completed):isStdDone(clientId,day,e.id),
-        isExtra:e.isExtra, isCustom:e.isCustom, observations:e.observations||"",
+        isExtra:e.isExtra||false, isCustom:e.isCustom||false, observations:e.observations||"",
       })),
       rpe:formData.rpe||null, durationReal:formData.duration||null,
       internalLoad:calculateInternalLoad(formData.duration, formData.rpe),
       feeling:formData.feeling||null, clientNotes:formData.notes||"",
-      checkIn:formData.checkIn||null, createdAt:now.toISOString(),
+      checkIn:formData.checkIn||null,
+      createdAt:now.toISOString(), updatedAt:now.toISOString(),
     };
     const updated = [record,...existing].slice(0,100);
-    setClientHistories(p=>({...p,[clientId]:updated}));
-    try { const obj=updated.reduce((a,s,i)=>({...a,[i]:s}),{}); await set(ref(db,`history-${clientId}`),obj); } catch {}
+    setClientHistories(p=>({...p,[id]:updated}));
+    await persistClientHistory(id, updated);
+    return true;
   };
 
   // ── Access helpers ────────────────────────────────────────────────────────
@@ -1180,11 +1221,20 @@ export default function App() {
                   const sessionKey=`${selClient}-${selDay}`;
                   const sess=sessionExercises[sessionKey];
                   const exsToSave=sess?sess.exercises:[];
-                  await saveStdSession(selClient,selDay,exsToSave,{...finishForm,checkIn:sess?.checkIn||null});
-                  await deleteActiveSession(selClient,selDay);
-                  setShowFinishModal(false);
-                  setFinishForm({rpe:"",duration:"",feeling:"",notes:""});
-                  setSessionExercises(p=>{const np={...p};delete np[sessionKey];return np;});
+                  try {
+                    await saveStdSession(selClient,selDay,exsToSave,{
+                      ...finishForm,
+                      checkIn:sess?.checkIn||null,
+                      templateName:sess?.templateName||"",
+                    });
+                    await deleteActiveSession(selClient,selDay);
+                    setShowFinishModal(false);
+                    setFinishForm({rpe:"",duration:"",feeling:"",notes:""});
+                    setSessionExercises(p=>{const np={...p};delete np[sessionKey];return np;});
+                  } catch(err) {
+                    console.error("Error guardant sessió", err);
+                    alert("No s'ha pogut guardar la sessió. Torna-ho a provar.");
+                  }
                 }}>Guardar sessió</button>
               </div>
             </div>
@@ -1600,7 +1650,7 @@ export default function App() {
         })()}
 
         {clientViewTab==="historial"&&(()=>{
-          const history=clientHistories[selClient]||[];
+          const history=clientHistories[normalizeClientId(selClient)]||[];
           const totalS=history.length;
           const thisWeek=history.filter(s=>{
             if(!s.createdAt) return false;
@@ -1998,7 +2048,7 @@ export default function App() {
       })()}
 
       {adminTab==="history"&&(()=>{
-        const history=clientHistories[adminClient]||[];
+        const history=clientHistories[normalizeClientId(adminClient)]||[];
         const client=data.clients.find(c=>c.id===adminClient);
         const totalS=history.length;
         const fullS=history.filter(s=>s.completionPercentage===100).length;
