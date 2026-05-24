@@ -282,8 +282,8 @@ const [editHistoryNewEx, setEditHistoryNewEx] = useState({name:"",sets:3,reps:"1
 
   useEffect(()=>{loadData();},[]);
   useEffect(()=>{document.title="TrainConcerNow App";},[]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(()=>{if(data?.clients) loadAllClientHistories(data.clients);},[data?.clients?.length]);
-
   const loadData = async () => {
   setLoading(true);
   try {
