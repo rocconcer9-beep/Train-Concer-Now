@@ -11,52 +11,66 @@ const PIN = "1234";
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const T = {
-  bg:       "#0f172a",
-  card:     "#1e293b",
-  card2:    "#1e293b",
-  border:   "#334155",
-  accent:   "#3b82f6",
-  accentDim:"#60a5fa",
-  textPrimary: "#e2e8f0",
-  textSecondary: "#94a3b8",
+  // Global/background
+  bg:       "#ffffff",
+  card:     "#ffffff",
+  card2:    "#ffffff",
+  border:   "#e2e8f0",
+
+  // Header / branding
+  headerBg: "#1a3a6b",
+  headerText: "#ffffff",
+  logoDot:  "#e8d800",
+
+  // Typography
+  textPrimary: "#0f172a",
+  textSecondary: "#8a9bbf",
   textMuted: "#64748b",
-  green:    "#10b981",
-  greenBg:  "#052e1f",
-  greenBorder:"#064e3b",
-  orange:   "#fb923c",
-  orangeBg: "#2d1a0a",
-  purple:   "#7f77dd",
-  purpleBg: "#1f1f40",
-  danger:   "#ef4444",
-  dangerBg: "#3a1a1a",
+
+  // Accent / actions
+  accent:   "#e8d800", // primary accent (yellow)
+  accentDim: "#93c5fd",
+
+  // Stat colors
+  statClient: "#e8d800",
+  statSession: "#4ade80",
+  statAlert: "#fb923c",
+  statSubtitle: "#93c5fd",
+
+  // Button / semantic
+  danger:   "#dc2626",
+  dangerBg: "#fef2f2",
+  dangerBorder: "#fca5a5",
 };
 
 const CLIENT_COLORS = [
-  { text: T.accent, bg: "#071233", border: "#0b2546" },
-  { text: T.accentDim,  bg: "#072037",  border: "#0b3358" },
-  { text: "#93c5fd", bg: "#08243b", border: "#0b3b59" },
+  { text: "#1d4ed8", bg: "#dbeafe", border: "#bfdbfe" },
+  { text: "#16a34a", bg: "#dcfce7", border: "#bbf7d0" },
+  { text: "#ea580c", bg: "#fff7ed", border: "#ffedd5" },
+  { text: "#7c3aed", bg: "#f3e8ff", border: "#e9d5ff" },
 ];
 const cClr = (i) => CLIENT_COLORS[Math.max(0,i) % 3];
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
 const S = {
-  wrap: { fontFamily:"system-ui,sans-serif", maxWidth:520, margin:"0 auto", background:T.bg, minHeight:"100vh", padding:"0 0 3rem", color:T.textPrimary },
-  hdr: { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"1rem 1.25rem 0.75rem", borderBottom:`1px solid ${T.border}` },
+  wrap: { fontFamily:"system-ui,sans-serif", maxWidth:920, margin:"0 auto", background:T.bg, minHeight:"100vh", padding:"0 0 3rem", color:T.textPrimary },
+  hdr: { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"1rem 1.25rem 0.75rem", background:T.headerBg, color:T.headerText, boxSizing:"border-box" },
   sec: { padding:"1rem 1.25rem" },
-  card: { background:T.card, border:`1px solid ${T.border}`, borderRadius:14, padding:"0.9rem 1rem", marginBottom:10 },
+  card: { background:T.card, border:`1px solid ${T.border}`, borderRadius:10, padding:"0.9rem 1rem", marginBottom:10, boxShadow:"0 1px 4px rgba(26,58,107,0.06)" },
   inp: { padding:"9px 12px", borderRadius:10, border:`1px solid ${T.border}`, fontSize:13, width:"100%", background:T.card2, color:T.textPrimary, boxSizing:"border-box", outline:"none" },
   lbl: { fontSize:12, color:T.textSecondary, display:"block", marginBottom:5 },
   row: { display:"flex", gap:10 },
-  avatar: (c) => ({ width:40, height:40, borderRadius:12, background:c.bg, border:`1px solid ${c.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:500, fontSize:13, color:c.text, flexShrink:0 }),
-  btnPrimary: { background:T.accent, color:T.bg, border:"none", borderRadius:12, fontWeight:500, fontSize:15, padding:"13px 20px", cursor:"pointer", width:"100%" },
-  btnSecondary: { background:"transparent", color:T.textSecondary, border:`1px solid ${T.border}`, borderRadius:10, fontSize:12, padding:"6px 12px", cursor:"pointer" },
-  btnDanger: { background:"transparent", color:T.danger, border:`1px solid ${T.dangerBg}`, borderRadius:10, fontSize:11, padding:"4px 9px", cursor:"pointer" },
+  avatar: (c) => ({ width:40, height:40, borderRadius:12, background:c.bg, border:`1px solid ${c.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:600, fontSize:13, color:c.text, flexShrink:0 }),
+  btnPrimary: { background:T.accent, color:T.headerBg, border:"none", borderRadius:10, fontWeight:500, fontSize:15, padding:"10px 16px", cursor:"pointer", width:"100%" },
+  btnSecondary: { background:T.card, color:T.headerBg, border:`1px solid #c7d2fe`, borderRadius:10, fontSize:12, padding:"6px 12px", cursor:"pointer" },
+  btnDanger: { background:T.dangerBg, color:T.danger, border:`1px solid ${T.dangerBorder}`, borderRadius:10, fontSize:12, padding:"6px 12px", cursor:"pointer" },
   btnEdit: { background:"transparent", color:T.textSecondary, border:`1px solid ${T.border}`, borderRadius:10, fontSize:11, padding:"4px 9px", cursor:"pointer" },
   tag: (variant) => {
-    if (variant==="accent") return { fontSize:11, padding:"2px 9px", borderRadius:20, background:"#2D2A00", color:T.accent, border:`1px solid #4D4700` };
-    if (variant==="green") return { fontSize:11, padding:"2px 9px", borderRadius:20, background:T.greenBg, color:T.green, border:`1px solid ${T.greenBorder}` };
-    if (variant==="purple") return { fontSize:11, padding:"2px 9px", borderRadius:20, background:T.purpleBg, color:T.purple, border:`1px solid #3A3A60` };
-    return { fontSize:11, padding:"2px 9px", borderRadius:20, background:T.card2, color:T.textSecondary, border:`1px solid ${T.border}` };
+    if (variant==="no_activity") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#fff7ed", color:"#ea580c", border:`1px solid #fcd34d` };
+    if (variant==="active") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#f0fdf4", color:"#15803d", border:`1px solid #86efac` };
+    if (variant==="alert") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#fef2f2", color:"#991b1b", border:`1px solid #fca5a5` };
+    if (variant==="new") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#eef2ff", color:"#1d4ed8", border:`1px solid #c7d2fe` };
+    return { fontSize:11, padding:"4px 9px", borderRadius:14, background:T.card2, color:T.textSecondary, border:`1px solid ${T.border}` };
   },
   cCard: (active, c) => ({ background: active ? T.card2 : T.card, border:`${active?"2px":"1px"} solid ${active ? c.border : T.border}`, borderRadius:14, padding:"0.75rem 1rem", marginBottom:8, cursor:"pointer", display:"flex", alignItems:"center", gap:12 }),
 };
