@@ -49,21 +49,25 @@ const CLIENT_COLORS = [
   { text: "#ea580c", bg: "#fff7ed", border: "#ffedd5" },
   { text: "#7c3aed", bg: "#f3e8ff", border: "#e9d5ff" },
 ];
-const cClr = (i) => CLIENT_COLORS[Math.max(0,i) % 3];
+const cClr = (i) => CLIENT_COLORS[Math.max(0,i) % CLIENT_COLORS.length];
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
 const S = {
   wrap: { fontFamily:"system-ui,sans-serif", maxWidth:920, margin:"0 auto", background:T.bg, minHeight:"100vh", padding:"0 0 3rem", color:T.textPrimary },
   adminWrap: { fontFamily:"system-ui,sans-serif", maxWidth:920, margin:"0 auto", background:T.headerBg, minHeight:"100vh", padding:"0 0 3rem", color:T.headerText },
   hdr: { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"1rem 1.25rem 0.75rem", background:T.headerBg, color:T.headerText, boxSizing:"border-box" },
+  formHeader: { background:T.headerBg, color:T.headerText, padding:"1.25rem 1.25rem 1rem", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 },
+  formSectionTitle: { fontSize:13, fontWeight:700, color:T.headerBg, textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:12, marginTop:20 },
   adminHeader: { display:"flex", flexDirection:"column", gap:12, padding:"1.5rem 1.25rem", background:T.headerBg, color:T.headerText },
   adminStatCard: { background:"rgba(255,255,255,0.12)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:10, padding:"0.85rem 1rem", textAlign:"center" },
+  adminContent: { background:"#ffffff", borderRadius:20, padding:"1.5rem 1.25rem 2rem", marginTop:-10 },
   detailHeader: { background:T.headerBg, color:T.headerText, padding:"1.5rem 1.25rem", display:"flex", alignItems:"center", gap:16, minHeight:140, borderRadius:12 },
   clientHeader: { background:T.headerBg, color:T.headerText, padding:"1.5rem 1.25rem", display:"flex", alignItems:"center", gap:16, minHeight:140, borderRadius:"0 0 18px 18px" },
   sec: { padding:"1rem 1.25rem" },
   card: { background:T.card, border:`1px solid ${T.border}`, borderRadius:10, padding:"0.9rem 1rem", marginBottom:10, boxShadow:"0 1px 4px rgba(26,58,107,0.06)" },
   inp: { padding:"9px 12px", borderRadius:10, border:`1px solid ${T.border}`, fontSize:13, width:"100%", background:T.card2, color:T.textPrimary, boxSizing:"border-box", outline:"none" },
-  lbl: { fontSize:12, color:T.textSecondary, display:"block", marginBottom:5 },
+  formInp: { padding:"10px 12px", borderRadius:8, border:"1.5px solid #c7d2fe", fontSize:13, width:"100%", background:T.card2, color:T.textPrimary, boxSizing:"border-box", outline:"none" },
+  formLbl: { fontSize:12, color:T.headerBg, display:"block", marginBottom:5, fontWeight:500 },
   row: { display:"flex", gap:10 },
   avatar: (c) => ({ width:40, height:40, borderRadius:12, background:c.bg, border:`1px solid ${c.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:600, fontSize:13, color:c.text, flexShrink:0 }),
   btnPrimary: { background:T.accent, color:T.headerBg, border:"none", borderRadius:10, fontWeight:500, fontSize:15, padding:"10px 16px", cursor:"pointer", width:"100%" },
@@ -786,63 +790,68 @@ export default function App() {
     );
     const IF = intakeForm;
     const setIF = (k,v) => setIntakeForm(p=>({...p,[k]:v}));
-    const SectionTitle = ({children}) => <div style={{fontSize:12,fontWeight:500,color:T.accent,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:12,marginTop:20}}>{children}</div>;
+    const SectionTitle = ({children}) => <div style={S.formSectionTitle}>{children}</div>;
     return (
       <div style={S.wrap}>
-        <div style={{padding:"1.5rem 1.25rem 0.5rem",borderBottom:`1px solid ${T.border}`}}>
-          <div style={{fontWeight:500,fontSize:20,color:T.textPrimary,marginBottom:4}}>Formulari inicial</div>
-          <div style={{fontSize:13,color:T.textSecondary}}>Respon aquestes preguntes per poder adaptar millor el teu entrenament.</div>
+        <style>{`input::placeholder, textarea::placeholder { color: #94a3b8 !important; opacity: 1; }`}</style>
+        <div style={S.formHeader}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <img src="/logotcn.PNG" alt="TrainConcerNow" style={{width:40,height:40,objectFit:"contain"}}/>
+            <div style={{fontWeight:700,fontSize:18,color:T.headerText}}>Formulari inicial</div>
+          </div>
         </div>
+        <div style={{padding:"1rem 1.25rem 0.5rem"}}>
+          <div style={{fontWeight:700,fontSize:13,color:T.headerBg,marginBottom:4}}>Respon aquestes preguntes per poder adaptar millor el teu entrenament.</div>
         <div style={{padding:"0.5rem 1.25rem 3rem"}}>
           <SectionTitle>Dades personals</SectionTitle>
-          <div style={{marginBottom:10}}><label style={S.lbl}>Nom i cognoms *</label><input style={S.inp} value={IF.name} onChange={e=>setIF("name",e.target.value)} placeholder="Ex. Marc Pérez"/></div>
+          <div style={{marginBottom:10}}><label style={S.formLbl}>Nom i cognoms *</label><input style={S.formInp} value={IF.name} onChange={e=>setIF("name",e.target.value)} placeholder="Ex. Marc Pérez"/></div>
           <div style={{display:"flex",gap:8,marginBottom:10}}>
-            <div style={{flex:1}}><label style={S.lbl}>Edat</label><input style={S.inp} type="number" value={IF.age} onChange={e=>setIF("age",e.target.value)} placeholder="28"/></div>
-            <div style={{flex:2}}><label style={S.lbl}>Email *</label><input style={S.inp} type="email" value={IF.email} onChange={e=>setIF("email",e.target.value)} placeholder="correu@email.com"/></div>
+            <div style={{flex:1}}><label style={S.formLbl}>Edat</label><input style={S.formInp} type="number" value={IF.age} onChange={e=>setIF("age",e.target.value)} placeholder="28"/></div>
+            <div style={{flex:2}}><label style={S.formLbl}>Email *</label><input style={S.formInp} type="email" value={IF.email} onChange={e=>setIF("email",e.target.value)} placeholder="correu@email.com"/></div>
           </div>
           <div style={{display:"flex",gap:8,marginBottom:10}}>
-            <div style={{flex:1}}><label style={S.lbl}>Telèfon</label><input style={S.inp} value={IF.phone} onChange={e=>setIF("phone",e.target.value)} placeholder="600 000 000"/></div>
-            <div style={{flex:1}}><label style={S.lbl}>Professió</label><input style={S.inp} value={IF.profession} onChange={e=>setIF("profession",e.target.value)} placeholder="Ex. Oficinista"/></div>
+            <div style={{flex:1}}><label style={S.formLbl}>Telèfon</label><input style={S.formInp} value={IF.phone} onChange={e=>setIF("phone",e.target.value)} placeholder="600 000 000"/></div>
+            <div style={{flex:1}}><label style={S.formLbl}>Professió</label><input style={S.formInp} value={IF.profession} onChange={e=>setIF("profession",e.target.value)} placeholder="Ex. Oficinista"/></div>
           </div>
           <SectionTitle>Objectius</SectionTitle>
           <div style={{marginBottom:10}}>
-            <label style={S.lbl}>Objectiu principal *</label>
-            <select style={S.inp} value={IF.goal} onChange={e=>setIF("goal",e.target.value)}>
+            <label style={S.formLbl}>Objectiu principal *</label>
+            <select style={S.formInp} value={IF.goal} onChange={e=>setIF("goal",e.target.value)}>
               <option value="">Selecciona...</option>
               {["Pèrdua de greix","Guany de massa muscular","Millora de força","Rendiment esportiu","Preparació física per esport","Readaptació / tornada a l'esport","Prevenció de lesions","Salut general","Altres"].map(o=><option key={o} value={o}>{o}</option>)}
             </select>
           </div>
-          <div style={{marginBottom:10}}><label style={S.lbl}>Objectiu secundari</label><input style={S.inp} value={IF.secondaryGoal} onChange={e=>setIF("secondaryGoal",e.target.value)} placeholder="Ex. Guanyar força"/></div>
-          <div style={{marginBottom:10}}><label style={S.lbl}>Què t'agradaria aconseguir en 3 mesos?</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={IF.threeMonthGoal} onChange={e=>setIF("threeMonthGoal",e.target.value)} placeholder="Descriu el teu objectiu a curt termini..."/></div>
+          <div style={{marginBottom:10}}><label style={S.formLbl}>Objectiu secundari</label><input style={S.formInp} value={IF.secondaryGoal} onChange={e=>setIF("secondaryGoal",e.target.value)} placeholder="Ex. Guanyar força"/></div>
+          <div style={{marginBottom:10}}><label style={S.formLbl}>Què t'agradaria aconseguir en 3 mesos?</label><textarea style={{...S.formInp,minHeight:60,resize:"vertical"}} value={IF.threeMonthGoal} onChange={e=>setIF("threeMonthGoal",e.target.value)} placeholder="Descriu el teu objectiu a curt termini..."/></div>
           <SectionTitle>Experiència esportiva</SectionTitle>
           <div style={{display:"flex",gap:8,marginBottom:10}}>
-            <div style={{flex:2}}><label style={S.lbl}>Esport principal</label><input style={S.inp} value={IF.sport} onChange={e=>setIF("sport",e.target.value)} placeholder="Ex. Pàdel"/></div>
-            <div style={{flex:1}}><label style={S.lbl}>Anys practicant</label><input style={S.inp} value={IF.sportYears} onChange={e=>setIF("sportYears",e.target.value)} placeholder="10"/></div>
+            <div style={{flex:2}}><label style={S.formLbl}>Esport principal</label><input style={S.formInp} value={IF.sport} onChange={e=>setIF("sport",e.target.value)} placeholder="Ex. Pàdel"/></div>
+            <div style={{flex:1}}><label style={S.formLbl}>Anys practicant</label><input style={S.formInp} value={IF.sportYears} onChange={e=>setIF("sportYears",e.target.value)} placeholder="10"/></div>
           </div>
           <div style={{display:"flex",gap:8,marginBottom:10}}>
             <div style={{flex:1}}>
-              <label style={S.lbl}>Nivell esportiu</label>
-              <select style={S.inp} value={IF.sportLevel} onChange={e=>setIF("sportLevel",e.target.value)}>
+              <label style={S.formLbl}>Nivell esportiu</label>
+              <select style={S.formInp} value={IF.sportLevel} onChange={e=>setIF("sportLevel",e.target.value)}>
                 <option value="">Selecciona...</option>
                 {["Principiant","Intermedi","Avançat","Competidor","Professional"].map(o=><option key={o} value={o}>{o}</option>)}
               </select>
             </div>
-            <div style={{flex:1}}><label style={S.lbl}>Anys a gimnàs / força</label><input style={S.inp} value={IF.strengthExperience} onChange={e=>setIF("strengthExperience",e.target.value)} placeholder="4 anys"/></div>
+            <div style={{flex:1}}><label style={S.formLbl}>Anys a gimnàs / força</label><input style={S.formInp} value={IF.strengthExperience} onChange={e=>setIF("strengthExperience",e.target.value)} placeholder="4 anys"/></div>
           </div>
-          <div style={{marginBottom:10}}><label style={S.lbl}>Entrenament actual (descriu una setmana típica)</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={IF.currentTraining} onChange={e=>setIF("currentTraining",e.target.value)} placeholder="Ex. 2 partits de pàdel i 2 dies de gimnàs"/></div>
-          <div style={{marginBottom:10}}><label style={S.lbl}>Competicions o partits setmanals</label><input style={S.inp} value={IF.competitions} onChange={e=>setIF("competitions",e.target.value)} placeholder="Ex. 1-2 partits/setmana"/></div>
+          <div style={{marginBottom:10}}><label style={S.formLbl}>Entrenament actual (descriu una setmana típica)</label><textarea style={{...S.formInp,minHeight:60,resize:"vertical"}} value={IF.currentTraining} onChange={e=>setIF("currentTraining",e.target.value)} placeholder="Ex. 2 partits de pàdel i 2 dies de gimnàs"/></div>
+          <div style={{marginBottom:10}}><label style={S.formLbl}>Competicions o partits setmanals</label><input style={S.formInp} value={IF.competitions} onChange={e=>setIF("competitions",e.target.value)} placeholder="Ex. 1-2 partits/setmana"/></div>
           <SectionTitle>Salut i molèsties</SectionTitle>
-          <div style={{marginBottom:10}}><label style={S.lbl}>Lesions prèvies</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={IF.injuries} onChange={e=>setIF("injuries",e.target.value)} placeholder="Ex. Esguinç de turmell fa 2 anys"/></div>
+          <div style={{marginBottom:10}}><label style={S.formLbl}>Lesions prèvies</label><textarea style={{...S.formInp,minHeight:60,resize:"vertical"}} value={IF.injuries} onChange={e=>setIF("injuries",e.target.value)} placeholder="Ex. Esguinç de turmell fa 2 anys"/></div>
           <div style={{display:"flex",gap:8,marginBottom:10}}>
-            <div style={{flex:1}}><label style={S.lbl}>Dolor actual</label><input style={S.inp} value={IF.currentPain} onChange={e=>setIF("currentPain",e.target.value)} placeholder="Ex. Cap / lumbar"/></div>
-            <div style={{flex:1}}><label style={S.lbl}>Zona de dolor</label><input style={S.inp} value={IF.painZone} onChange={e=>setIF("painZone",e.target.value)} placeholder="Ex. Espatlla dreta"/></div>
+            <div style={{flex:1}}><label style={S.formLbl}>Dolor actual</label><input style={S.formInp} value={IF.currentPain} onChange={e=>setIF("currentPain",e.target.value)} placeholder="Ex. Cap / lumbar"/></div>
+            <div style={{flex:1}}><label style={S.formLbl}>Zona de dolor</label><input style={S.formInp} value={IF.painZone} onChange={e=>setIF("painZone",e.target.value)} placeholder="Ex. Espatlla dreta"/></div>
           </div>
-          <div style={{marginBottom:10}}><label style={S.lbl}>Exercicis o moviments a evitar</label><input style={S.inp} value={IF.avoidEx} onChange={e=>setIF("avoidEx",e.target.value)} placeholder="Ex. Sentadilla profunda"/></div>
-          <div style={{marginBottom:10}}><label style={S.lbl}>Altres notes de salut</label><textarea style={{...S.inp,minHeight:50,resize:"vertical"}} value={IF.healthNotes} onChange={e=>setIF("healthNotes",e.target.value)} placeholder="Qualsevol informació addicional..."/></div>
+          <div style={{marginBottom:10}}><label style={S.formLbl}>Exercicis o moviments a evitar</label><input style={S.formInp} value={IF.avoidEx} onChange={e=>setIF("avoidEx",e.target.value)} placeholder="Ex. Sentadilla profunda"/></div>
+          <div style={{marginBottom:10}}><label style={S.formLbl}>Altres notes de salut</label><textarea style={{...S.formInp,minHeight:50,resize:"vertical"}} value={IF.healthNotes} onChange={e=>setIF("healthNotes",e.target.value)} placeholder="Qualsevol informació addicional..."/></div>
           <SectionTitle>Logística</SectionTitle>
           <div style={{display:"flex",gap:8,marginBottom:10}}>
-            <div style={{flex:1}}><label style={S.lbl}>Dies per setmana</label><input style={S.inp} value={IF.availability} onChange={e=>setIF("availability",e.target.value)} placeholder="Ex. 3-4 dies"/></div>
-            <div style={{flex:1}}><label style={S.lbl}>Durada per sessió</label><input style={S.inp} value={IF.sessionDuration} onChange={e=>setIF("sessionDuration",e.target.value)} placeholder="Ex. 45-60 min"/></div>
+            <div style={{flex:1}}><label style={S.formLbl}>Dies per setmana</label><input style={S.formInp} value={IF.availability} onChange={e=>setIF("availability",e.target.value)} placeholder="Ex. 3-4 dies"/></div>
+            <div style={{flex:1}}><label style={S.formLbl}>Durada per sessió</label><input style={S.formInp} value={IF.sessionDuration} onChange={e=>setIF("sessionDuration",e.target.value)} placeholder="Ex. 45-60 min"/></div>
           </div>
           <div style={{marginBottom:10}}>
             <label style={S.lbl}>Quins dies tens disponibilitat?</label>
@@ -862,30 +871,30 @@ export default function App() {
             </div>
           </div>
           <div style={{marginBottom:10}}>
-            <label style={S.lbl}>Lloc d'entrenament</label>
-            <select style={S.inp} value={IF.place} onChange={e=>setIF("place",e.target.value)}>
+            <label style={S.formLbl}>Lloc d'entrenament</label>
+            <select style={S.formInp} value={IF.place} onChange={e=>setIF("place",e.target.value)}>
               <option value="">Selecciona...</option>
               {["Gimnàs","Casa","Exterior","Pista","Altres"].map(o=><option key={o} value={o}>{o}</option>)}
             </select>
           </div>
           <div style={{display:"flex",gap:8,marginBottom:10}}>
-            <div style={{flex:1}}><label style={S.lbl}>Material disponible</label><input style={S.inp} value={IF.material} onChange={e=>setIF("material",e.target.value)} placeholder="Ex. Mancuernes, gomes..."/></div>
-            <div style={{flex:1}}><label style={S.lbl}>Horaris preferits</label><input style={S.inp} value={IF.preferredSchedule} onChange={e=>setIF("preferredSchedule",e.target.value)} placeholder="Ex. Matins"/></div>
+            <div style={{flex:1}}><label style={S.formLbl}>Material disponible</label><input style={S.formInp} value={IF.material} onChange={e=>setIF("material",e.target.value)} placeholder="Ex. Mancuernes, gomes..."/></div>
+            <div style={{flex:1}}><label style={S.formLbl}>Horaris preferits</label><input style={S.formInp} value={IF.preferredSchedule} onChange={e=>setIF("preferredSchedule",e.target.value)} placeholder="Ex. Matins"/></div>
           </div>
           <SectionTitle>Preferències</SectionTitle>
-          <div style={{marginBottom:10}}><label style={S.lbl}>Exercicis que t'agraden</label><input style={S.inp} value={IF.likes} onChange={e=>setIF("likes",e.target.value)} placeholder="Ex. Rem, dominades, força..."/></div>
-          <div style={{marginBottom:10}}><label style={S.lbl}>Exercicis que no t'agraden</label><input style={S.inp} value={IF.dislikes} onChange={e=>setIF("dislikes",e.target.value)} placeholder="Ex. Burpees..."/></div>
-          <div style={{marginBottom:10}}><label style={S.lbl}>Tipus d'entrenament que prefereixes</label><input style={S.inp} value={IF.trainingPreferences} onChange={e=>setIF("trainingPreferences",e.target.value)} placeholder="Ex. Força, circuits, funcional..."/></div>
-          <div style={{marginBottom:10}}><label style={S.lbl}>Comentaris addicionals</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={IF.extraNotes} onChange={e=>setIF("extraNotes",e.target.value)} placeholder="Qualsevol cosa que vulguis afegir..."/></div>
+          <div style={{marginBottom:10}}><label style={S.formLbl}>Exercicis que t'agraden</label><input style={S.formInp} value={IF.likes} onChange={e=>setIF("likes",e.target.value)} placeholder="Ex. Rem, dominades, força..."/></div>
+          <div style={{marginBottom:10}}><label style={S.formLbl}>Exercicis que no t'agraden</label><input style={S.formInp} value={IF.dislikes} onChange={e=>setIF("dislikes",e.target.value)} placeholder="Ex. Burpees..."/></div>
+          <div style={{marginBottom:10}}><label style={S.formLbl}>Tipus d'entrenament que prefereixes</label><input style={S.formInp} value={IF.trainingPreferences} onChange={e=>setIF("trainingPreferences",e.target.value)} placeholder="Ex. Força, circuits, funcional..."/></div>
+          <div style={{marginBottom:10}}><label style={S.formLbl}>Comentaris addicionals</label><textarea style={{...S.formInp,minHeight:60,resize:"vertical"}} value={IF.extraNotes} onChange={e=>setIF("extraNotes",e.target.value)} placeholder="Qualsevol cosa que vulguis afegir..."/></div>
           <SectionTitle>Com ens has trobat?</SectionTitle>
           <div style={{marginBottom:10}}>
-            <select style={S.inp} value={IF.source} onChange={e=>setIF("source",e.target.value)}>
+            <select style={S.formInp} value={IF.source} onChange={e=>setIF("source",e.target.value)}>
               <option value="">Selecciona...</option>
               {["Recomanació","Instagram","Internet / Google","Club esportiu","Client actual","Amic/familiar","Altres"].map(o=><option key={o} value={o}>{o}</option>)}
             </select>
           </div>
           {(IF.source==="Recomanació"||IF.source==="Client actual"||IF.source==="Amic/familiar")&&(
-            <div style={{marginBottom:10}}><label style={S.lbl}>Qui t'ha recomanat?</label><input style={S.inp} value={IF.referredBy} onChange={e=>setIF("referredBy",e.target.value)} placeholder="Nom de la persona"/></div>
+            <div style={{marginBottom:10}}><label style={S.formLbl}>Qui t'ha recomanat?</label><input style={S.formInp} value={IF.referredBy} onChange={e=>setIF("referredBy",e.target.value)} placeholder="Nom de la persona"/></div>
           )}
           {intakeError&&<div style={{background:T.dangerBg,border:`1px solid ${T.danger}40`,borderRadius:10,padding:"10px 12px",marginBottom:12,fontSize:13,color:T.danger}}>{intakeError}</div>}
           <button style={{...S.btnPrimary,padding:"14px",marginTop:16}} onClick={submitIntakeForm}>Enviar formulari</button>
@@ -1127,13 +1136,13 @@ export default function App() {
   }
 
   if(mode==="public"||mode==="select"||!data?.clients) return (
-    <div style={{...S.wrap,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
+    <div style={{...S.wrap,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:T.headerBg,color:T.headerText}}>
       <style>{cfStyle}</style>
       <div style={{textAlign:"center",padding:"2rem 1.25rem 1.5rem"}}>
         <img src="/logotcn.PNG" alt="TrainConcerNow" style={{width:220,maxWidth:"85%",margin:"0 auto 20px",display:"block"}}/>
-        <div style={{fontSize:16,fontWeight:500,color:T.textPrimary,marginBottom:8}}>Accés no configurat</div>
-        <div style={{fontSize:13,color:T.textSecondary,lineHeight:1.6,marginBottom:32}}>Obre l'enllaç que t'ha enviat el teu preparador.</div>
-        <button style={{...S.btnPrimary,maxWidth:280,margin:"0 auto 12px"}} onClick={()=>setMode("intake")}>📋 Formulari inicial</button>
+        <div style={{fontSize:16,fontWeight:700,color:T.headerText,marginBottom:8}}>Accés no configurat</div>
+        <div style={{fontSize:13,color:T.accentDim,lineHeight:1.6,marginBottom:32}}>Obre l'enllaç que t'ha enviat el teu preparador.</div>
+        <button style={{...S.btnPrimary,maxWidth:280,margin:"0 auto 12px",background:T.accent,color:T.headerBg}} onClick={()=>setMode("intake")}>📋 Formulari inicial</button>
       </div>
     </div>
   );
@@ -1801,7 +1810,7 @@ export default function App() {
             ))}
           </div>
         </div>
-        <div style={S.sec}>
+        <div style={S.adminContent}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
             <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>Clients</div>
             <button style={S.btnSecondary} onClick={()=>setShowAddClient(true)}>+ Afegir</button>
@@ -1852,11 +1861,11 @@ export default function App() {
               return {fontSize:11,padding:"2px 8px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1px solid #3A3A6040`};
             };
             return (
-              <div key={c.id} style={{background:T.card,border:`1px solid ${hasDanger?T.danger+"40":hasWarning?"#FB923C40":T.border}`,borderRadius:16,padding:"1rem",marginBottom:10}}>
+              <div key={c.id} style={{background:"#ffffff",border:`1px solid #e2e8f0`,borderRadius:12,padding:"1rem",marginBottom:10}}>
                 <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
                   <div style={S.avatar(cc)}>{c.avatar}</div>
                   <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontWeight:500,fontSize:15,color:T.textPrimary}}>{c.name}</div>
+                    <div style={{fontWeight:500,fontSize:15,color:T.headerBg}}>{c.name}</div>
                     <div style={{fontSize:12,color:cc.text,marginTop:1}}>{c.goal}</div>
                   </div>
                   <span style={statusStyle(computedStatus)}>{computedStatus}</span>
