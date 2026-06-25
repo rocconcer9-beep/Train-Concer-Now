@@ -35,7 +35,6 @@ const CLIENT_COLORS = [
   { text: T.accent, bg: "#071233", border: "#0b2546" },
   { text: T.accentDim,  bg: "#072037",  border: "#0b3358" },
   { text: "#93c5fd", bg: "#08243b", border: "#0b3b59" },
-  btnPrimary: { background:T.accent, color:T.bg, border:"none", borderRadius:12, fontWeight:500, fontSize:15, padding:"13px 20px", cursor:"pointer", width:"100%" },
 ];
 const cClr = (i) => CLIENT_COLORS[Math.max(0,i) % 3];
 
@@ -49,7 +48,7 @@ const S = {
   lbl: { fontSize:12, color:T.textSecondary, display:"block", marginBottom:5 },
   row: { display:"flex", gap:10 },
   avatar: (c) => ({ width:40, height:40, borderRadius:12, background:c.bg, border:`1px solid ${c.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:500, fontSize:13, color:c.text, flexShrink:0 }),
-  btnPrimary: { background:T.orange, color:T.bg, border:"none", borderRadius:12, fontWeight:500, fontSize:15, padding:"13px 20px", cursor:"pointer", width:"100%" },
+  btnPrimary: { background:T.accent, color:T.bg, border:"none", borderRadius:12, fontWeight:500, fontSize:15, padding:"13px 20px", cursor:"pointer", width:"100%" },
   btnSecondary: { background:"transparent", color:T.textSecondary, border:`1px solid ${T.border}`, borderRadius:10, fontSize:12, padding:"6px 12px", cursor:"pointer" },
   btnDanger: { background:"transparent", color:T.danger, border:`1px solid ${T.dangerBg}`, borderRadius:10, fontSize:11, padding:"4px 9px", cursor:"pointer" },
   btnEdit: { background:"transparent", color:T.textSecondary, border:`1px solid ${T.border}`, borderRadius:10, fontSize:11, padding:"4px 9px", cursor:"pointer" },
