@@ -80,6 +80,7 @@ const S = {
   btnSecondary: { background:T.card, color:T.headerBg, border:`1.5px solid #c7d2fe`, borderRadius:10, fontSize:12, padding:"6px 12px", cursor:"pointer" },
   btnDanger: { background:T.dangerBg, color:T.danger, border:`1.5px solid ${T.dangerBorder}`, borderRadius:10, fontSize:12, padding:"6px 12px", cursor:"pointer" },
   btnEdit: { background:"transparent", color:T.textSecondary, border:`1.5px solid ${T.border}`, borderRadius:10, fontSize:11, padding:"4px 9px", cursor:"pointer" },
+  lbl: { fontSize:12, color:'#1a3a6b', display:"block", marginBottom:5, fontWeight:500 },
   tag: (variant) => {
     if (variant==="no_activity") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#fff7ed", color:"#c2410c", border:`2px solid #fdba74` };
     if (variant==="active") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#f0fdf4", color:"#15803d", border:`1.5px solid #86efac` };
@@ -2422,19 +2423,19 @@ export default function App() {
                 <div>
                   {templates.map(tpl=>(
                     editingTemplate?.id===tpl.id?(
-                      <FormCard key={tpl.id}>
-                        <div style={{fontWeight:500,fontSize:13,color:T.textPrimary,marginBottom:12}}>Editar plantilla</div>
-                        <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.inp} value={editingTemplate.name} onChange={e=>setEditingTemplate(p=>({...p,name:e.target.value}))}/></div>
-                        <div style={{marginBottom:8}}><label style={S.lbl}>Objectiu</label><input style={S.inp} value={editingTemplate.objective} onChange={e=>setEditingTemplate(p=>({...p,objective:e.target.value}))}/></div>
+                      <FormCard key={tpl.id} style={{background:'#ffffff',border:'1.5px solid #c7d2fe'}}>
+                        <div style={{fontWeight:500,fontSize:13,color:'#1a3a6b',marginBottom:12}}>Editar plantilla</div>
+                        <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.formInp} value={editingTemplate.name} onChange={e=>setEditingTemplate(p=>({...p,name:e.target.value}))}/></div>
+                        <div style={{marginBottom:8}}><label style={S.lbl}>Objectiu</label><input style={S.formInp} value={editingTemplate.objective} onChange={e=>setEditingTemplate(p=>({...p,objective:e.target.value}))}/></div>
                         <div style={{...S.row,marginBottom:8}}>
-                          <div style={{flex:1}}><label style={S.lbl}>Tipus</label><input style={S.inp} value={editingTemplate.type} onChange={e=>setEditingTemplate(p=>({...p,type:e.target.value}))}/></div>
-                          <div style={{flex:1}}><label style={S.lbl}>Durada</label><input style={S.inp} value={editingTemplate.estimatedDuration} onChange={e=>setEditingTemplate(p=>({...p,estimatedDuration:e.target.value}))}/></div>
+                          <div style={{flex:1}}><label style={S.lbl}>Tipus</label><input style={S.formInp} value={editingTemplate.type} onChange={e=>setEditingTemplate(p=>({...p,type:e.target.value}))}/></div>
+                          <div style={{flex:1}}><label style={S.lbl}>Durada</label><input style={S.formInp} value={editingTemplate.estimatedDuration} onChange={e=>setEditingTemplate(p=>({...p,estimatedDuration:e.target.value}))}/></div>
                         </div>
-                        <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,marginBottom:8}}>Exercicis</div>
+                        <div style={{fontSize:12,fontWeight:500,color:'#1a3a6b',marginBottom:8}}>Exercicis</div>
                         {(editingTemplate.exercises||[]).map((ex,i)=>(
                           <div key={ex.id} style={{...S.card,marginBottom:6}}>
                               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6,gap:6}}>
-                                <input style={{...S.inp,fontWeight:500,flex:1}} value={ex.name} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,name:e.target.value}:ex2)}))} placeholder="Nom exercici"/>
+                                <input style={{...S.formInp,fontWeight:500,flex:1}} value={ex.name} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,name:e.target.value}:ex2)}))} placeholder="Nom exercici"/>
                                 <div style={{display:"flex",gap:4,flexShrink:0}}>
                                   <button style={{...S.btnSecondary,padding:"4px 7px",fontSize:13}} onClick={()=>setEditingTemplate(p=>{const exs=[...p.exercises];if(i===0)return p;[exs[i-1],exs[i]]=[exs[i],exs[i-1]];return {...p,exercises:exs};})} disabled={i===0}>↑</button>
                                   <button style={{...S.btnSecondary,padding:"4px 7px",fontSize:13}} onClick={()=>setEditingTemplate(p=>{const exs=[...p.exercises];if(i===exs.length-1)return p;[exs[i+1],exs[i]]=[exs[i],exs[i+1]];return {...p,exercises:exs};})} disabled={i===editingTemplate.exercises.length-1}>↓</button>
@@ -2442,15 +2443,15 @@ export default function App() {
                                 </div>
                               </div>
                             <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                              <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Sèries</label><input style={S.inp} type="number" value={ex.plannedSets} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedSets:+e.target.value}:ex2)}))}/></div>
-                              <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Reps</label><input style={S.inp} value={ex.plannedReps} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedReps:e.target.value}:ex2)}))}/></div>
-                              <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Càrrega</label><input style={S.inp} value={ex.plannedLoad} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedLoad:e.target.value}:ex2)}))}/></div>
-                              <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Descans</label><input style={S.inp} value={ex.plannedRest} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedRest:e.target.value}:ex2)}))}/></div>
+                              <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Sèries</label><input style={S.formInp} type="number" value={ex.plannedSets} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedSets:+e.target.value}:ex2)}))}/></div>
+                              <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Reps</label><input style={S.formInp} value={ex.plannedReps} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedReps:e.target.value}:ex2)}))}/></div>
+                              <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Càrrega</label><input style={S.formInp} value={ex.plannedLoad} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedLoad:e.target.value}:ex2)}))}/></div>
+                              <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Descans</label><input style={S.formInp} value={ex.plannedRest} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedRest:e.target.value}:ex2)}))}/></div>
                             </div>
-                            <div style={{marginTop:6}}><label style={S.lbl}>Observacions</label><textarea style={{...S.inp,minHeight:70,resize:"vertical"}} value={ex.observations||""} placeholder="Indicacions específiques..." onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,observations:e.target.value}:ex2)}))}></textarea></div>
+                            <div style={{marginTop:6}}><label style={S.lbl}>Observacions</label><textarea style={{...S.formInp,minHeight:70,resize:"vertical"}} value={ex.observations||""} placeholder="Indicacions específiques..." onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,observations:e.target.value}:ex2)}))}></textarea></div>
                           </div>
                         ))}
-                        <select style={{...S.inp,fontSize:12,marginBottom:12}} value="" onChange={e=>{const libEx=getClientLibrary(adminClient).find(l=>l.id===e.target.value);if(libEx) setEditingTemplate(p=>({...p,exercises:[...p.exercises,{id:`tex_${Date.now()}`,exerciseId:libEx.id,name:libEx.name,plannedSets:libEx.defaultSets,plannedReps:libEx.defaultReps,plannedLoad:libEx.defaultLoad||"",plannedRest:libEx.defaultRest||"",observations:"",order:p.exercises.length+1}]}));}}>
+                        <select style={{...S.formInp,fontSize:12,marginBottom:12}} value="" onChange={e=>{const libEx=getClientLibrary(adminClient).find(l=>l.id===e.target.value);if(libEx) setEditingTemplate(p=>({...p,exercises:[...p.exercises,{id:`tex_${Date.now()}`,exerciseId:libEx.id,name:libEx.name,plannedSets:libEx.defaultSets,plannedReps:libEx.defaultReps,plannedLoad:libEx.defaultLoad||"",plannedRest:libEx.defaultRest||"",observations:"",order:p.exercises.length+1}]}));}}>
                           <option value="">+ Afegir exercici de la biblioteca...</option>
                           {getClientLibrary(adminClient).map(l=><option key={l.id} value={l.id}>{l.name}</option>)}
                         </select>
