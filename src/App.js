@@ -26,6 +26,7 @@ const T = {
   textPrimary: "#0f172a",
   textSecondary: "#8a9bbf",
   textMuted: "#64748b",
+  textOnLight: "#1a3a6b",
 
   // Accent / actions
   accent:   "#e8d800", // primary accent (yellow)
@@ -62,11 +63,11 @@ const S = {
   formSectionTitle: { fontSize:13, fontWeight:700, color:T.headerBg, textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:12, marginTop:20 },
   adminHeader: { display:"flex", flexDirection:"column", gap:12, padding:"1.5rem 1.25rem", background:T.headerBg, color:T.headerText },
   adminStatCard: { background:"rgba(255,255,255,0.12)", border:"1.5px solid rgba(255,255,255,0.2)", borderRadius:10, padding:"0.85rem 1rem", textAlign:"center" },
-  adminContent: { background:"#ffffff", borderRadius:20, padding:"1.5rem 1.25rem 2rem", marginTop:-10 },
+  adminContent: { background:"#ffffff", borderRadius:20, padding:"1.5rem 1.25rem 2rem", marginTop:-10, color:T.textOnLight },
   detailHeader: { background:T.headerBg, color:T.headerText, padding:"1.5rem 1.25rem", display:"flex", alignItems:"center", gap:16, minHeight:140, borderRadius:12 },
   clientHeader: { background:T.headerBg, color:T.headerText, padding:"1.5rem 1.25rem", display:"flex", alignItems:"center", gap:16, minHeight:140, borderRadius:"0 0 18px 18px" },
-  sec: { padding:"1rem 1.25rem" },
-  card: { background:T.card, border:`1.5px solid ${T.border}`, borderRadius:10, padding:"0.9rem 1rem", marginBottom:10, boxShadow:"0 1px 4px rgba(26,58,107,0.06)" },
+  sec: { padding:"1rem 1.25rem", color:T.textOnLight },
+  card: { background:T.card, border:`1.5px solid ${T.border}`, borderRadius:10, padding:"0.9rem 1rem", marginBottom:10, boxShadow:"0 1px 4px rgba(26,58,107,0.06)", color:T.textOnLight },
   inp: { padding:"9px 12px", borderRadius:10, border:`1.5px solid ${T.border}`, fontSize:13, width:"100%", background:T.card2, color:T.textPrimary, boxSizing:"border-box", outline:"none" },
   formInp: { padding:"10px 12px", borderRadius:8, border:"1.5px solid #c7d2fe", fontSize:13, width:"100%", background:T.card2, color:T.textPrimary, boxSizing:"border-box", outline:"none" },
   formLbl: { fontSize:12, color:T.headerBg, display:"block", marginBottom:5, fontWeight:500 },
@@ -2000,9 +2001,10 @@ export default function App() {
           }}>🔄</button>
         </div>
       </div>
+      <div style={{background:"#ffffff",borderRadius:20,marginTop:-10,paddingBottom:"2rem",color:T.textOnLight}}>
       <div style={{display:"flex",borderBottom:`1.5px solid ${T.border}`,padding:"0 1.25rem",overflowX:"auto"}}>
         {[["dades","Dades"],["routine","Entrenaments"],["history","Historial"],["seguiment","Seguiment"]].map(([tab,label])=>(
-          <button key={tab} onClick={()=>{if(tab==="history"||tab==="seguiment"){loadClientHistory(adminClient);}setAdminTab(tab);}} style={{padding:"10px 14px",fontSize:13,cursor:"pointer",background:"none",border:"none",borderBottom:`2px solid ${adminTab===tab?T.accent:"transparent"}`,color:adminTab===tab?T.accent:T.textSecondary,fontWeight:adminTab===tab?500:400,marginBottom:-1,whiteSpace:"nowrap",flexShrink:0}}>{label}</button>
+          <button key={tab} onClick={()=>{if(tab==="history"||tab==="seguiment"){loadClientHistory(adminClient);}setAdminTab(tab);}} style={{padding:"10px 14px",fontSize:13,cursor:"pointer",background:"none",border:"none",borderBottom:`2px solid ${adminTab===tab?T.accent:"transparent"}`,color:adminTab===tab?T.accent:T.textOnLight,fontWeight:adminTab===tab?500:400,marginBottom:-1,whiteSpace:"nowrap",flexShrink:0}}>{label}</button>
         ))}
       </div>
 
@@ -2342,7 +2344,7 @@ export default function App() {
           <div style={S.sec}>
             <div style={{display:"flex",gap:0,marginBottom:16,borderBottom:`1.5px solid ${T.border}`}}>
               {[["rutina","📅 Rutina"],["plantilles","📋 Plantilles"],["biblioteca","📚 Biblioteca"]].map(([tab,label])=>(
-                <button key={tab} onClick={()=>setAdminRoutineTab(tab)} style={{padding:"8px 14px",fontSize:12,cursor:"pointer",background:"none",border:"none",borderBottom:`2px solid ${adminRoutineTab===tab?T.accent:"transparent"}`,color:adminRoutineTab===tab?T.accent:T.textSecondary,fontWeight:adminRoutineTab===tab?500:400,marginBottom:-1}}>{label}</button>
+                <button key={tab} onClick={()=>setAdminRoutineTab(tab)} style={{padding:"8px 14px",fontSize:12,cursor:"pointer",background:"none",border:"none",borderBottom:`2px solid ${adminRoutineTab===tab?T.accent:"transparent"}`,color:adminRoutineTab===tab?T.accent:T.textOnLight,fontWeight:adminRoutineTab===tab?500:400,marginBottom:-1}}>{label}</button>
               ))}
             </div>
             {adminRoutineTab==="rutina"&&(()=>{
@@ -2365,8 +2367,8 @@ export default function App() {
                             {dayTpls.map(tplId=>{
                               const tpl=templates.find(t=>t.id===tplId);
                               return tpl?(
-                                <div key={tplId} style={{display:"flex",alignItems:"center",gap:4,background:T.purpleBg,border:`1.5px solid #3A3A60`,borderRadius:20,padding:"3px 10px"}}>
-                                  <span style={{fontSize:12,color:T.purple}}>{tpl.name}</span>
+                                <div key={tplId} style={{display:"flex",alignItems:"center",gap:4,background:"#eef2ff",border:`1.5px solid #c7d2fe`,borderRadius:20,padding:"3px 10px"}}>
+                                  <span style={{fontSize:12,color:"#1a3a6b"}}>{tpl.name}</span>
                                   <button onClick={()=>updateSchedule(day,dayTpls.filter(id=>id!==tplId))} style={{background:"none",border:"none",color:T.textMuted,cursor:"pointer",fontSize:14,lineHeight:1,padding:"0 2px"}}>×</button>
                                 </div>
                               ):null;
@@ -2566,6 +2568,7 @@ export default function App() {
           </div>
         );
       })()}
+      </div>
     </div>
   );
 }
