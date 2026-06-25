@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { db } from "./firebase";
 import { ref, set, get, remove } from "firebase/database";
 
@@ -9,7 +9,7 @@ const TODAY_IDX = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
 const TODAY = DAYS[TODAY_IDX];
 const PIN = "1234";
 
-// â”€â”€ Design tokens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Design tokens ─────────────────────────────────────────────────────────────
 const T = {
   // Global/background
   bg:       "#ffffff",
@@ -53,7 +53,7 @@ const CLIENT_COLORS = [
 ];
 const cClr = (i) => CLIENT_COLORS[Math.max(0,i) % CLIENT_COLORS.length];
 
-// â”€â”€ Shared styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Shared styles ─────────────────────────────────────────────────────────────
 const S = {
   wrap: { fontFamily:"system-ui,sans-serif", maxWidth:920, margin:"0 auto", background:T.bg, minHeight:"100vh", padding:"0 0 3rem", color:T.textPrimary },
   adminWrap: { fontFamily:"system-ui,sans-serif", maxWidth:920, margin:"0 auto", background:T.headerBg, minHeight:"100vh", padding:"0 0 3rem", color:T.headerText },
@@ -66,31 +66,31 @@ const S = {
   detailHeader: { background:T.headerBg, color:T.headerText, padding:"1.5rem 1.25rem", display:"flex", alignItems:"center", gap:16, minHeight:140, borderRadius:12 },
   clientHeader: { background:T.headerBg, color:T.headerText, padding:"1.5rem 1.25rem", display:"flex", alignItems:"center", gap:16, minHeight:140, borderRadius:"0 0 18px 18px" },
   sec: { padding:"1rem 1.25rem" },
-  card: { background:T.card, border:`1.5px solid ${T.border}`, borderRadius:10, padding:"0.9rem 1rem", marginBottom:10, boxShadow:"0 1px 4px rgba(26,58,107,0.06)" },
-  inp: { padding:"9px 12px", borderRadius:10, border:`1.5px solid ${T.border}`, fontSize:13, width:"100%", background:T.card2, color:T.textPrimary, boxSizing:"border-box", outline:"none" },
+  card: { background:T.card, border:`1px solid ${T.border}`, borderRadius:10, padding:"0.9rem 1rem", marginBottom:10, boxShadow:"0 1px 4px rgba(26,58,107,0.06)" },
+  inp: { padding:"9px 12px", borderRadius:10, border:`1px solid ${T.border}`, fontSize:13, width:"100%", background:T.card2, color:T.textPrimary, boxSizing:"border-box", outline:"none" },
   formInp: { padding:"10px 12px", borderRadius:8, border:"1.5px solid #c7d2fe", fontSize:13, width:"100%", background:T.card2, color:T.textPrimary, boxSizing:"border-box", outline:"none" },
   formLbl: { fontSize:12, color:T.headerBg, display:"block", marginBottom:5, fontWeight:500 },
   row: { display:"flex", gap:10 },
-  avatar: (c) => ({ width:40, height:40, borderRadius:12, background:c.bg, border:`1.5px solid ${c.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:600, fontSize:13, color:c.text, flexShrink:0 }),
+  avatar: (c) => ({ width:40, height:40, borderRadius:12, background:c.bg, border:`1px solid ${c.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:600, fontSize:13, color:c.text, flexShrink:0 }),
   btnPrimary: { background:T.accent, color:T.headerBg, border:"none", borderRadius:10, fontWeight:500, fontSize:15, padding:"10px 16px", cursor:"pointer", width:"100%" },
-  btnSecondary: { background:T.card, color:T.headerBg, border:`1.5px solid #c7d2fe`, borderRadius:10, fontSize:12, padding:"6px 12px", cursor:"pointer" },
-  btnDanger: { background:T.dangerBg, color:T.danger, border:`1.5px solid ${T.dangerBorder}`, borderRadius:10, fontSize:12, padding:"6px 12px", cursor:"pointer" },
-  btnEdit: { background:"transparent", color:T.textSecondary, border:`1.5px solid ${T.border}`, borderRadius:10, fontSize:11, padding:"4px 9px", cursor:"pointer" },
+  btnSecondary: { background:T.card, color:T.headerBg, border:`1px solid #c7d2fe`, borderRadius:10, fontSize:12, padding:"6px 12px", cursor:"pointer" },
+  btnDanger: { background:T.dangerBg, color:T.danger, border:`1px solid ${T.dangerBorder}`, borderRadius:10, fontSize:12, padding:"6px 12px", cursor:"pointer" },
+  btnEdit: { background:"transparent", color:T.textSecondary, border:`1px solid ${T.border}`, borderRadius:10, fontSize:11, padding:"4px 9px", cursor:"pointer" },
   tag: (variant) => {
-    if (variant==="no_activity") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#fff7ed", color:"#c2410c", border:`1.5px solid #fdba74` };
-    if (variant==="active") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#f0fdf4", color:"#15803d", border:`1.5px solid #86efac` };
-    if (variant==="alert") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#fef2f2", color:"#991b1b", border:`1.5px solid #fca5a5` };
-    if (variant==="new") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#eef2ff", color:"#1d4ed8", border:`1.5px solid #c7d2fe` };
-    return { fontSize:11, padding:"4px 9px", borderRadius:14, background:T.card2, color:T.textSecondary, border:`1.5px solid ${T.border}` };
+    if (variant==="no_activity") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#fff7ed", color:"#c2410c", border:`2px solid #fdba74` };
+    if (variant==="active") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#f0fdf4", color:"#15803d", border:`1px solid #86efac` };
+    if (variant==="alert") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#fef2f2", color:"#991b1b", border:`1px solid #fca5a5` };
+    if (variant==="new") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#eef2ff", color:"#1d4ed8", border:`1px solid #c7d2fe` };
+    return { fontSize:11, padding:"4px 9px", borderRadius:14, background:T.card2, color:T.textSecondary, border:`1px solid ${T.border}` };
   },
   cCard: (active, c) => ({ background: active ? T.card2 : T.card, border:`${active?"2px":"1px"} solid ${active ? c.border : T.border}`, borderRadius:14, padding:"0.75rem 1rem", marginBottom:8, cursor:"pointer", display:"flex", alignItems:"center", gap:12 }),
 };
 
-// â”€â”€ Default data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Default data ──────────────────────────────────────────────────────────────
 const DEFAULT_DATA = {
   clients:[
-    {id:1,name:"Roc Concernau",goal:"Ãšs personal",avatar:"RC",routineType:"weekly",templates:[],exerciseLibrary:[],schedule:{Dilluns:[],Dimarts:[],Dimecres:[],Dijous:[],Divendres:[],Dissabte:[],Diumenge:[]}},
-    {id:3,name:"Marc Perez",goal:"Rendiment bÃ squet",avatar:"MP",routineType:"weekly",templates:[],exerciseLibrary:[],schedule:{Dilluns:[],Dimarts:[],Dimecres:[],Dijous:[],Divendres:[],Dissabte:[],Diumenge:[]}},
+    {id:1,name:"Roc Concernau",goal:"Ús personal",avatar:"RC",routineType:"weekly",templates:[],exerciseLibrary:[],schedule:{Dilluns:[],Dimarts:[],Dimecres:[],Dijous:[],Divendres:[],Dissabte:[],Diumenge:[]}},
+    {id:3,name:"Marc Perez",goal:"Rendiment bàsquet",avatar:"MP",routineType:"weekly",templates:[],exerciseLibrary:[],schedule:{Dilluns:[],Dimarts:[],Dimecres:[],Dijous:[],Divendres:[],Dissabte:[],Diumenge:[]}},
   ],
   routines:{
     1: DAYS.reduce((a,d)=>({...a,[d]:[]}),{}),
@@ -98,7 +98,7 @@ const DEFAULT_DATA = {
   },
 };
 
-// â”€â”€ Progress bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Progress bar ───────────────────────────────────────────────────────────────
 const ProgressBar = ({value, total, color=T.accent}) => {
   const pct = total>0?Math.round((value/total)*100):0;
   return (
@@ -112,8 +112,8 @@ const FormCard = ({children, style={}}) => (
   <div style={{background:"#1A1A24",border:"1px solid #E8FF4740",borderRadius:14,padding:"0.9rem 1rem",marginBottom:10,...style}}>{children}</div>
 );
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// â”€â”€ Access token generator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Access token generator ────────────────────────────────────────────────────
 const normalizeClientId = (clientId) => String(clientId);
 
 const generateAccessToken = () => {
@@ -125,7 +125,7 @@ const generateAccessToken = () => {
   return Math.random().toString(36).slice(2)+Date.now().toString(36);
 };
 
-// â”€â”€ RPE + CÃ rrega interna â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── RPE + Càrrega interna ─────────────────────────────────────────────────────
 const calculateInternalLoad = (durationReal, rpe) => {
   const duration = Number(String(durationReal||"").replace(",","."));
   const rpeValue = Number(String(rpe||"").replace(",","."));
@@ -148,7 +148,7 @@ const getRpeLabel = (value) => {
   if(value<=6) return "Moderat";
   if(value<=8) return "Intens";
   if(value===9) return "Molt intens";
-  return "MÃ xim";
+  return "Màxim";
 };
 
 const getSessionInternalLoad = (sess) =>
@@ -167,37 +167,37 @@ const getClientAlerts = (stats) => {
 
   // Danger
   if(pain >= 5) {
-    const detail = checkIn.painZone ? `${checkIn.painZone} Â· ${pain}/10` : `${pain}/10`;
+    const detail = checkIn.painZone ? `${checkIn.painZone} · ${pain}/10` : `${pain}/10`;
     alerts.push({type:"pain",label:"Dolor elevat",detail,severity:"danger"});
   }
-  if(lastSession?.feeling==="MolÃ¨sties") {
-    alerts.push({type:"feeling",label:"MolÃ¨sties",detail:"Ãšltima sessiÃ³",severity:"danger"});
+  if(lastSession?.feeling==="Molèsties") {
+    alerts.push({type:"feeling",label:"Molèsties",detail:"Última sessió",severity:"danger"});
   }
 
   // Warning
   if(rpe >= 8) {
-    alerts.push({type:"rpe",label:"RPE alt",detail:`Ãšltima sessiÃ³: ${rpe}/10`,severity:"warning"});
+    alerts.push({type:"rpe",label:"RPE alt",detail:`Última sessió: ${rpe}/10`,severity:"warning"});
   } else if(stats.avgRpeRecent != null && stats.avgRpeRecent >= 8) {
-    alerts.push({type:"rpe",label:"RPE mitjÃ  alt",detail:`Mitjana recent: ${stats.avgRpeRecent}`,severity:"warning"});
+    alerts.push({type:"rpe",label:"RPE mitjà alt",detail:`Mitjana recent: ${stats.avgRpeRecent}`,severity:"warning"});
   }
   if(stats.weeklyInternalLoad != null && stats.weeklyInternalLoad >= 1000) {
-    alerts.push({type:"load",label:"CÃ rrega alta",detail:`${stats.weeklyInternalLoad} UA aquesta setmana`,severity:"warning"});
+    alerts.push({type:"load",label:"Càrrega alta",detail:`${stats.weeklyInternalLoad} UA aquesta setmana`,severity:"warning"});
   }
   const recoveryFactors = [];
   if(energy > 0 && energy <= 2) recoveryFactors.push(`energia ${energy}/5`);
   if(sleep > 0 && sleep <= 2) recoveryFactors.push(`son ${sleep}/5`);
   if(fatigue >= 4) recoveryFactors.push(`fatiga ${fatigue}/5`);
-  if(stress >= 4) recoveryFactors.push(`estrÃ¨s ${stress}/5`);
+  if(stress >= 4) recoveryFactors.push(`estrès ${stress}/5`);
   if(recoveryFactors.length > 0 && lastSession?.checkIn?.completedAt) {
-    alerts.push({type:"recovery",label:"RecuperaciÃ³ baixa",detail:recoveryFactors.join(" Â· "),severity:"warning"});
+    alerts.push({type:"recovery",label:"Recuperació baixa",detail:recoveryFactors.join(" · "),severity:"warning"});
   }
   if(stats.totalSessions > 0 && stats.sessionsThisWeek === 0) {
-    alerts.push({type:"inactive",label:"Sense activitat",detail:"Cap sessiÃ³ en 7 dies",severity:"warning"});
+    alerts.push({type:"inactive",label:"Sense activitat",detail:"Cap sessió en 7 dies",severity:"warning"});
   }
 
   // Info
   if(lastSession && (lastSession.completionPercentage ?? 100) < 100) {
-    alerts.push({type:"partial",label:"SessiÃ³ parcial",detail:`${lastSession.completionPercentage || 0}% completat`,severity:"info"});
+    alerts.push({type:"partial",label:"Sessió parcial",detail:`${lastSession.completionPercentage || 0}% completat`,severity:"info"});
   }
 
   // Ordenar: danger primer, warning segon, info tercer
@@ -263,7 +263,7 @@ const getClientTrackingStats = (history) => {
   };
 };
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════════════════════════════════════════════
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const urlClient = urlParams.get("client");
@@ -277,7 +277,7 @@ export default function App() {
   const storedClientId = localStorage.getItem("tcn_client_id");
   // clientIdEfectiu s'usa com a fallback si no hi ha token
   const clientIdEfectiu = clienteInicial || (storedClientId ? parseInt(storedClientId) : null);
-  // Mode inicial: si hi ha ?access o ?client o localStorage â†’ "client", sinÃ³ public
+  // Mode inicial: si hi ha ?access o ?client o localStorage → "client", sinó public
   const hasInitialClient = !!(urlAccess || urlClient || storedToken || storedClientId);
 
   if(urlAdmin==="true") {
@@ -309,8 +309,8 @@ export default function App() {
   const [editingLibEx, setEditingLibEx] = useState(null);
   const [showAddTemplate, setShowAddTemplate] = useState(false);
   const [showAddLibEx, setShowAddLibEx] = useState(false);
-  const [newTemplate, setNewTemplate] = useState({name:"",description:"",type:"ForÃ§a",objective:"",estimatedDuration:"",exercises:[]});
-  const [newLibEx, setNewLibEx] = useState({name:"",category:"ForÃ§a",muscleGroup:"",movementPattern:"",material:"",defaultSets:3,defaultReps:"10",defaultLoad:"",defaultRest:"60s",instructions:"",observations:"",level:"Principiant"});
+  const [newTemplate, setNewTemplate] = useState({name:"",description:"",type:"Força",objective:"",estimatedDuration:"",exercises:[]});
+  const [newLibEx, setNewLibEx] = useState({name:"",category:"Força",muscleGroup:"",movementPattern:"",material:"",defaultSets:3,defaultReps:"10",defaultLoad:"",defaultRest:"60s",instructions:"",observations:"",level:"Principiant"});
   const [expandedHistory, setExpandedHistory] = useState({});
   const [expandedClientCards, setExpandedClientCards] = useState({});
   const [clientSearch, setClientSearch] = useState("");
@@ -357,27 +357,27 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(()=>{ if(data?.clients) loadAllClientHistories(data.clients); },[data?.clients?.length]);
 
-  // â”€â”€ Data helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Data helpers ──────────────────────────────────────────────────────────
   const IGNASI_NOU_ID = 1779623480215;
   const IGNASI_NOU_LIBRARY = [
-    {id:"ign_jj",name:"Jumping jacks",category:"ActivaciÃ³",muscleGroup:"Cos complet",movementPattern:"Cardio",material:"Cap",defaultSets:1,defaultReps:"15",defaultLoad:"",defaultRest:"15s",instructions:"VersiÃ³ tranquilÂ·la: sense salt, obre braÃ§os mentre separes un peu cap al costat.",observations:"",level:"Principiant"},
-    {id:"ign_cbf",name:"Cercles de braÃ§os endavant",category:"ActivaciÃ³",muscleGroup:"Espatlles",movementPattern:"Mobilitat",material:"Cap",defaultSets:1,defaultReps:"10",defaultLoad:"",defaultRest:"10s",instructions:"Primeres 4 reps lentes amb rang ampli. Ãšltimes 4-6 reps augmenta la velocitat.",observations:"",level:"Principiant"},
-    {id:"ign_cba",name:"Cercles de braÃ§os enrere",category:"ActivaciÃ³",muscleGroup:"Espatlles",movementPattern:"Mobilitat",material:"Cap",defaultSets:1,defaultReps:"10",defaultLoad:"",defaultRest:"10s",instructions:"Primeres 4 reps lentes amb rang ampli. Ãšltimes 4-6 reps augmenta la velocitat.",observations:"",level:"Principiant"},
-    {id:"ign_cm",name:"Cercles de maluc",category:"ActivaciÃ³",muscleGroup:"Maluc",movementPattern:"Mobilitat",material:"Cap",defaultSets:1,defaultReps:"8",defaultLoad:"",defaultRest:"10s",instructions:"8 reps sentit horari + 8 reps antihorari.",observations:"reps/costat",level:"Principiant"},
-    {id:"ign_flex",name:"Flexions al llit (amb genolls)",category:"ForÃ§a",muscleGroup:"Pectoral",movementPattern:"Push horitzontal",material:"Llit",defaultSets:2,defaultReps:"12",defaultLoad:"",defaultRest:"20s",instructions:"Esterilla al terra davant dels peus del llit. Baixa poc a poc fins tocar el pit amb el matalÃ s.",observations:"",level:"Principiant"},
-    {id:"ign_trx",name:"Rem a la cintura (TRX)",category:"ForÃ§a",muscleGroup:"Esquena",movementPattern:"Pull horitzontal",material:"TRX",defaultSets:2,defaultReps:"12",defaultLoad:"",defaultRest:"20s",instructions:"Cos alineat. Colzes enganxats al cos. Baixa lentament i puja amb forÃ§a.",observations:"",level:"Principiant"},
-    {id:"ign_squat",name:"Squat (sentadilles)",category:"ForÃ§a",muscleGroup:"QuÃ driceps / Glutis",movementPattern:"Squat",material:"Cap",defaultSets:2,defaultReps:"12",defaultLoad:"",defaultRest:"20s",instructions:"Esquena recta. Genolls alineats amb els peus. Baixa controlat.",observations:"",level:"Principiant"},
-    {id:"ign_elev",name:"Elevacions alternes amb manuelles",category:"ForÃ§a",muscleGroup:"Deltoides",movementPattern:"Push lateral",material:"Manuelles",defaultSets:2,defaultReps:"12",defaultLoad:"",defaultRest:"20s",instructions:"Un braÃ§ s'eleva lateralment i l'altre frontalment. Alterna a cada rep.",observations:"",level:"Principiant"},
-    {id:"ign_pont",name:"Pont de glutis",category:"ForÃ§a",muscleGroup:"Glutis",movementPattern:"Hip hinge",material:"Cap",defaultSets:2,defaultReps:"10",defaultLoad:"",defaultRest:"20s",instructions:"Estirat a terra, genolls flexionats. Eleva malucs activant bÃ© el gluti.",observations:"",level:"Principiant"},
-    {id:"ign_plank",name:'Planxa "Tuki Tuki"',category:"Core",muscleGroup:"Core",movementPattern:"AntiextensiÃ³",material:"Cap",defaultSets:2,defaultReps:"20",defaultLoad:"",defaultRest:"20s",instructions:"En planxa, toca l'espatlla contrÃ ria alternant mans. Cadera estÃ tica.",observations:"",level:"Principiant"},
+    {id:"ign_jj",name:"Jumping jacks",category:"Activació",muscleGroup:"Cos complet",movementPattern:"Cardio",material:"Cap",defaultSets:1,defaultReps:"15",defaultLoad:"",defaultRest:"15s",instructions:"Versió tranquil·la: sense salt, obre braços mentre separes un peu cap al costat.",observations:"",level:"Principiant"},
+    {id:"ign_cbf",name:"Cercles de braços endavant",category:"Activació",muscleGroup:"Espatlles",movementPattern:"Mobilitat",material:"Cap",defaultSets:1,defaultReps:"10",defaultLoad:"",defaultRest:"10s",instructions:"Primeres 4 reps lentes amb rang ampli. Últimes 4-6 reps augmenta la velocitat.",observations:"",level:"Principiant"},
+    {id:"ign_cba",name:"Cercles de braços enrere",category:"Activació",muscleGroup:"Espatlles",movementPattern:"Mobilitat",material:"Cap",defaultSets:1,defaultReps:"10",defaultLoad:"",defaultRest:"10s",instructions:"Primeres 4 reps lentes amb rang ampli. Últimes 4-6 reps augmenta la velocitat.",observations:"",level:"Principiant"},
+    {id:"ign_cm",name:"Cercles de maluc",category:"Activació",muscleGroup:"Maluc",movementPattern:"Mobilitat",material:"Cap",defaultSets:1,defaultReps:"8",defaultLoad:"",defaultRest:"10s",instructions:"8 reps sentit horari + 8 reps antihorari.",observations:"reps/costat",level:"Principiant"},
+    {id:"ign_flex",name:"Flexions al llit (amb genolls)",category:"Força",muscleGroup:"Pectoral",movementPattern:"Push horitzontal",material:"Llit",defaultSets:2,defaultReps:"12",defaultLoad:"",defaultRest:"20s",instructions:"Esterilla al terra davant dels peus del llit. Baixa poc a poc fins tocar el pit amb el matalàs.",observations:"",level:"Principiant"},
+    {id:"ign_trx",name:"Rem a la cintura (TRX)",category:"Força",muscleGroup:"Esquena",movementPattern:"Pull horitzontal",material:"TRX",defaultSets:2,defaultReps:"12",defaultLoad:"",defaultRest:"20s",instructions:"Cos alineat. Colzes enganxats al cos. Baixa lentament i puja amb força.",observations:"",level:"Principiant"},
+    {id:"ign_squat",name:"Squat (sentadilles)",category:"Força",muscleGroup:"Quàdriceps / Glutis",movementPattern:"Squat",material:"Cap",defaultSets:2,defaultReps:"12",defaultLoad:"",defaultRest:"20s",instructions:"Esquena recta. Genolls alineats amb els peus. Baixa controlat.",observations:"",level:"Principiant"},
+    {id:"ign_elev",name:"Elevacions alternes amb manuelles",category:"Força",muscleGroup:"Deltoides",movementPattern:"Push lateral",material:"Manuelles",defaultSets:2,defaultReps:"12",defaultLoad:"",defaultRest:"20s",instructions:"Un braç s'eleva lateralment i l'altre frontalment. Alterna a cada rep.",observations:"",level:"Principiant"},
+    {id:"ign_pont",name:"Pont de glutis",category:"Força",muscleGroup:"Glutis",movementPattern:"Hip hinge",material:"Cap",defaultSets:2,defaultReps:"10",defaultLoad:"",defaultRest:"20s",instructions:"Estirat a terra, genolls flexionats. Eleva malucs activant bé el gluti.",observations:"",level:"Principiant"},
+    {id:"ign_plank",name:'Planxa "Tuki Tuki"',category:"Core",muscleGroup:"Core",movementPattern:"Antiextensió",material:"Cap",defaultSets:2,defaultReps:"20",defaultLoad:"",defaultRest:"20s",instructions:"En planxa, toca l'espatlla contrària alternant mans. Cadera estàtica.",observations:"",level:"Principiant"},
   ];
   const IGNASI_NOU_TEMPLATE = {
-    id:"tpl_circuit_ignasi",name:"Circuit Ignasi",description:"ActivaciÃ³ + Circuit de ForÃ§a",type:"ForÃ§a",
-    objective:"Entrenament complet a casa Â· 10-15'",estimatedDuration:"10-15 min",
+    id:"tpl_circuit_ignasi",name:"Circuit Ignasi",description:"Activació + Circuit de Força",type:"Força",
+    objective:"Entrenament complet a casa · 10-15'",estimatedDuration:"10-15 min",
     exercises:[
-      {id:"tex_ign_1",exerciseId:"ign_jj",name:"Jumping jacks",plannedSets:1,plannedReps:"15",plannedLoad:"",plannedRest:"15s",observations:"VersiÃ³ tranquilÂ·la: sense salt",order:1},
-      {id:"tex_ign_2",exerciseId:"ign_cbf",name:"Cercles de braÃ§os endavant",plannedSets:1,plannedReps:"10",plannedLoad:"",plannedRest:"10s",observations:"",order:2},
-      {id:"tex_ign_3",exerciseId:"ign_cba",name:"Cercles de braÃ§os enrere",plannedSets:1,plannedReps:"10",plannedLoad:"",plannedRest:"10s",observations:"",order:3},
+      {id:"tex_ign_1",exerciseId:"ign_jj",name:"Jumping jacks",plannedSets:1,plannedReps:"15",plannedLoad:"",plannedRest:"15s",observations:"Versió tranquil·la: sense salt",order:1},
+      {id:"tex_ign_2",exerciseId:"ign_cbf",name:"Cercles de braços endavant",plannedSets:1,plannedReps:"10",plannedLoad:"",plannedRest:"10s",observations:"",order:2},
+      {id:"tex_ign_3",exerciseId:"ign_cba",name:"Cercles de braços enrere",plannedSets:1,plannedReps:"10",plannedLoad:"",plannedRest:"10s",observations:"",order:3},
       {id:"tex_ign_4",exerciseId:"ign_cm",name:"Cercles de maluc",plannedSets:1,plannedReps:"8",plannedLoad:"",plannedRest:"10s",observations:"reps/costat",order:4},
       {id:"tex_ign_5",exerciseId:"ign_flex",name:"Flexions al llit (amb genolls)",plannedSets:2,plannedReps:"12",plannedLoad:"",plannedRest:"20s",observations:"",order:5},
       {id:"tex_ign_6",exerciseId:"ign_trx",name:"Rem a la cintura (TRX)",plannedSets:2,plannedReps:"12",plannedLoad:"",plannedRest:"20s",observations:"",order:6},
@@ -427,7 +427,7 @@ export default function App() {
       if(dataUpdated) { set(ref(db,"fitcoach-data2"),finalDataWithTokens).catch(()=>{}); }
       setData(finalDataWithTokens);
 
-      // Resoldre accÃ©s per ?access=TOKEN
+      // Resoldre accés per ?access=TOKEN
       if(urlAccess) {
         const clientByToken = finalDataWithTokens.clients.find(c=>c.accessToken===urlAccess);
         if(clientByToken) {
@@ -542,7 +542,7 @@ export default function App() {
   };
 
   const deleteHistorySession = async (clientId, sessionId) => {
-    if(!window.confirm("Segur que vols eliminar aquesta sessiÃ³ de l'historial?")) return;
+    if(!window.confirm("Segur que vols eliminar aquesta sessió de l'historial?")) return;
     const id = normalizeClientId(clientId);
     const current = clientHistories[id]||[];
     const updated = current.filter((s,idx)=>(s.id||`${id}-${idx}`)!==sessionId);
@@ -614,7 +614,7 @@ export default function App() {
     setAdminTab("dades");
     setEditingClient(false);
     setAdminView("clientDetail");
-    // ForÃ§ar recÃ rrega sempre (eliminar cache per veure sessions noves)
+    // Forçar recàrrega sempre (eliminar cache per veure sessions noves)
     setClientHistories(p => {
       const np = {...p};
       delete np[sid];
@@ -636,9 +636,9 @@ export default function App() {
     const lastFeeling = lastSession?.feeling||null;
     let status = "Sense historial";
     if(history.length>0) {
-      if(lastFeeling==="MolÃ¨sties") status="MolÃ¨sties";
+      if(lastFeeling==="Molèsties") status="Molèsties";
       else if(avgRpeRecent!=null&&avgRpeRecent>=8) status="RPE alt";
-      else if(lastCompletion<100) status="SessiÃ³ parcial";
+      else if(lastCompletion<100) status="Sessió parcial";
       else if(sessionsThisWeek.length>0) status="Actiu";
       else status="Sense activitat";
     }
@@ -684,7 +684,7 @@ export default function App() {
     return true;
   };
 
-  // â”€â”€ Access helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Access helpers ────────────────────────────────────────────────────────
   const getClientAccessLink = (client) => {
     if(!client) return window.location.origin+window.location.pathname;
     const token = typeof client === "object" ? client.accessToken : null;
@@ -695,17 +695,17 @@ export default function App() {
   const getClientInviteMessage = (client) => {
     const link = getClientAccessLink(client);
     const firstName = client.name?.split(" ")[0]||"";
-    return `Hola ${firstName}! Ja tens activa la teva zona d'entrenament a TrainConcerNow ðŸ’ª\n\nPots accedir des d'aquest enllaÃ§:\n${link}`;
+    return `Hola ${firstName}! Ja tens activa la teva zona d'entrenament a TrainConcerNow 💪\n\nPots accedir des d'aquest enllaç:\n${link}`;
   };
   const copyToClipboard = async (text, msg="Copiat!") => {
     try { await navigator.clipboard.writeText(text); alert(msg); }
     catch { window.prompt("Copia aquest text:",text); }
   };
 
-  // â”€â”€ Intake â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Intake ────────────────────────────────────────────────────────────────
   const submitIntakeForm = async () => {
     if(!intakeForm.name.trim()||!intakeForm.goal.trim()||(!intakeForm.email.trim()&&!intakeForm.phone.trim())) {
-      setIntakeError("Completa com a mÃ­nim nom, objectiu i una forma de contacte."); return;
+      setIntakeError("Completa com a mínim nom, objectiu i una forma de contacte."); return;
     }
     setIntakeError("");
     const id = `intake_${Date.now()}`;
@@ -749,13 +749,13 @@ export default function App() {
     setIntakeSubmissions(p=>p.map(s=>s.id===submission.id?updated:s));
     setViewingIntake(null);
     const link = getClientAccessLink(newClient);
-    const msg = `Hola ${newClient.name.split(" ")[0]}! Ja tens activa la teva zona d'entrenament a TrainConcerNow ðŸ’ª\n\nPots accedir des d'aquest enllaÃ§:\n${link}`;
+    const msg = `Hola ${newClient.name.split(" ")[0]}! Ja tens activa la teva zona d'entrenament a TrainConcerNow 💪\n\nPots accedir des d'aquest enllaç:\n${link}`;
     try { await navigator.clipboard.writeText(msg); } catch {}
-    alert(`Client "${newClient.name}" creat correctament!\n\nMissatge d'invitaciÃ³ copiat al portapapers âœ“\n\nEnllaÃ§: ${link}`);
+    alert(`Client "${newClient.name}" creat correctament!\n\nMissatge d'invitació copiat al portapapers ✓\n\nEnllaç: ${link}`);
   };
 
   const rejectIntakeSubmission = async (submission) => {
-    if(!window.confirm("Segur que vols rebutjar aquesta solÂ·licitud?")) return;
+    if(!window.confirm("Segur que vols rebutjar aquesta sol·licitud?")) return;
     const updated = {...submission,status:"rejected",rejectedAt:new Date().toISOString(),rejectedReason:"",updatedAt:new Date().toISOString()};
     await set(ref(db,`intake-submissions/${submission.id}`),updated);
     setIntakeSubmissions(p=>p.map(s=>s.id===submission.id?updated:s));
@@ -763,7 +763,7 @@ export default function App() {
   };
 
   const deleteIntakeSubmission = async (submissionId) => {
-    if(!window.confirm("Segur que vols eliminar aquesta solÂ·licitud?")) return;
+    if(!window.confirm("Segur que vols eliminar aquesta sol·licitud?")) return;
     await remove(ref(db,`intake-submissions/${submissionId}`));
     setIntakeSubmissions(p=>p.filter(s=>s.id!==submissionId));
   };
@@ -772,21 +772,21 @@ export default function App() {
     if(!newClientForm.name) return;
     const id = Date.now();
     const avatar = newClientForm.name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
-    const newC = {id,name:newClientForm.name,goal:newClientForm.goal,avatar,routineType:"weekly",age:"",level:"principiant",place:"gimnÃ s",material:"",injuries:"",currentPain:"",avoidEx:"",likes:"",dislikes:"",coachNotes:"",startDate:new Date().toLocaleDateString("ca-ES"),templates:[],exerciseLibrary:[],schedule:DAYS.reduce((a,d)=>({...a,[d]:[]}),{}),accessToken:generateAccessToken()};
+    const newC = {id,name:newClientForm.name,goal:newClientForm.goal,avatar,routineType:"weekly",age:"",level:"principiant",place:"gimnàs",material:"",injuries:"",currentPain:"",avoidEx:"",likes:"",dislikes:"",coachNotes:"",startDate:new Date().toLocaleDateString("ca-ES"),templates:[],exerciseLibrary:[],schedule:DAYS.reduce((a,d)=>({...a,[d]:[]}),{}),accessToken:generateAccessToken()};
     updateData({...data,clients:[...data.clients,newC],routines:{...data.routines,[id]:DAYS.reduce((a,d)=>({...a,[d]:[]}),{})}});
     setNewClientForm({name:"",goal:""});
     setShowAddClient(false);
     selectAdminClient(id);
   };
 
-  // â”€â”€ INTAKE FORM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── INTAKE FORM ──────────────────────────────────────────────────────────
   if(isIntakeMode||mode==="intake") {
     if(intakeSubmitted) return (
       <div style={{...S.wrap,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
         <div style={{textAlign:"center",padding:"2rem 1.25rem"}}>
-          <div style={{fontSize:56,marginBottom:16}}>âœ…</div>
+          <div style={{fontSize:56,marginBottom:16}}>✅</div>
           <div style={{fontWeight:500,fontSize:20,color:T.accent,marginBottom:8}}>Formulari enviat!</div>
-          <div style={{fontSize:14,color:T.textSecondary,lineHeight:1.6}}>T'hem rebut correctament la informaciÃ³. Revisarem les teves respostes i prepararem la teva fitxa.</div>
+          <div style={{fontSize:14,color:T.textSecondary,lineHeight:1.6}}>T'hem rebut correctament la informació. Revisarem les teves respostes i prepararem la teva fitxa.</div>
         </div>
       </div>
     );
@@ -806,28 +806,28 @@ export default function App() {
           <div style={{fontWeight:700,fontSize:13,color:T.headerBg,marginBottom:4}}>Respon aquestes preguntes per poder adaptar millor el teu entrenament.</div>
         <div style={{padding:"0.5rem 1.25rem 3rem"}}>
           <SectionTitle>Dades personals</SectionTitle>
-          <div style={{marginBottom:10}}><label style={S.formLbl}>Nom i cognoms *</label><input style={S.formInp} value={IF.name} onChange={e=>setIF("name",e.target.value)} placeholder="Ex. Marc PÃ©rez"/></div>
+          <div style={{marginBottom:10}}><label style={S.formLbl}>Nom i cognoms *</label><input style={S.formInp} value={IF.name} onChange={e=>setIF("name",e.target.value)} placeholder="Ex. Marc Pérez"/></div>
           <div style={{display:"flex",gap:8,marginBottom:10}}>
             <div style={{flex:1}}><label style={S.formLbl}>Edat</label><input style={S.formInp} type="number" value={IF.age} onChange={e=>setIF("age",e.target.value)} placeholder="28"/></div>
             <div style={{flex:2}}><label style={S.formLbl}>Email *</label><input style={S.formInp} type="email" value={IF.email} onChange={e=>setIF("email",e.target.value)} placeholder="correu@email.com"/></div>
           </div>
           <div style={{display:"flex",gap:8,marginBottom:10}}>
-            <div style={{flex:1}}><label style={S.formLbl}>TelÃ¨fon</label><input style={S.formInp} value={IF.phone} onChange={e=>setIF("phone",e.target.value)} placeholder="600 000 000"/></div>
-            <div style={{flex:1}}><label style={S.formLbl}>ProfessiÃ³</label><input style={S.formInp} value={IF.profession} onChange={e=>setIF("profession",e.target.value)} placeholder="Ex. Oficinista"/></div>
+            <div style={{flex:1}}><label style={S.formLbl}>Telèfon</label><input style={S.formInp} value={IF.phone} onChange={e=>setIF("phone",e.target.value)} placeholder="600 000 000"/></div>
+            <div style={{flex:1}}><label style={S.formLbl}>Professió</label><input style={S.formInp} value={IF.profession} onChange={e=>setIF("profession",e.target.value)} placeholder="Ex. Oficinista"/></div>
           </div>
           <SectionTitle>Objectius</SectionTitle>
           <div style={{marginBottom:10}}>
             <label style={S.formLbl}>Objectiu principal *</label>
             <select style={S.formInp} value={IF.goal} onChange={e=>setIF("goal",e.target.value)}>
               <option value="">Selecciona...</option>
-              {["PÃ¨rdua de greix","Guany de massa muscular","Millora de forÃ§a","Rendiment esportiu","PreparaciÃ³ fÃ­sica per esport","ReadaptaciÃ³ / tornada a l'esport","PrevenciÃ³ de lesions","Salut general","Altres"].map(o=><option key={o} value={o}>{o}</option>)}
+              {["Pèrdua de greix","Guany de massa muscular","Millora de força","Rendiment esportiu","Preparació física per esport","Readaptació / tornada a l'esport","Prevenció de lesions","Salut general","Altres"].map(o=><option key={o} value={o}>{o}</option>)}
             </select>
           </div>
-          <div style={{marginBottom:10}}><label style={S.formLbl}>Objectiu secundari</label><input style={S.formInp} value={IF.secondaryGoal} onChange={e=>setIF("secondaryGoal",e.target.value)} placeholder="Ex. Guanyar forÃ§a"/></div>
-          <div style={{marginBottom:10}}><label style={S.formLbl}>QuÃ¨ t'agradaria aconseguir en 3 mesos?</label><textarea style={{...S.formInp,minHeight:60,resize:"vertical"}} value={IF.threeMonthGoal} onChange={e=>setIF("threeMonthGoal",e.target.value)} placeholder="Descriu el teu objectiu a curt termini..."/></div>
-          <SectionTitle>ExperiÃ¨ncia esportiva</SectionTitle>
+          <div style={{marginBottom:10}}><label style={S.formLbl}>Objectiu secundari</label><input style={S.formInp} value={IF.secondaryGoal} onChange={e=>setIF("secondaryGoal",e.target.value)} placeholder="Ex. Guanyar força"/></div>
+          <div style={{marginBottom:10}}><label style={S.formLbl}>Què t'agradaria aconseguir en 3 mesos?</label><textarea style={{...S.formInp,minHeight:60,resize:"vertical"}} value={IF.threeMonthGoal} onChange={e=>setIF("threeMonthGoal",e.target.value)} placeholder="Descriu el teu objectiu a curt termini..."/></div>
+          <SectionTitle>Experiència esportiva</SectionTitle>
           <div style={{display:"flex",gap:8,marginBottom:10}}>
-            <div style={{flex:2}}><label style={S.formLbl}>Esport principal</label><input style={S.formInp} value={IF.sport} onChange={e=>setIF("sport",e.target.value)} placeholder="Ex. PÃ del"/></div>
+            <div style={{flex:2}}><label style={S.formLbl}>Esport principal</label><input style={S.formInp} value={IF.sport} onChange={e=>setIF("sport",e.target.value)} placeholder="Ex. Pàdel"/></div>
             <div style={{flex:1}}><label style={S.formLbl}>Anys practicant</label><input style={S.formInp} value={IF.sportYears} onChange={e=>setIF("sportYears",e.target.value)} placeholder="10"/></div>
           </div>
           <div style={{display:"flex",gap:8,marginBottom:10}}>
@@ -835,25 +835,25 @@ export default function App() {
               <label style={S.formLbl}>Nivell esportiu</label>
               <select style={S.formInp} value={IF.sportLevel} onChange={e=>setIF("sportLevel",e.target.value)}>
                 <option value="">Selecciona...</option>
-                {["Principiant","Intermedi","AvanÃ§at","Competidor","Professional"].map(o=><option key={o} value={o}>{o}</option>)}
+                {["Principiant","Intermedi","Avançat","Competidor","Professional"].map(o=><option key={o} value={o}>{o}</option>)}
               </select>
             </div>
-            <div style={{flex:1}}><label style={S.formLbl}>Anys a gimnÃ s / forÃ§a</label><input style={S.formInp} value={IF.strengthExperience} onChange={e=>setIF("strengthExperience",e.target.value)} placeholder="4 anys"/></div>
+            <div style={{flex:1}}><label style={S.formLbl}>Anys a gimnàs / força</label><input style={S.formInp} value={IF.strengthExperience} onChange={e=>setIF("strengthExperience",e.target.value)} placeholder="4 anys"/></div>
           </div>
-          <div style={{marginBottom:10}}><label style={S.formLbl}>Entrenament actual (descriu una setmana tÃ­pica)</label><textarea style={{...S.formInp,minHeight:60,resize:"vertical"}} value={IF.currentTraining} onChange={e=>setIF("currentTraining",e.target.value)} placeholder="Ex. 2 partits de pÃ del i 2 dies de gimnÃ s"/></div>
+          <div style={{marginBottom:10}}><label style={S.formLbl}>Entrenament actual (descriu una setmana típica)</label><textarea style={{...S.formInp,minHeight:60,resize:"vertical"}} value={IF.currentTraining} onChange={e=>setIF("currentTraining",e.target.value)} placeholder="Ex. 2 partits de pàdel i 2 dies de gimnàs"/></div>
           <div style={{marginBottom:10}}><label style={S.formLbl}>Competicions o partits setmanals</label><input style={S.formInp} value={IF.competitions} onChange={e=>setIF("competitions",e.target.value)} placeholder="Ex. 1-2 partits/setmana"/></div>
-          <SectionTitle>Salut i molÃ¨sties</SectionTitle>
-          <div style={{marginBottom:10}}><label style={S.formLbl}>Lesions prÃ¨vies</label><textarea style={{...S.formInp,minHeight:60,resize:"vertical"}} value={IF.injuries} onChange={e=>setIF("injuries",e.target.value)} placeholder="Ex. EsguinÃ§ de turmell fa 2 anys"/></div>
+          <SectionTitle>Salut i molèsties</SectionTitle>
+          <div style={{marginBottom:10}}><label style={S.formLbl}>Lesions prèvies</label><textarea style={{...S.formInp,minHeight:60,resize:"vertical"}} value={IF.injuries} onChange={e=>setIF("injuries",e.target.value)} placeholder="Ex. Esguinç de turmell fa 2 anys"/></div>
           <div style={{display:"flex",gap:8,marginBottom:10}}>
             <div style={{flex:1}}><label style={S.formLbl}>Dolor actual</label><input style={S.formInp} value={IF.currentPain} onChange={e=>setIF("currentPain",e.target.value)} placeholder="Ex. Cap / lumbar"/></div>
             <div style={{flex:1}}><label style={S.formLbl}>Zona de dolor</label><input style={S.formInp} value={IF.painZone} onChange={e=>setIF("painZone",e.target.value)} placeholder="Ex. Espatlla dreta"/></div>
           </div>
           <div style={{marginBottom:10}}><label style={S.formLbl}>Exercicis o moviments a evitar</label><input style={S.formInp} value={IF.avoidEx} onChange={e=>setIF("avoidEx",e.target.value)} placeholder="Ex. Sentadilla profunda"/></div>
-          <div style={{marginBottom:10}}><label style={S.formLbl}>Altres notes de salut</label><textarea style={{...S.formInp,minHeight:50,resize:"vertical"}} value={IF.healthNotes} onChange={e=>setIF("healthNotes",e.target.value)} placeholder="Qualsevol informaciÃ³ addicional..."/></div>
-          <SectionTitle>LogÃ­stica</SectionTitle>
+          <div style={{marginBottom:10}}><label style={S.formLbl}>Altres notes de salut</label><textarea style={{...S.formInp,minHeight:50,resize:"vertical"}} value={IF.healthNotes} onChange={e=>setIF("healthNotes",e.target.value)} placeholder="Qualsevol informació addicional..."/></div>
+          <SectionTitle>Logística</SectionTitle>
           <div style={{display:"flex",gap:8,marginBottom:10}}>
             <div style={{flex:1}}><label style={S.formLbl}>Dies per setmana</label><input style={S.formInp} value={IF.availability} onChange={e=>setIF("availability",e.target.value)} placeholder="Ex. 3-4 dies"/></div>
-            <div style={{flex:1}}><label style={S.formLbl}>Durada per sessiÃ³</label><input style={S.formInp} value={IF.sessionDuration} onChange={e=>setIF("sessionDuration",e.target.value)} placeholder="Ex. 45-60 min"/></div>
+            <div style={{flex:1}}><label style={S.formLbl}>Durada per sessió</label><input style={S.formInp} value={IF.sessionDuration} onChange={e=>setIF("sessionDuration",e.target.value)} placeholder="Ex. 45-60 min"/></div>
           </div>
           <div style={{marginBottom:10}}>
             <label style={S.lbl}>Quins dies tens disponibilitat?</label>
@@ -865,7 +865,7 @@ export default function App() {
                     const current=(IF.matchDays||"").split(",").map(s=>s.trim()).filter(Boolean);
                     const updated=sel?current.filter(x=>x!==d):[...current,d];
                     setIF("matchDays",updated.join(", "));
-                  }} style={{padding:"7px 12px",borderRadius:10,fontSize:12,cursor:"pointer",border:`1.5px solid ${sel?T.accent:T.border}`,background:sel?T.accent:T.card2,color:sel?T.bg:T.textSecondary,fontWeight:sel?500:400}}>
+                  }} style={{padding:"7px 12px",borderRadius:10,fontSize:12,cursor:"pointer",border:`1px solid ${sel?T.accent:T.border}`,background:sel?T.accent:T.card2,color:sel?T.bg:T.textSecondary,fontWeight:sel?500:400}}>
                     {d}
                   </button>
                 );
@@ -876,29 +876,29 @@ export default function App() {
             <label style={S.formLbl}>Lloc d'entrenament</label>
             <select style={S.formInp} value={IF.place} onChange={e=>setIF("place",e.target.value)}>
               <option value="">Selecciona...</option>
-              {["GimnÃ s","Casa","Exterior","Pista","Altres"].map(o=><option key={o} value={o}>{o}</option>)}
+              {["Gimnàs","Casa","Exterior","Pista","Altres"].map(o=><option key={o} value={o}>{o}</option>)}
             </select>
           </div>
           <div style={{display:"flex",gap:8,marginBottom:10}}>
             <div style={{flex:1}}><label style={S.formLbl}>Material disponible</label><input style={S.formInp} value={IF.material} onChange={e=>setIF("material",e.target.value)} placeholder="Ex. Mancuernes, gomes..."/></div>
             <div style={{flex:1}}><label style={S.formLbl}>Horaris preferits</label><input style={S.formInp} value={IF.preferredSchedule} onChange={e=>setIF("preferredSchedule",e.target.value)} placeholder="Ex. Matins"/></div>
           </div>
-          <SectionTitle>PreferÃ¨ncies</SectionTitle>
-          <div style={{marginBottom:10}}><label style={S.formLbl}>Exercicis que t'agraden</label><input style={S.formInp} value={IF.likes} onChange={e=>setIF("likes",e.target.value)} placeholder="Ex. Rem, dominades, forÃ§a..."/></div>
+          <SectionTitle>Preferències</SectionTitle>
+          <div style={{marginBottom:10}}><label style={S.formLbl}>Exercicis que t'agraden</label><input style={S.formInp} value={IF.likes} onChange={e=>setIF("likes",e.target.value)} placeholder="Ex. Rem, dominades, força..."/></div>
           <div style={{marginBottom:10}}><label style={S.formLbl}>Exercicis que no t'agraden</label><input style={S.formInp} value={IF.dislikes} onChange={e=>setIF("dislikes",e.target.value)} placeholder="Ex. Burpees..."/></div>
-          <div style={{marginBottom:10}}><label style={S.formLbl}>Tipus d'entrenament que prefereixes</label><input style={S.formInp} value={IF.trainingPreferences} onChange={e=>setIF("trainingPreferences",e.target.value)} placeholder="Ex. ForÃ§a, circuits, funcional..."/></div>
+          <div style={{marginBottom:10}}><label style={S.formLbl}>Tipus d'entrenament que prefereixes</label><input style={S.formInp} value={IF.trainingPreferences} onChange={e=>setIF("trainingPreferences",e.target.value)} placeholder="Ex. Força, circuits, funcional..."/></div>
           <div style={{marginBottom:10}}><label style={S.formLbl}>Comentaris addicionals</label><textarea style={{...S.formInp,minHeight:60,resize:"vertical"}} value={IF.extraNotes} onChange={e=>setIF("extraNotes",e.target.value)} placeholder="Qualsevol cosa que vulguis afegir..."/></div>
           <SectionTitle>Com ens has trobat?</SectionTitle>
           <div style={{marginBottom:10}}>
             <select style={S.formInp} value={IF.source} onChange={e=>setIF("source",e.target.value)}>
               <option value="">Selecciona...</option>
-              {["RecomanaciÃ³","Instagram","Internet / Google","Club esportiu","Client actual","Amic/familiar","Altres"].map(o=><option key={o} value={o}>{o}</option>)}
+              {["Recomanació","Instagram","Internet / Google","Club esportiu","Client actual","Amic/familiar","Altres"].map(o=><option key={o} value={o}>{o}</option>)}
             </select>
           </div>
-          {(IF.source==="RecomanaciÃ³"||IF.source==="Client actual"||IF.source==="Amic/familiar")&&(
+          {(IF.source==="Recomanació"||IF.source==="Client actual"||IF.source==="Amic/familiar")&&(
             <div style={{marginBottom:10}}><label style={S.formLbl}>Qui t'ha recomanat?</label><input style={S.formInp} value={IF.referredBy} onChange={e=>setIF("referredBy",e.target.value)} placeholder="Nom de la persona"/></div>
           )}
-          {intakeError&&<div style={{background:T.dangerBg,border:`1.5px solid ${T.danger}40`,borderRadius:10,padding:"10px 12px",marginBottom:12,fontSize:13,color:T.danger}}>{intakeError}</div>}
+          {intakeError&&<div style={{background:T.dangerBg,border:`1px solid ${T.danger}40`,borderRadius:10,padding:"10px 12px",marginBottom:12,fontSize:13,color:T.danger}}>{intakeError}</div>}
           <button style={{...S.btnPrimary,padding:"14px",marginTop:16}} onClick={submitIntakeForm}>Enviar formulari</button>
         </div>
       </div>
@@ -916,7 +916,7 @@ export default function App() {
     </div>
   );
 
-  // â”€â”€ EDIT HISTORY SESSION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── EDIT HISTORY SESSION ──────────────────────────────────────────────────
   if(editingHistorySession) {
     const sess = editingHistorySession;
     const updateSess = (field,value) => setEditingHistorySession(p=>({...p,[field]:value}));
@@ -933,13 +933,13 @@ export default function App() {
     return (
       <div style={S.wrap}>
         <style>{cfStyle}</style>
-        <div style={{position:"sticky",top:0,background:T.card,borderBottom:`1.5px solid ${T.border}`,padding:"1rem 1.25rem",zIndex:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>Editar sessiÃ³</div>
-          <button style={S.btnSecondary} onClick={()=>{setEditingHistorySession(null);setEditingHistoryClientId(null);setEditingHistorySessionId(null);}}>CancelÂ·lar</button>
+        <div style={{position:"sticky",top:0,background:T.card,borderBottom:`1px solid ${T.border}`,padding:"1rem 1.25rem",zIndex:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>Editar sessió</div>
+          <button style={S.btnSecondary} onClick={()=>{setEditingHistorySession(null);setEditingHistoryClientId(null);setEditingHistorySessionId(null);}}>Cancel·lar</button>
         </div>
         <div style={{padding:"1rem 1.25rem"}}>
           <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Dades generals</div>
-          <div style={{marginBottom:8}}><label style={S.lbl}>TÃ­tol</label><input style={S.inp} value={sess.sessionTitle||""} onChange={e=>updateSess("sessionTitle",e.target.value)}/></div>
+          <div style={{marginBottom:8}}><label style={S.lbl}>Títol</label><input style={S.inp} value={sess.sessionTitle||""} onChange={e=>updateSess("sessionTitle",e.target.value)}/></div>
           <div style={{display:"flex",gap:8,marginBottom:8}}>
             <div style={{flex:1}}><label style={S.lbl}>Data</label><input style={S.inp} value={sess.date||""} onChange={e=>updateSess("date",e.target.value)}/></div>
             <div style={{flex:1}}><label style={S.lbl}>Dia</label><input style={S.inp} value={sess.day||""} onChange={e=>updateSess("day",e.target.value)}/></div>
@@ -950,33 +950,33 @@ export default function App() {
               {[1,2,3,4,5,6,7,8,9,10].map(n=>{
                 const c=getRpeColor(n);
                 const sel=sess.rpe===n;
-                return <button key={n} onClick={()=>updateSess("rpe",n)} style={{width:36,height:36,borderRadius:8,border:`1.5px solid ${sel?c.text:T.border}`,background:sel?c.bg:T.card2,color:sel?c.text:T.textSecondary,cursor:"pointer",fontSize:12,fontWeight:sel?600:400}}>{n}</button>;
+                return <button key={n} onClick={()=>updateSess("rpe",n)} style={{width:36,height:36,borderRadius:8,border:`2px solid ${sel?c.text:T.border}`,background:sel?c.bg:T.card2,color:sel?c.text:T.textSecondary,cursor:"pointer",fontSize:12,fontWeight:sel?600:400}}>{n}</button>;
               })}
             </div>
-            {sess.rpe&&<div style={{fontSize:11,color:T.textSecondary,marginTop:4}}>{sess.rpe} â€” {getRpeLabel(sess.rpe)}</div>}
+            {sess.rpe&&<div style={{fontSize:11,color:T.textSecondary,marginTop:4}}>{sess.rpe} — {getRpeLabel(sess.rpe)}</div>}
           </div>
           <div style={{marginBottom:8,background:T.card2,borderRadius:8,padding:"8px 12px",fontSize:12,color:T.textSecondary}}>
-            CÃ rrega interna estimada: <span style={{color:T.textPrimary,fontWeight:500}}>{calculateInternalLoad(sess.durationReal,sess.rpe)!=null?`${calculateInternalLoad(sess.durationReal,sess.rpe)} UA`:"â€”"}</span>
+            Càrrega interna estimada: <span style={{color:T.textPrimary,fontWeight:500}}>{calculateInternalLoad(sess.durationReal,sess.rpe)!=null?`${calculateInternalLoad(sess.durationReal,sess.rpe)} UA`:"—"}</span>
           </div>
           <div style={{display:"flex",gap:8,marginBottom:8}}>
             <div style={{flex:1}}><label style={S.lbl}>Durada (min)</label><input style={S.inp} type="number" value={sess.durationReal||""} onChange={e=>updateSess("durationReal",e.target.value)} placeholder="45"/></div>
           </div>
           <div style={{marginBottom:8}}>
-            <label style={S.lbl}>SensaciÃ³</label>
+            <label style={S.lbl}>Sensació</label>
             <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-              {[["ðŸ˜„","Molt bÃ©"],["ðŸ™‚","BÃ©"],["ðŸ˜","Normal"],["ðŸ˜“","Cansat"],["ðŸ˜£","MolÃ¨sties"]].map(([emoji,label])=>(
-                <button key={label} onClick={()=>updateSess("feeling",label)} style={{padding:"5px 9px",borderRadius:8,border:`1.5px solid ${sess.feeling===label?T.accent:T.border}`,background:sess.feeling===label?T.accent:T.card2,color:sess.feeling===label?T.bg:T.textSecondary,cursor:"pointer",fontSize:11}}>{emoji} {label}</button>
+              {[["😄","Molt bé"],["🙂","Bé"],["😐","Normal"],["😓","Cansat"],["😣","Molèsties"]].map(([emoji,label])=>(
+                <button key={label} onClick={()=>updateSess("feeling",label)} style={{padding:"5px 9px",borderRadius:8,border:`1px solid ${sess.feeling===label?T.accent:T.border}`,background:sess.feeling===label?T.accent:T.card2,color:sess.feeling===label?T.bg:T.textSecondary,cursor:"pointer",fontSize:11}}>{emoji} {label}</button>
               ))}
             </div>
           </div>
           <div style={{marginBottom:16}}><label style={S.lbl}>Notes finals</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={sess.clientNotes||""} onChange={e=>updateSess("clientNotes",e.target.value)}/></div>
           <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Check-in inicial</div>
-          {[{key:"energy",label:"Energia",max:5},{key:"sleep",label:"Son",max:5},{key:"stress",label:"EstrÃ¨s",max:5},{key:"fatigue",label:"Fatiga muscular",max:5}].map(({key,label,max})=>(
+          {[{key:"energy",label:"Energia",max:5},{key:"sleep",label:"Son",max:5},{key:"stress",label:"Estrès",max:5},{key:"fatigue",label:"Fatiga muscular",max:5}].map(({key,label,max})=>(
             <div key={key} style={{marginBottom:10}}>
               <label style={S.lbl}>{label} {(sess.checkIn||{})[key]?`${(sess.checkIn||{})[key]}/${max}`:""}</label>
               <div style={{display:"flex",gap:5}}>
                 {Array.from({length:max},(_,i)=>i+1).map(n=>(
-                  <button key={n} onClick={()=>updateSess("checkIn",{...(sess.checkIn||{}),[key]:String(n)})} style={{width:34,height:34,borderRadius:8,border:`1.5px solid ${Number((sess.checkIn||{})[key])===n?T.accent:T.border}`,background:Number((sess.checkIn||{})[key])===n?T.accent:T.card2,color:Number((sess.checkIn||{})[key])===n?T.bg:T.textSecondary,cursor:"pointer",fontSize:12}}>{n}</button>
+                  <button key={n} onClick={()=>updateSess("checkIn",{...(sess.checkIn||{}),[key]:String(n)})} style={{width:34,height:34,borderRadius:8,border:`1px solid ${Number((sess.checkIn||{})[key])===n?T.accent:T.border}`,background:Number((sess.checkIn||{})[key])===n?T.accent:T.card2,color:Number((sess.checkIn||{})[key])===n?T.bg:T.textSecondary,cursor:"pointer",fontSize:12}}>{n}</button>
                 ))}
               </div>
             </div>
@@ -985,7 +985,7 @@ export default function App() {
             <label style={S.lbl}>Dolor actual</label>
             <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
               {Array.from({length:11},(_,i)=>i).map(n=>(
-                <button key={n} onClick={()=>updateSess("checkIn",{...(sess.checkIn||{}),pain:String(n)})} style={{width:32,height:32,borderRadius:8,border:`1.5px solid ${Number((sess.checkIn||{}).pain)===n&&(sess.checkIn||{}).pain!==""?T.accent:T.border}`,background:Number((sess.checkIn||{}).pain)===n&&(sess.checkIn||{}).pain!==""?T.accent:T.card2,color:Number((sess.checkIn||{}).pain)===n&&(sess.checkIn||{}).pain!==""?T.bg:T.textSecondary,cursor:"pointer",fontSize:11}}>{n}</button>
+                <button key={n} onClick={()=>updateSess("checkIn",{...(sess.checkIn||{}),pain:String(n)})} style={{width:32,height:32,borderRadius:8,border:`1px solid ${Number((sess.checkIn||{}).pain)===n&&(sess.checkIn||{}).pain!==""?T.accent:T.border}`,background:Number((sess.checkIn||{}).pain)===n&&(sess.checkIn||{}).pain!==""?T.accent:T.card2,color:Number((sess.checkIn||{}).pain)===n&&(sess.checkIn||{}).pain!==""?T.bg:T.textSecondary,cursor:"pointer",fontSize:11}}>{n}</button>
               ))}
             </div>
           </div>
@@ -996,45 +996,45 @@ export default function App() {
             <div key={ei} style={{...S.card,marginBottom:10}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
                 <div style={{flex:1}}><input style={{...S.inp,fontWeight:500}} value={ex.name||""} onChange={e=>updateEx(ei,"name",e.target.value)}/></div>
-                <button style={{...S.btnDanger,marginLeft:8}} onClick={()=>removeEx(ei)}>Ã—</button>
+                <button style={{...S.btnDanger,marginLeft:8}} onClick={()=>removeEx(ei)}>×</button>
               </div>
               <div style={{display:"flex",gap:6,marginBottom:8}}>
                 <div style={{flex:1}}><label style={S.lbl}>Reps plan.</label><input style={S.inp} value={ex.plannedReps||""} onChange={e=>updateEx(ei,"plannedReps",e.target.value)}/></div>
-                <div style={{flex:1}}><label style={S.lbl}>CÃ rrega plan.</label><input style={S.inp} value={ex.plannedLoad||""} onChange={e=>updateEx(ei,"plannedLoad",e.target.value)}/></div>
+                <div style={{flex:1}}><label style={S.lbl}>Càrrega plan.</label><input style={S.inp} value={ex.plannedLoad||""} onChange={e=>updateEx(ei,"plannedLoad",e.target.value)}/></div>
                 <div style={{flex:1}}><label style={S.lbl}>Descans plan.</label><input style={S.inp} value={ex.plannedRest||""} onChange={e=>updateEx(ei,"plannedRest",e.target.value)}/></div>
               </div>
               <div style={{marginBottom:8}}><label style={S.lbl}>Observacions</label><input style={S.inp} value={ex.observations||""} onChange={e=>updateEx(ei,"observations",e.target.value)}/></div>
-              <div style={{fontSize:11,fontWeight:500,color:T.textSecondary,marginBottom:6}}>SÃ¨ries</div>
+              <div style={{fontSize:11,fontWeight:500,color:T.textSecondary,marginBottom:6}}>Sèries</div>
               {(ex.sets||[]).map((st,si)=>(
-                <div key={si} style={{background:T.card2,borderRadius:8,padding:"8px 10px",marginBottom:5,border:`1.5px solid ${st.completed?T.accent:T.border}`}}>
+                <div key={si} style={{background:T.card2,borderRadius:8,padding:"8px 10px",marginBottom:5,border:`1px solid ${st.completed?T.accent:T.border}`}}>
                   <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6}}>
-                    <button onClick={()=>updateSt(ei,si,"completed",!st.completed)} style={{width:22,height:22,borderRadius:"50%",border:`1.5px solid ${st.completed?T.accent:T.border}`,background:st.completed?T.accent:T.bg,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                    <button onClick={()=>updateSt(ei,si,"completed",!st.completed)} style={{width:22,height:22,borderRadius:"50%",border:`2px solid ${st.completed?T.accent:T.border}`,background:st.completed?T.accent:T.bg,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                       {st.completed&&<svg viewBox="0 0 16 16" width="11" height="11"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                     </button>
                     <span style={{fontSize:12,color:T.textPrimary,fontWeight:500}}>S{si+1}</span>
-                    <button onClick={()=>removeSt(ei,si)} style={{marginLeft:"auto",width:18,height:18,borderRadius:"50%",border:"none",background:T.dangerBg,color:T.danger,cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",justifyContent:"center"}}>Ã—</button>
+                    <button onClick={()=>removeSt(ei,si)} style={{marginLeft:"auto",width:18,height:18,borderRadius:"50%",border:"none",background:T.dangerBg,color:T.danger,cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
                   </div>
                   <div style={{display:"flex",gap:5}}>
                     <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} value={st.reps||""} onChange={e=>updateSt(ei,si,"reps",e.target.value)}/></div>
-                    <div style={{flex:1}}><label style={S.lbl}>CÃ rrega</label><input style={S.inp} value={st.load||""} onChange={e=>updateSt(ei,si,"load",e.target.value)}/></div>
+                    <div style={{flex:1}}><label style={S.lbl}>Càrrega</label><input style={S.inp} value={st.load||""} onChange={e=>updateSt(ei,si,"load",e.target.value)}/></div>
                     <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={st.rest||""} onChange={e=>updateSt(ei,si,"rest",e.target.value)}/></div>
                   </div>
                 </div>
               ))}
-              <button style={{...S.btnSecondary,width:"100%",textAlign:"center",fontSize:11,marginTop:4}} onClick={()=>addSt(ei)}>+ Afegir sÃ¨rie</button>
+              <button style={{...S.btnSecondary,width:"100%",textAlign:"center",fontSize:11,marginTop:4}} onClick={()=>addSt(ei)}>+ Afegir sèrie</button>
             </div>
           ))}
           {editHistoryAddEx ? (
             <div style={{background:"#1A1A24",border:"1px solid #E8FF4740",borderRadius:14,padding:"0.9rem",marginBottom:10}}>
-              <div style={{display:"flex",gap:0,marginBottom:12,borderBottom:`1.5px solid ${T.border}`}}>
-                {[["biblioteca","ðŸ“š Biblioteca"],["custom","âœï¸ Nou exercici"]].map(([tab,label])=>(
-                  <button key={tab} onClick={()=>setEditHistoryNewEx(p=>({...p,_tab:tab}))} style={{padding:"6px 12px",fontSize:11,cursor:"pointer",background:"none",border:"none",borderBottom:`1.5px solid ${(editHistoryNewEx._tab||"biblioteca")===tab?T.accent:"transparent"}`,color:(editHistoryNewEx._tab||"biblioteca")===tab?T.accent:T.textSecondary,marginBottom:-1}}>{label}</button>
+              <div style={{display:"flex",gap:0,marginBottom:12,borderBottom:`1px solid ${T.border}`}}>
+                {[["biblioteca","📚 Biblioteca"],["custom","✏️ Nou exercici"]].map(([tab,label])=>(
+                  <button key={tab} onClick={()=>setEditHistoryNewEx(p=>({...p,_tab:tab}))} style={{padding:"6px 12px",fontSize:11,cursor:"pointer",background:"none",border:"none",borderBottom:`2px solid ${(editHistoryNewEx._tab||"biblioteca")===tab?T.accent:"transparent"}`,color:(editHistoryNewEx._tab||"biblioteca")===tab?T.accent:T.textSecondary,marginBottom:-1}}>{label}</button>
                 ))}
               </div>
               {(editHistoryNewEx._tab||"biblioteca")==="biblioteca"&&(
                 <>
                   <div style={{fontSize:12,color:T.textSecondary,marginBottom:8}}>Tria un exercici de la biblioteca</div>
-                  {histLib.length===0&&<div style={{fontSize:12,color:T.textMuted,textAlign:"center",padding:"1rem 0"}}>La biblioteca estÃ  buida</div>}
+                  {histLib.length===0&&<div style={{fontSize:12,color:T.textMuted,textAlign:"center",padding:"1rem 0"}}>La biblioteca està buida</div>}
                   {histLib.map(libEx=>(
                     <div key={libEx.id} style={{...S.card,cursor:"pointer",padding:"0.6rem 0.8rem"}} onClick={()=>{
                       const numSets=libEx.defaultSets||1;
@@ -1044,7 +1044,7 @@ export default function App() {
                       setEditHistoryNewEx({name:"",sets:3,reps:"10",load:"",rest:"60s",observations:""});
                     }}>
                       <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{libEx.name}</div>
-                      <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{libEx.category} Â· {libEx.muscleGroup} Â· {libEx.defaultSets}Ã—{libEx.defaultReps}</div>
+                      <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{libEx.category} · {libEx.muscleGroup} · {libEx.defaultSets}×{libEx.defaultReps}</div>
                     </div>
                   ))}
                 </>
@@ -1053,11 +1053,11 @@ export default function App() {
                 <>
                   <div style={{marginBottom:8}}><label style={S.lbl}>Nom *</label><input style={S.inp} value={editHistoryNewEx.name||""} onChange={e=>setEditHistoryNewEx(p=>({...p,name:e.target.value}))}/></div>
                   <div style={{display:"flex",gap:6,marginBottom:8}}>
-                    <div style={{flex:1}}><label style={S.lbl}>SÃ¨ries</label><input style={S.inp} type="number" value={editHistoryNewEx.sets||3} onChange={e=>setEditHistoryNewEx(p=>({...p,sets:e.target.value}))}/></div>
+                    <div style={{flex:1}}><label style={S.lbl}>Sèries</label><input style={S.inp} type="number" value={editHistoryNewEx.sets||3} onChange={e=>setEditHistoryNewEx(p=>({...p,sets:e.target.value}))}/></div>
                     <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} value={editHistoryNewEx.reps||""} onChange={e=>setEditHistoryNewEx(p=>({...p,reps:e.target.value}))}/></div>
                   </div>
                   <div style={{display:"flex",gap:6,marginBottom:8}}>
-                    <div style={{flex:1}}><label style={S.lbl}>CÃ rrega</label><input style={S.inp} value={editHistoryNewEx.load||""} onChange={e=>setEditHistoryNewEx(p=>({...p,load:e.target.value}))}/></div>
+                    <div style={{flex:1}}><label style={S.lbl}>Càrrega</label><input style={S.inp} value={editHistoryNewEx.load||""} onChange={e=>setEditHistoryNewEx(p=>({...p,load:e.target.value}))}/></div>
                     <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={editHistoryNewEx.rest||""} onChange={e=>setEditHistoryNewEx(p=>({...p,rest:e.target.value}))}/></div>
                   </div>
                   <div style={{marginBottom:10}}><label style={S.lbl}>Observacions</label><input style={S.inp} value={editHistoryNewEx.observations||""} onChange={e=>setEditHistoryNewEx(p=>({...p,observations:e.target.value}))}/></div>
@@ -1071,7 +1071,7 @@ export default function App() {
                   }}>Afegir</button>
                 </>
               )}
-              <button style={{...S.btnSecondary,width:"100%",textAlign:"center",fontSize:12,marginTop:10}} onClick={()=>{setEditHistoryAddEx(false);setEditHistoryNewEx({name:"",sets:3,reps:"10",load:"",rest:"60s",observations:""});}}>CancelÂ·lar</button>
+              <button style={{...S.btnSecondary,width:"100%",textAlign:"center",fontSize:12,marginTop:10}} onClick={()=>{setEditHistoryAddEx(false);setEditHistoryNewEx({name:"",sets:3,reps:"10",load:"",rest:"60s",observations:""});}}>Cancel·lar</button>
             </div>
           ):(
             <button style={{...S.btnSecondary,width:"100%",textAlign:"center",fontSize:12,marginBottom:16}} onClick={()=>setEditHistoryAddEx(true)}>+ Afegir exercici</button>
@@ -1082,7 +1082,7 @@ export default function App() {
     );
   }
 
-  // â”€â”€ VIEWING INTAKE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── VIEWING INTAKE ────────────────────────────────────────────────────────
   if(viewingIntake) {
     const sub = viewingIntake;
     const d = sub.data||{};
@@ -1090,35 +1090,35 @@ export default function App() {
     const SecT = ({children}) => <div style={{fontSize:11,fontWeight:500,color:T.accent,textTransform:"uppercase",letterSpacing:"0.5px",marginTop:16,marginBottom:8}}>{children}</div>;
     return (
       <div style={S.wrap}>
-        <div style={{position:"sticky",top:0,background:T.card,borderBottom:`1.5px solid ${T.border}`,padding:"1rem 1.25rem",zIndex:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>{d.name||"SolÂ·licitud"}</div>
+        <div style={{position:"sticky",top:0,background:T.card,borderBottom:`1px solid ${T.border}`,padding:"1rem 1.25rem",zIndex:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>{d.name||"Sol·licitud"}</div>
           <button style={S.btnSecondary} onClick={()=>setViewingIntake(null)}>Tancar</button>
         </div>
         <div style={{padding:"1rem 1.25rem"}}>
           <SecT>Dades personals</SecT>
-          <Row label="Nom" value={d.name}/><Row label="Edat" value={d.age}/><Row label="Email" value={d.email}/><Row label="TelÃ¨fon" value={d.phone}/><Row label="ProfessiÃ³" value={d.profession}/>
+          <Row label="Nom" value={d.name}/><Row label="Edat" value={d.age}/><Row label="Email" value={d.email}/><Row label="Telèfon" value={d.phone}/><Row label="Professió" value={d.profession}/>
           <SecT>Objectius</SecT>
           <Row label="Objectiu principal" value={d.goal}/><Row label="Objectiu secundari" value={d.secondaryGoal}/><Row label="Objectiu 3 mesos" value={d.threeMonthGoal}/>
-          <SecT>ExperiÃ¨ncia esportiva</SecT>
-          <Row label="Esport" value={d.sport}/><Row label="Anys practicant" value={d.sportYears}/><Row label="Nivell" value={d.sportLevel}/><Row label="ExperiÃ¨ncia forÃ§a" value={d.strengthExperience}/><Row label="Entrenament actual" value={d.currentTraining}/><Row label="Competicions" value={d.competitions}/>
-          <SecT>Salut i molÃ¨sties</SecT>
-          <Row label="Lesions prÃ¨vies" value={d.injuries}/><Row label="Dolor actual" value={d.currentPain}/><Row label="Zona de dolor" value={d.painZone}/><Row label="Exercicis a evitar" value={d.avoidEx}/><Row label="Notes de salut" value={d.healthNotes}/>
-          <SecT>LogÃ­stica</SecT>
-          <Row label="Dies disponibles" value={d.availability}/><Row label="Quins dies" value={d.matchDays}/><Row label="Durada sessiÃ³" value={d.sessionDuration}/><Row label="Lloc" value={d.place}/><Row label="Material" value={d.material}/><Row label="Horaris" value={d.preferredSchedule}/>
-          <SecT>PreferÃ¨ncies</SecT>
-          <Row label="Li agraden" value={d.likes}/><Row label="No li agraden" value={d.dislikes}/><Row label="PreferÃ¨ncies" value={d.trainingPreferences}/><Row label="Notes extra" value={d.extraNotes}/>
+          <SecT>Experiència esportiva</SecT>
+          <Row label="Esport" value={d.sport}/><Row label="Anys practicant" value={d.sportYears}/><Row label="Nivell" value={d.sportLevel}/><Row label="Experiència força" value={d.strengthExperience}/><Row label="Entrenament actual" value={d.currentTraining}/><Row label="Competicions" value={d.competitions}/>
+          <SecT>Salut i molèsties</SecT>
+          <Row label="Lesions prèvies" value={d.injuries}/><Row label="Dolor actual" value={d.currentPain}/><Row label="Zona de dolor" value={d.painZone}/><Row label="Exercicis a evitar" value={d.avoidEx}/><Row label="Notes de salut" value={d.healthNotes}/>
+          <SecT>Logística</SecT>
+          <Row label="Dies disponibles" value={d.availability}/><Row label="Quins dies" value={d.matchDays}/><Row label="Durada sessió" value={d.sessionDuration}/><Row label="Lloc" value={d.place}/><Row label="Material" value={d.material}/><Row label="Horaris" value={d.preferredSchedule}/>
+          <SecT>Preferències</SecT>
+          <Row label="Li agraden" value={d.likes}/><Row label="No li agraden" value={d.dislikes}/><Row label="Preferències" value={d.trainingPreferences}/><Row label="Notes extra" value={d.extraNotes}/>
           <SecT>Origen</SecT>
           <Row label="Com ens ha trobat" value={d.source}/><Row label="Recomanat per" value={d.referredBy}/>
           <div style={{display:"flex",gap:8,marginTop:20}}>
             <button style={{...S.btnSecondary,flex:1,fontSize:12}} onClick={()=>rejectIntakeSubmission(sub)}>Rebutjar</button>
-            <button style={{...S.btnPrimary,flex:2,padding:"12px",fontSize:13}} onClick={()=>convertIntakeToClient(sub)}>âœ“ Crear client</button>
+            <button style={{...S.btnPrimary,flex:2,padding:"12px",fontSize:13}} onClick={()=>convertIntakeToClient(sub)}>✓ Crear client</button>
           </div>
         </div>
       </div>
     );
   }
 
-  // â”€â”€ SELECT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── SELECT ────────────────────────────────────────────────────────────────
   // Verificar si el client guardat encara existeix
   if(mode==="client" && data && selClient) {
     const clientExisteix = data.clients.find(c=>c.id===selClient);
@@ -1129,8 +1129,8 @@ export default function App() {
         <div style={{...S.wrap,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
           <div style={{textAlign:"center",padding:"2rem 1.25rem"}}>
             <img src="/logotcn.PNG" alt="TrainConcerNow" style={{width:180,maxWidth:"80%",margin:"0 auto 24px",display:"block"}}/>
-            <div style={{fontSize:18,fontWeight:500,color:T.danger,marginBottom:8}}>AccÃ©s no disponible</div>
-            <div style={{fontSize:14,color:T.textSecondary,lineHeight:1.6,marginBottom:24}}>Aquest accÃ©s ja no estÃ  disponible. Demana un nou enllaÃ§ al teu preparador.</div>
+            <div style={{fontSize:18,fontWeight:500,color:T.danger,marginBottom:8}}>Accés no disponible</div>
+            <div style={{fontSize:14,color:T.textSecondary,lineHeight:1.6,marginBottom:24}}>Aquest accés ja no està disponible. Demana un nou enllaç al teu preparador.</div>
             <button style={{...S.btnSecondary,fontSize:13}} onClick={()=>{setSelClient(null);setMode("public");}}>Tornar</button>
           </div>
         </div>
@@ -1143,29 +1143,29 @@ export default function App() {
       <style>{cfStyle}</style>
       <div style={{textAlign:"center",padding:"2rem 1.25rem 1.5rem"}}>
         <img src="/logotcn.PNG" alt="TrainConcerNow" style={{width:220,maxWidth:"85%",margin:"0 auto 20px",display:"block"}}/>
-        <div style={{fontSize:16,fontWeight:700,color:T.headerText,marginBottom:8}}>AccÃ©s no configurat</div>
-        <div style={{fontSize:13,color:T.accentDim,lineHeight:1.6,marginBottom:32}}>Obre l'enllaÃ§ que t'ha enviat el teu preparador.</div>
-        <button style={{...S.btnPrimary,maxWidth:280,margin:"0 auto 12px",background:T.accent,color:T.headerBg}} onClick={()=>setMode("intake")}>ðŸ“‹ Formulari inicial</button>
+        <div style={{fontSize:16,fontWeight:700,color:T.headerText,marginBottom:8}}>Accés no configurat</div>
+        <div style={{fontSize:13,color:T.accentDim,lineHeight:1.6,marginBottom:32}}>Obre l'enllaç que t'ha enviat el teu preparador.</div>
+        <button style={{...S.btnPrimary,maxWidth:280,margin:"0 auto 12px",background:T.accent,color:T.headerBg}} onClick={()=>setMode("intake")}>📋 Formulari inicial</button>
       </div>
     </div>
   );
 
-  // â”€â”€ PIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── PIN ───────────────────────────────────────────────────────────────────
   if(mode==="pin") return (
     <div style={{...S.wrap,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
       <style>{cfStyle}</style>
       <div style={{width:"100%",maxWidth:320,padding:"2rem 1.25rem",textAlign:"center"}}>
-        <div style={{width:56,height:56,background:T.card,borderRadius:16,margin:"0 auto 20px",display:"flex",alignItems:"center",justifyContent:"center",border:`1.5px solid ${T.border}`}}>
+        <div style={{width:56,height:56,background:T.card,borderRadius:16,margin:"0 auto 20px",display:"flex",alignItems:"center",justifyContent:"center",border:`1px solid ${T.border}`}}>
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke={T.accent} strokeWidth="1.5"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke={T.accent} strokeWidth="1.5" strokeLinecap="round"/><circle cx="12" cy="16" r="1.5" fill={T.accent}/></svg>
         </div>
-        <div style={{fontWeight:500,fontSize:18,color:T.textPrimary,marginBottom:6}}>Ã€rea del preparador</div>
+        <div style={{fontWeight:500,fontSize:18,color:T.textPrimary,marginBottom:6}}>Àrea del preparador</div>
         <div style={{fontSize:13,color:T.textSecondary,marginBottom:24}}>Introdueix el teu PIN</div>
         <input type="password" maxLength={6}
-          style={{...S.inp,textAlign:"center",fontSize:24,letterSpacing:10,maxWidth:160,margin:"0 auto 12px",display:"block",border:`1.5px solid ${pinError?T.danger:T.border}`}}
+          style={{...S.inp,textAlign:"center",fontSize:24,letterSpacing:10,maxWidth:160,margin:"0 auto 12px",display:"block",border:`1px solid ${pinError?T.danger:T.border}`}}
           value={pinInput}
           onChange={e=>{setPinInput(e.target.value);setPinError(false);}}
           onKeyDown={e=>{if(e.key==="Enter"){if(pinInput===PIN){setMode("admin");setPinInput("");}else setPinError(true);}}}
-          placeholder="Â·Â·Â·Â·" autoFocus/>
+          placeholder="····" autoFocus/>
         {pinError&&<div style={{fontSize:12,color:T.danger,marginBottom:10}}>PIN incorrecte</div>}
         <div style={{display:"flex",gap:8,justifyContent:"center",marginTop:4}}>
           <button style={S.btnSecondary} onClick={()=>{setMode("select");setPinInput("");setPinError(false);}}>Tornar</button>
@@ -1176,7 +1176,7 @@ export default function App() {
     </div>
   );
 
-  // â”€â”€ CLIENT ESTÃ€NDARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── CLIENT ESTÀNDARD ──────────────────────────────────────────────────────
   if(mode==="client") {
     const client = data.clients.find(c=>c.id===selClient);
     if(!client) { setMode("select"); return null; }
@@ -1196,21 +1196,21 @@ export default function App() {
 
         {showFinishModal&&(
           <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
-            <div style={{background:T.card,borderRadius:"20px 20px 0 0",padding:"1.5rem 1.25rem",width:"100%",maxWidth:520,border:`1.5px solid ${T.border}`}}>
+            <div style={{background:T.card,borderRadius:"20px 20px 0 0",padding:"1.5rem 1.25rem",width:"100%",maxWidth:520,border:`1px solid ${T.border}`}}>
               <div style={{fontWeight:500,fontSize:16,color:T.textPrimary,marginBottom:4}}>Finalitzar entrenament</div>
-              <div style={{fontSize:13,color:T.textSecondary,marginBottom:20}}>Com ha anat la sessiÃ³?</div>
+              <div style={{fontSize:13,color:T.textSecondary,marginBottom:20}}>Com ha anat la sessió?</div>
               <div style={{marginBottom:12}}>
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-                  <label style={{...S.lbl,marginBottom:0}}>RPE â€” EsforÃ§ percebut (1-10)</label>
-                  <button onClick={()=>setShowRpeInfo(p=>!p)} style={{width:18,height:18,borderRadius:"50%",border:`1.5px solid ${T.border}`,background:T.card2,color:T.textSecondary,cursor:"pointer",fontSize:11,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>i</button>
+                  <label style={{...S.lbl,marginBottom:0}}>RPE — Esforç percebut (1-10)</label>
+                  <button onClick={()=>setShowRpeInfo(p=>!p)} style={{width:18,height:18,borderRadius:"50%",border:`1px solid ${T.border}`,background:T.card2,color:T.textSecondary,cursor:"pointer",fontSize:11,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>i</button>
                 </div>
                 {showRpeInfo&&(
-                  <div style={{background:T.card2,border:`1.5px solid ${T.border}`,borderRadius:10,padding:"10px 12px",marginBottom:10,fontSize:12}}>
-                    <div style={{fontWeight:500,color:T.textPrimary,marginBottom:6}}>QuÃ¨ Ã©s l'RPE?</div>
-                    <div style={{color:T.textSecondary,marginBottom:6,lineHeight:1.5}}>PercepciÃ³ subjectiva de l'esforÃ§ de la sessiÃ³. "Com de dura t'ha semblat?"</div>
+                  <div style={{background:T.card2,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 12px",marginBottom:10,fontSize:12}}>
+                    <div style={{fontWeight:500,color:T.textPrimary,marginBottom:6}}>Què és l'RPE?</div>
+                    <div style={{color:T.textSecondary,marginBottom:6,lineHeight:1.5}}>Percepció subjectiva de l'esforç de la sessió. "Com de dura t'ha semblat?"</div>
                     <div style={{color:T.textSecondary,lineHeight:1.8,fontSize:11}}>
-                      <span style={{color:"#4ADE80"}}>1-2</span> Molt suau &nbsp;Â·&nbsp; <span style={{color:"#86EFAC"}}>3-4</span> Suau &nbsp;Â·&nbsp; <span style={{color:"#A78BFA"}}>5-6</span> Moderat<br/>
-                      <span style={{color:"#FB923C"}}>7-8</span> Intens &nbsp;Â·&nbsp; <span style={{color:"#F87171"}}>9-10</span> Molt intens / MÃ xim
+                      <span style={{color:"#4ADE80"}}>1-2</span> Molt suau &nbsp;·&nbsp; <span style={{color:"#86EFAC"}}>3-4</span> Suau &nbsp;·&nbsp; <span style={{color:"#A78BFA"}}>5-6</span> Moderat<br/>
+                      <span style={{color:"#FB923C"}}>7-8</span> Intens &nbsp;·&nbsp; <span style={{color:"#F87171"}}>9-10</span> Molt intens / Màxim
                     </div>
                     <button onClick={()=>setShowRpeInfo(false)} style={{...S.btnSecondary,fontSize:11,padding:"3px 10px",marginTop:8}}>Tancar</button>
                   </div>
@@ -1220,31 +1220,31 @@ export default function App() {
                     const c=getRpeColor(n);
                     const sel=finishForm.rpe===n;
                     return (
-                      <button key={n} onClick={()=>setFinishForm(p=>({...p,rpe:n}))} style={{width:38,height:38,borderRadius:10,border:`1.5px solid ${sel?c.text:T.border}`,background:sel?c.bg:T.card2,color:sel?c.text:T.textSecondary,cursor:"pointer",fontSize:13,fontWeight:sel?600:400,transition:"all 0.15s"}}>{n}</button>
+                      <button key={n} onClick={()=>setFinishForm(p=>({...p,rpe:n}))} style={{width:38,height:38,borderRadius:10,border:`2px solid ${sel?c.text:T.border}`,background:sel?c.bg:T.card2,color:sel?c.text:T.textSecondary,cursor:"pointer",fontSize:13,fontWeight:sel?600:400,transition:"all 0.15s"}}>{n}</button>
                     );
                   })}
                 </div>
-                {finishForm.rpe&&<div style={{fontSize:11,color:T.textSecondary,marginTop:5}}>{finishForm.rpe} â€” {getRpeLabel(finishForm.rpe)}</div>}
-                <div style={{fontSize:10,color:T.textMuted,marginTop:4}}>1-2 Molt suau Â· 3-4 Suau Â· 5-6 Moderat Â· 7-8 Intens Â· 9-10 MÃ xim</div>
+                {finishForm.rpe&&<div style={{fontSize:11,color:T.textSecondary,marginTop:5}}>{finishForm.rpe} — {getRpeLabel(finishForm.rpe)}</div>}
+                <div style={{fontSize:10,color:T.textMuted,marginTop:4}}>1-2 Molt suau · 3-4 Suau · 5-6 Moderat · 7-8 Intens · 9-10 Màxim</div>
               </div>
               <div style={{marginBottom:12}}>
                 <label style={S.lbl}>Durada real (minuts)</label>
                 <input style={{...S.inp,width:"auto",maxWidth:120}} type="number" placeholder="45" value={finishForm.duration} onChange={e=>setFinishForm(p=>({...p,duration:e.target.value}))}/>
               </div>
               <div style={{marginBottom:12}}>
-                <label style={S.lbl}>SensaciÃ³</label>
+                <label style={S.lbl}>Sensació</label>
                 <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                  {[["ðŸ˜„","Molt bÃ©"],["ðŸ™‚","BÃ©"],["ðŸ˜","Normal"],["ðŸ˜“","Cansat"],["ðŸ˜£","MolÃ¨sties"]].map(([emoji,label])=>(
-                    <button key={label} onClick={()=>setFinishForm(p=>({...p,feeling:label}))} style={{padding:"6px 10px",borderRadius:10,border:`1.5px solid ${finishForm.feeling===label?T.accent:T.border}`,background:finishForm.feeling===label?T.accent:T.card2,color:finishForm.feeling===label?T.bg:T.textSecondary,cursor:"pointer",fontSize:12}}>{emoji} {label}</button>
+                  {[["😄","Molt bé"],["🙂","Bé"],["😐","Normal"],["😓","Cansat"],["😣","Molèsties"]].map(([emoji,label])=>(
+                    <button key={label} onClick={()=>setFinishForm(p=>({...p,feeling:label}))} style={{padding:"6px 10px",borderRadius:10,border:`1px solid ${finishForm.feeling===label?T.accent:T.border}`,background:finishForm.feeling===label?T.accent:T.card2,color:finishForm.feeling===label?T.bg:T.textSecondary,cursor:"pointer",fontSize:12}}>{emoji} {label}</button>
                   ))}
                 </div>
               </div>
               <div style={{marginBottom:16}}>
                 <label style={S.lbl}>Notes (opcional)</label>
-                <textarea style={{...S.inp,minHeight:60,resize:"vertical"}} placeholder="Com t'has sentit, molÃ¨sties..." value={finishForm.notes} onChange={e=>setFinishForm(p=>({...p,notes:e.target.value}))}/>
+                <textarea style={{...S.inp,minHeight:60,resize:"vertical"}} placeholder="Com t'has sentit, molèsties..." value={finishForm.notes} onChange={e=>setFinishForm(p=>({...p,notes:e.target.value}))}/>
               </div>
               <div style={{display:"flex",gap:8}}>
-                <button style={{...S.btnSecondary,flex:1}} onClick={()=>setShowFinishModal(false)}>CancelÂ·lar</button>
+                <button style={{...S.btnSecondary,flex:1}} onClick={()=>setShowFinishModal(false)}>Cancel·lar</button>
                 <button style={{...S.btnPrimary,flex:2,padding:"12px"}} onClick={async()=>{
                   const sessionKey=`${selClient}-${selDay}`;
                   const sess=sessionExercises[sessionKey];
@@ -1260,18 +1260,18 @@ export default function App() {
                     setFinishForm({rpe:"",duration:"",feeling:"",notes:""});
                     setSessionExercises(p=>{const np={...p};delete np[sessionKey];return np;});
                   } catch(err) {
-                    console.error("Error guardant sessiÃ³", err);
-                    alert("No s'ha pogut guardar la sessiÃ³. Torna-ho a provar.");
+                    console.error("Error guardant sessió", err);
+                    alert("No s'ha pogut guardar la sessió. Torna-ho a provar.");
                   }
-                }}>Guardar sessiÃ³</button>
+                }}>Guardar sessió</button>
               </div>
             </div>
           </div>
         )}
 
-        <div style={{display:"flex",borderBottom:`1.5px solid ${T.border}`,padding:"0 1.25rem"}}>
-          {[["entrenament","ðŸ‹ï¸ Entrenament"],["perfil","ðŸ‘¤ Perfil"],["historial","ðŸ“‹ Historial"]].map(([tab,label])=>(
-            <button key={tab} onClick={()=>setClientViewTab(tab)} style={{padding:"10px 16px",fontSize:13,cursor:"pointer",background:"none",border:"none",borderBottom:`1.5px solid ${clientViewTab===tab?T.accent:"transparent"}`,color:clientViewTab===tab?T.accent:T.textSecondary,fontWeight:clientViewTab===tab?500:400,marginBottom:-1,transition:"all 0.15s"}}>{label}</button>
+        <div style={{display:"flex",borderBottom:`1px solid ${T.border}`,padding:"0 1.25rem"}}>
+          {[["entrenament","🏋️ Entrenament"],["perfil","👤 Perfil"],["historial","📋 Historial"]].map(([tab,label])=>(
+            <button key={tab} onClick={()=>setClientViewTab(tab)} style={{padding:"10px 16px",fontSize:13,cursor:"pointer",background:"none",border:"none",borderBottom:`2px solid ${clientViewTab===tab?T.accent:"transparent"}`,color:clientViewTab===tab?T.accent:T.textSecondary,fontWeight:clientViewTab===tab?500:400,marginBottom:-1,transition:"all 0.15s"}}>{label}</button>
           ))}
         </div>
 
@@ -1301,7 +1301,7 @@ export default function App() {
 
             if(!checkInDone) {
               const ScaleBtn=({value,selected,onClick})=>(
-                <button onClick={onClick} style={{width:36,height:36,borderRadius:8,border:`1.5px solid ${selected?T.accent:T.border}`,background:selected?T.accent:T.card2,color:selected?T.bg:T.textSecondary,cursor:"pointer",fontSize:13,fontWeight:selected?500:400}}>{value}</button>
+                <button onClick={onClick} style={{width:36,height:36,borderRadius:8,border:`1px solid ${selected?T.accent:T.border}`,background:selected?T.accent:T.card2,color:selected?T.bg:T.textSecondary,cursor:"pointer",fontSize:13,fontWeight:selected?500:400}}>{value}</button>
               );
               const ci2=checkInForm;
               const showPainAlert=ci2.pain!==""&&Number(ci2.pain)>=5;
@@ -1318,7 +1318,7 @@ export default function App() {
                       const active=selDay===d;
                       return (
                         <div key={d} style={{textAlign:"center",flexShrink:0}}>
-                          <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1.5px solid ${active?T.accent:T.border}`,background:active?T.accent:T.card,color:active?T.bg:T.textMuted,cursor:"pointer",fontSize:12}}>{["L","M","X","J","V","S","D"][i]}</button>
+                          <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1px solid ${active?T.accent:T.border}`,background:active?T.accent:T.card,color:active?T.bg:T.textMuted,cursor:"pointer",fontSize:12}}>{["L","M","X","J","V","S","D"][i]}</button>
                           {d===TODAY&&<div style={{fontSize:9,color:T.accent,marginTop:2}}>avui</div>}
                         </div>
                       );
@@ -1326,10 +1326,10 @@ export default function App() {
                   </div>
                   <div style={S.sec}>
                     <div style={{fontWeight:500,fontSize:18,color:T.textPrimary,marginBottom:4}}>Com arribes avui?</div>
-                    <div style={{fontSize:13,color:T.textSecondary,marginBottom:20}}>Respon rÃ pid abans de comenÃ§ar l'entrenament.</div>
-                    {showPainAlert&&<div style={{background:T.dangerBg,border:`1.5px solid ${T.danger}40`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:12,color:T.danger}}>âš ï¸ Dolor elevat reportat. Ajusta la intensitat o consulta amb l'entrenador.</div>}
-                    {showRecoveryAlert&&<div style={{background:T.orangeBg,border:`1.5px solid #7C2D12`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:12,color:T.orange}}>âš ï¸ RecuperaciÃ³ baixa. Considera baixar la intensitat.</div>}
-                    {[{key:"energy",label:"Energia",max:5},{key:"sleep",label:"Son",max:5},{key:"stress",label:"EstrÃ¨s",max:5},{key:"fatigue",label:"Fatiga muscular",max:5}].map(({key,label,max})=>(
+                    <div style={{fontSize:13,color:T.textSecondary,marginBottom:20}}>Respon ràpid abans de començar l'entrenament.</div>
+                    {showPainAlert&&<div style={{background:T.dangerBg,border:`1px solid ${T.danger}40`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:12,color:T.danger}}>⚠️ Dolor elevat reportat. Ajusta la intensitat o consulta amb l'entrenador.</div>}
+                    {showRecoveryAlert&&<div style={{background:T.orangeBg,border:`1px solid #7C2D12`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:12,color:T.orange}}>⚠️ Recuperació baixa. Considera baixar la intensitat.</div>}
+                    {[{key:"energy",label:"Energia",max:5},{key:"sleep",label:"Son",max:5},{key:"stress",label:"Estrès",max:5},{key:"fatigue",label:"Fatiga muscular",max:5}].map(({key,label,max})=>(
                       <div key={key} style={{marginBottom:14}}>
                         <label style={S.lbl}>{label} {checkInForm[key]?`${checkInForm[key]}/${max}`:""}</label>
                         <div style={{display:"flex",gap:6}}>
@@ -1348,10 +1348,10 @@ export default function App() {
                       </div>
                     </div>
                     {(checkInForm.pain!==""&&Number(checkInForm.pain)>0)&&(
-                      <div style={{marginBottom:14}}><label style={S.lbl}>Zona de dolor</label><input style={S.inp} value={checkInForm.painZone} onChange={e=>setCheckInForm(p=>({...p,painZone:e.target.value}))} placeholder="Ex. genoll dret, lumbarâ€¦"/></div>
+                      <div style={{marginBottom:14}}><label style={S.lbl}>Zona de dolor</label><input style={S.inp} value={checkInForm.painZone} onChange={e=>setCheckInForm(p=>({...p,painZone:e.target.value}))} placeholder="Ex. genoll dret, lumbar…"/></div>
                     )}
                     <div style={{marginBottom:20}}><label style={S.lbl}>Comentari inicial (opcional)</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={checkInForm.notes} onChange={e=>setCheckInForm(p=>({...p,notes:e.target.value}))} placeholder="Com et notes avui?"/></div>
-                    <button style={{...S.btnPrimary,padding:"13px"}} onClick={saveCheckIn}>ComenÃ§ar entrenament â†’</button>
+                    <button style={{...S.btnPrimary,padding:"13px"}} onClick={saveCheckIn}>Començar entrenament →</button>
                     <button style={{...S.btnSecondary,width:"100%",textAlign:"center",marginTop:8,fontSize:12}} onClick={()=>{
                       const updatedSession={...currentSession,checkIn:{...checkInForm,completedAt:new Date().toISOString()},updatedAt:new Date().toISOString()};
                       setSessionExercises(p=>({...p,[sessionKey]:updatedSession}));
@@ -1396,7 +1396,7 @@ export default function App() {
                     const active=selDay===d;
                     return (
                       <div key={d} style={{textAlign:"center",flexShrink:0}}>
-                        <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1.5px solid ${active?T.accent:T.border}`,background:active?T.accent:T.card,color:active?T.bg:T.textMuted,cursor:"pointer",fontSize:12,fontWeight:active?500:400}}>{["L","M","X","J","V","S","D"][i]}</button>
+                        <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1px solid ${active?T.accent:T.border}`,background:active?T.accent:T.card,color:active?T.bg:T.textMuted,cursor:"pointer",fontSize:12,fontWeight:active?500:400}}>{["L","M","X","J","V","S","D"][i]}</button>
                         {d===TODAY&&<div style={{fontSize:9,color:T.accent,marginTop:2}}>avui</div>}
                       </div>
                     );
@@ -1404,23 +1404,23 @@ export default function App() {
                 </div>
                 <div style={S.sec}>
                   {currentSession.checkIn?.completedAt&&(currentSession.checkIn.energy||currentSession.checkIn.pain!=="")&&(
-                    <div style={{background:T.card2,border:`1.5px solid ${T.border}`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:11,color:T.textSecondary}}>
+                    <div style={{background:T.card2,border:`1px solid ${T.border}`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:11,color:T.textSecondary}}>
                       <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4,fontSize:12}}>Check-in inicial</div>
                       <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-                        {currentSession.checkIn.energy&&<span>âš¡ {currentSession.checkIn.energy}/5</span>}
-                        {currentSession.checkIn.sleep&&<span>ðŸ˜´ {currentSession.checkIn.sleep}/5</span>}
-                        {currentSession.checkIn.stress&&<span>ðŸ§  {currentSession.checkIn.stress}/5</span>}
-                        {currentSession.checkIn.fatigue&&<span>ðŸ’ª {currentSession.checkIn.fatigue}/5</span>}
-                        {currentSession.checkIn.pain!==""&&currentSession.checkIn.pain!==undefined&&<span style={{color:Number(currentSession.checkIn.pain)>=5?T.danger:T.textSecondary}}>ðŸ©¹ {currentSession.checkIn.pain}/10{currentSession.checkIn.painZone?` Â· ${currentSession.checkIn.painZone}`:""}</span>}
+                        {currentSession.checkIn.energy&&<span>⚡ {currentSession.checkIn.energy}/5</span>}
+                        {currentSession.checkIn.sleep&&<span>😴 {currentSession.checkIn.sleep}/5</span>}
+                        {currentSession.checkIn.stress&&<span>🧠 {currentSession.checkIn.stress}/5</span>}
+                        {currentSession.checkIn.fatigue&&<span>💪 {currentSession.checkIn.fatigue}/5</span>}
+                        {currentSession.checkIn.pain!==""&&currentSession.checkIn.pain!==undefined&&<span style={{color:Number(currentSession.checkIn.pain)>=5?T.danger:T.textSecondary}}>🩹 {currentSession.checkIn.pain}/10{currentSession.checkIn.painZone?` · ${currentSession.checkIn.painZone}`:""}</span>}
                       </div>
                       {currentSession.checkIn.notes&&<div style={{marginTop:4,fontStyle:"italic"}}>"{currentSession.checkIn.notes}"</div>}
                     </div>
                   )}
-                  {wasRecovered&&<div style={{background:"#1A1A00",border:`1.5px solid ${T.accent}40`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:12,color:T.accent}}>âš¡ SessiÃ³ recuperada â€” continua on ho vas deixar</div>}
+                  {wasRecovered&&<div style={{background:"#1A1A00",border:`1px solid ${T.accent}40`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:12,color:T.accent}}>⚡ Sessió recuperada — continua on ho vas deixar</div>}
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
                     <div>
                       <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>{currentSession.templateName}</div>
-                      <div style={{fontSize:12,color:T.textSecondary}}>{selDay}{selDay===TODAY?" Â· Avui":""}</div>
+                      <div style={{fontSize:12,color:T.textSecondary}}>{selDay}{selDay===TODAY?" · Avui":""}</div>
                     </div>
                     <div style={{textAlign:"right"}}>
                       <div style={{fontSize:12,color:T.textSecondary,marginBottom:4}}>{dc}/{exs.length}</div>
@@ -1434,71 +1434,71 @@ export default function App() {
                       <div key={i} style={{...S.card,opacity:allSetsCompleted?0.6:1}}>
                         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:isExpanded?10:0}}>
                           <div style={{display:"flex",alignItems:"center",gap:10,flex:1,cursor:"pointer"}} onClick={()=>setExpandedExercises(p=>({...p,[`${sessionKey}-${i}`]:!isExpanded}))}>
-                            <div style={{width:26,height:26,borderRadius:"50%",border:`1.5px solid ${allSetsCompleted?T.accent:T.border}`,background:allSetsCompleted?T.accent:T.card2,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                            <div style={{width:26,height:26,borderRadius:"50%",border:`2px solid ${allSetsCompleted?T.accent:T.border}`,background:allSetsCompleted?T.accent:T.card2,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                               {allSetsCompleted&&<svg viewBox="0 0 16 16" width="14" height="14"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                             </div>
                             <div style={{flex:1}}>
                               <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
                                 <div style={{fontWeight:500,fontSize:14,color:allSetsCompleted?T.textMuted:T.textPrimary,textDecoration:allSetsCompleted?"line-through":"none"}}>{i+1}. {ex.name}</div>
-                                {ex.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1.5px solid #3A3A60`}}>Personalitzat</span>}
-                                {ex.isExtra&&!ex.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1.5px solid ${T.border}`}}>Extra</span>}
+                                {ex.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1px solid #3A3A60`}}>Personalitzat</span>}
+                                {ex.isExtra&&!ex.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1px solid ${T.border}`}}>Extra</span>}
                               </div>
-                              <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{ex.sets?.filter(s=>s.completed).length||0}/{ex.sets?.length||0} sÃ¨ries Â· {ex.plannedReps} reps{ex.plannedLoad?` Â· ${ex.plannedLoad}`:""}</div>
+                              <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{ex.sets?.filter(s=>s.completed).length||0}/{ex.sets?.length||0} sèries · {ex.plannedReps} reps{ex.plannedLoad?` · ${ex.plannedLoad}`:""}</div>
                             </div>
                             <svg viewBox="0 0 12 12" width="14" height="14" style={{transition:"transform 0.2s",transform:isExpanded?"rotate(180deg)":"rotate(0)",flexShrink:0}}><polyline points="2,4 6,8 10,4" fill="none" stroke={T.textSecondary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                           </div>
-                          <button onClick={()=>{setSessionExercises(p=>{const s={...p[sessionKey]};s.exercises=s.exercises.filter((_,ei)=>ei!==i);saveActiveSession(selClient,selDay,s);return {...p,[sessionKey]:s};});}} style={{width:22,height:22,borderRadius:"50%",border:"none",background:T.dangerBg,color:T.danger,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,lineHeight:1,flexShrink:0}}>Ã—</button>
+                          <button onClick={()=>{setSessionExercises(p=>{const s={...p[sessionKey]};s.exercises=s.exercises.filter((_,ei)=>ei!==i);saveActiveSession(selClient,selDay,s);return {...p,[sessionKey]:s};});}} style={{width:22,height:22,borderRadius:"50%",border:"none",background:T.dangerBg,color:T.danger,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,lineHeight:1,flexShrink:0}}>×</button>
                         </div>
                         {isExpanded&&(
                           <div style={{paddingLeft:36}}>
-                            {ex.observations&&<div style={{fontSize:12,color:T.textSecondary,marginBottom:8}}>ðŸ’¬ {ex.observations}</div>}
+                            {ex.observations&&<div style={{fontSize:12,color:T.textSecondary,marginBottom:8}}>💬 {ex.observations}</div>}
                             {(ex.sets||[]).map((st,j)=>(
-                              <div key={j} style={{background:T.card2,borderRadius:10,padding:"10px 12px",marginBottom:6,border:`1.5px solid ${st.completed?T.accent:T.border}`}}>
+                              <div key={j} style={{background:T.card2,borderRadius:10,padding:"10px 12px",marginBottom:6,border:`1px solid ${st.completed?T.accent:T.border}`}}>
                                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-                                  <button onClick={()=>toggleSet(i,j)} style={{width:24,height:24,borderRadius:"50%",border:`1.5px solid ${st.completed?T.accent:T.border}`,background:st.completed?T.accent:T.bg,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.2s"}}>
+                                  <button onClick={()=>toggleSet(i,j)} style={{width:24,height:24,borderRadius:"50%",border:`2px solid ${st.completed?T.accent:T.border}`,background:st.completed?T.accent:T.bg,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.2s"}}>
                                     {st.completed&&<svg viewBox="0 0 16 16" width="12" height="12"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                                   </button>
-                                  <span style={{fontSize:13,fontWeight:500,color:T.textPrimary}}>SÃ¨rie {j+1}</span>
-                                  <button onClick={()=>setSessionExercises(p=>{const s={...p[sessionKey]};s.exercises=s.exercises.map((e,ei)=>ei===i?{...e,sets:e.sets.filter((_,si)=>si!==j)}:e);saveActiveSession(selClient,selDay,s);return {...p,[sessionKey]:s};})} style={{marginLeft:"auto",width:20,height:20,borderRadius:"50%",border:"none",background:T.dangerBg,color:T.danger,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,lineHeight:1}}>Ã—</button>
+                                  <span style={{fontSize:13,fontWeight:500,color:T.textPrimary}}>Sèrie {j+1}</span>
+                                  <button onClick={()=>setSessionExercises(p=>{const s={...p[sessionKey]};s.exercises=s.exercises.map((e,ei)=>ei===i?{...e,sets:e.sets.filter((_,si)=>si!==j)}:e);saveActiveSession(selClient,selDay,s);return {...p,[sessionKey]:s};})} style={{marginLeft:"auto",width:20,height:20,borderRadius:"50%",border:"none",background:T.dangerBg,color:T.danger,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,lineHeight:1}}>×</button>
                                 </div>
                                 <div style={{display:"flex",gap:6}}>
                                   <div style={{flex:1}}><label style={S.lbl}>Reps fetes</label><input style={S.inp} value={st.reps} onChange={e=>updateSet(i,j,"reps",e.target.value)} placeholder={ex.plannedReps||"reps"}/></div>
-                                  <div style={{flex:1}}><label style={S.lbl}>Kg / cÃ rrega</label><input style={S.inp} value={st.load||""} onChange={e=>updateSet(i,j,"load",e.target.value)} placeholder={ex.plannedLoad||"kg"}/></div>
+                                  <div style={{flex:1}}><label style={S.lbl}>Kg / càrrega</label><input style={S.inp} value={st.load||""} onChange={e=>updateSet(i,j,"load",e.target.value)} placeholder={ex.plannedLoad||"kg"}/></div>
                                   <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={st.rest} onChange={e=>updateSet(i,j,"rest",e.target.value)} placeholder="90s"/></div>
                                 </div>
                               </div>
                             ))}
-                            <button style={{...S.btnSecondary,width:"100%",textAlign:"center",fontSize:12,marginTop:4}} onClick={()=>addSet(i)}>+ Afegir sÃ¨rie</button>
+                            <button style={{...S.btnSecondary,width:"100%",textAlign:"center",fontSize:12,marginTop:4}} onClick={()=>addSet(i)}>+ Afegir sèrie</button>
                           </div>
                         )}
                       </div>
                     );
                   })}
                   {dc===exs.length&&exs.length>0&&(
-                    <div style={{background:T.greenBg,border:`1.5px solid ${T.greenBorder}`,borderRadius:14,padding:"1.25rem",textAlign:"center",marginBottom:8}}>
-                      <div style={{fontSize:32,marginBottom:6}}>ðŸŽ‰</div>
+                    <div style={{background:T.greenBg,border:`1px solid ${T.greenBorder}`,borderRadius:14,padding:"1.25rem",textAlign:"center",marginBottom:8}}>
+                      <div style={{fontSize:32,marginBottom:6}}>🎉</div>
                       <div style={{fontWeight:500,color:T.green}}>Tots els exercicis completats!</div>
                     </div>
                   )}
                   <button style={{...S.btnPrimary,padding:"12px",marginTop:8}} onClick={()=>{setFinishForm({rpe:"",duration:"",feeling:"",notes:""});setShowFinishModal(true);}}>
-                    {dc===exs.length&&exs.length>0?"ðŸ Finalitzar entrenament":`ðŸ Finalitzar entrenament (${dc}/${exs.length})`}
+                    {dc===exs.length&&exs.length>0?"🏁 Finalitzar entrenament":`🏁 Finalitzar entrenament (${dc}/${exs.length})`}
                   </button>
                   {showAddExModal&&(
                     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
-                      <div style={{background:T.card,borderRadius:"20px 20px 0 0",padding:"1.5rem 1.25rem",width:"100%",maxWidth:520,border:`1.5px solid ${T.border}`,maxHeight:"80vh",overflowY:"auto"}}>
+                      <div style={{background:T.card,borderRadius:"20px 20px 0 0",padding:"1.5rem 1.25rem",width:"100%",maxWidth:520,border:`1px solid ${T.border}`,maxHeight:"80vh",overflowY:"auto"}}>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
                           <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>Afegir exercici</div>
                           <button style={{...S.btnSecondary,fontSize:12}} onClick={()=>{setShowAddExModal(false);setAddExTab("biblioteca");setCustomExForm({name:"",sets:3,reps:"10",load:"",rest:"60s",notes:""});}}>Tancar</button>
                         </div>
-                        <div style={{display:"flex",gap:0,marginBottom:16,borderBottom:`1.5px solid ${T.border}`}}>
-                          {[["biblioteca","ðŸ“š Biblioteca"],["custom","âœï¸ Exercici puntual"]].map(([tab,label])=>(
-                            <button key={tab} onClick={()=>setAddExTab(tab)} style={{padding:"8px 14px",fontSize:12,cursor:"pointer",background:"none",border:"none",borderBottom:`1.5px solid ${addExTab===tab?T.accent:"transparent"}`,color:addExTab===tab?T.accent:T.textSecondary,fontWeight:addExTab===tab?500:400,marginBottom:-1}}>{label}</button>
+                        <div style={{display:"flex",gap:0,marginBottom:16,borderBottom:`1px solid ${T.border}`}}>
+                          {[["biblioteca","📚 Biblioteca"],["custom","✏️ Exercici puntual"]].map(([tab,label])=>(
+                            <button key={tab} onClick={()=>setAddExTab(tab)} style={{padding:"8px 14px",fontSize:12,cursor:"pointer",background:"none",border:"none",borderBottom:`2px solid ${addExTab===tab?T.accent:"transparent"}`,color:addExTab===tab?T.accent:T.textSecondary,fontWeight:addExTab===tab?500:400,marginBottom:-1}}>{label}</button>
                           ))}
                         </div>
                         {addExTab==="biblioteca"&&(
                           <>
                             <div style={{fontSize:13,color:T.textSecondary,marginBottom:12}}>Tria un exercici de la biblioteca</div>
-                            {getClientLibrary(selClient).length===0&&<div style={{textAlign:"center",padding:"2rem 0",color:T.textSecondary,fontSize:13}}>La biblioteca estÃ  buida</div>}
+                            {getClientLibrary(selClient).length===0&&<div style={{textAlign:"center",padding:"2rem 0",color:T.textSecondary,fontSize:13}}>La biblioteca està buida</div>}
                             {getClientLibrary(selClient).map(ex=>(
                               <div key={ex.id} style={{...S.card,cursor:"pointer"}} onClick={()=>{
                                 const newEx={id:`extra_${Date.now()}`,exerciseId:ex.id,name:ex.name,plannedSets:ex.defaultSets,plannedReps:ex.defaultReps,plannedLoad:ex.defaultLoad||"",plannedRest:ex.defaultRest||"",observations:ex.instructions||"",isExtra:true,sets:Array.from({length:ex.defaultSets},()=>({reps:ex.defaultReps||"",load:ex.defaultLoad||"",rest:ex.defaultRest||"",completed:false}))};
@@ -1506,21 +1506,21 @@ export default function App() {
                                 setShowAddExModal(false);setAddExTab("biblioteca");
                               }}>
                                 <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{ex.name}</div>
-                                <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{ex.category} Â· {ex.muscleGroup} Â· {ex.defaultSets}Ã—{ex.defaultReps}</div>
+                                <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{ex.category} · {ex.muscleGroup} · {ex.defaultSets}×{ex.defaultReps}</div>
                               </div>
                             ))}
                           </>
                         )}
                         {addExTab==="custom"&&(
                           <>
-                            <div style={{fontSize:13,color:T.textSecondary,marginBottom:16}}>Crea un exercici nomÃ©s per a aquesta sessiÃ³</div>
-                            <div style={{marginBottom:10}}><label style={S.lbl}>Nom de l'exercici *</label><input style={S.inp} value={customExForm.name} onChange={e=>setCustomExForm(p=>({...p,name:e.target.value}))} placeholder="Ex. Press mÃ quina convergent"/></div>
+                            <div style={{fontSize:13,color:T.textSecondary,marginBottom:16}}>Crea un exercici només per a aquesta sessió</div>
+                            <div style={{marginBottom:10}}><label style={S.lbl}>Nom de l'exercici *</label><input style={S.inp} value={customExForm.name} onChange={e=>setCustomExForm(p=>({...p,name:e.target.value}))} placeholder="Ex. Press màquina convergent"/></div>
                             <div style={{display:"flex",gap:8,marginBottom:10}}>
-                              <div style={{flex:1}}><label style={S.lbl}>SÃ¨ries</label><input style={S.inp} type="number" min="1" value={customExForm.sets} onChange={e=>setCustomExForm(p=>({...p,sets:e.target.value}))}/></div>
+                              <div style={{flex:1}}><label style={S.lbl}>Sèries</label><input style={S.inp} type="number" min="1" value={customExForm.sets} onChange={e=>setCustomExForm(p=>({...p,sets:e.target.value}))}/></div>
                               <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} value={customExForm.reps} onChange={e=>setCustomExForm(p=>({...p,reps:e.target.value}))} placeholder="10"/></div>
                             </div>
                             <div style={{display:"flex",gap:8,marginBottom:10}}>
-                              <div style={{flex:1}}><label style={S.lbl}>Kg / cÃ rrega</label><input style={S.inp} value={customExForm.load} onChange={e=>setCustomExForm(p=>({...p,load:e.target.value}))} placeholder="kg"/></div>
+                              <div style={{flex:1}}><label style={S.lbl}>Kg / càrrega</label><input style={S.inp} value={customExForm.load} onChange={e=>setCustomExForm(p=>({...p,load:e.target.value}))} placeholder="kg"/></div>
                               <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={customExForm.rest} onChange={e=>setCustomExForm(p=>({...p,rest:e.target.value}))} placeholder="60s"/></div>
                             </div>
                             <div style={{marginBottom:16}}><label style={S.lbl}>Notes (opcional)</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={customExForm.notes} onChange={e=>setCustomExForm(p=>({...p,notes:e.target.value}))}/></div>
@@ -1529,10 +1529,10 @@ export default function App() {
                               const numSets=Number(customExForm.sets)||1;
                               const newEx={id:`custom_${Date.now()}`,exerciseId:null,name:customExForm.name.trim(),plannedSets:numSets,plannedReps:customExForm.reps||"",plannedLoad:customExForm.load||"",plannedRest:customExForm.rest||"",observations:customExForm.notes||"",isExtra:true,isCustom:true,sets:Array.from({length:numSets},()=>({reps:customExForm.reps||"",load:customExForm.load||"",rest:customExForm.rest||"",completed:false}))};
                               setSessionExercises(p=>{const s={...p[sessionKey]};s.exercises=[...s.exercises,newEx];saveActiveSession(selClient,selDay,s);return {...p,[sessionKey]:s};});
-                              const libEx={id:`ex_${Date.now()}`,name:customExForm.name.trim(),category:"ForÃ§a",muscleGroup:"",movementPattern:"",material:"",defaultSets:numSets,defaultReps:customExForm.reps||"10",defaultLoad:customExForm.load||"",defaultRest:customExForm.rest||"60s",instructions:customExForm.notes||"",observations:"",level:"Principiant"};
+                              const libEx={id:`ex_${Date.now()}`,name:customExForm.name.trim(),category:"Força",muscleGroup:"",movementPattern:"",material:"",defaultSets:numSets,defaultReps:customExForm.reps||"10",defaultLoad:customExForm.load||"",defaultRest:customExForm.rest||"60s",instructions:customExForm.notes||"",observations:"",level:"Principiant"};
                               updateClientLibrary(selClient,[...getClientLibrary(selClient),libEx]);
                               setShowAddExModal(false);setAddExTab("biblioteca");setCustomExForm({name:"",sets:3,reps:"10",load:"",rest:"60s",notes:""});
-                            }}>Afegir a la sessiÃ³</button>
+                            }}>Afegir a la sessió</button>
                           </>
                         )}
                       </div>
@@ -1540,11 +1540,11 @@ export default function App() {
                   )}
                   <button style={{...S.btnSecondary,marginTop:8,width:"100%",textAlign:"center"}} onClick={()=>setShowAddExModal(true)}>+ Afegir exercici</button>
                   <button style={{...S.btnSecondary,marginTop:8,width:"100%",textAlign:"center"}} onClick={()=>{
-                    if(window.confirm("Segur que vols descartar aquesta sessiÃ³ en curs?")) {
+                    if(window.confirm("Segur que vols descartar aquesta sessió en curs?")) {
                       deleteActiveSession(selClient,selDay);
                       setSessionExercises(p=>{const np={...p};delete np[sessionKey];return np;});
                     }
-                  }}>â† Descartar sessiÃ³ i canviar entrenament</button>
+                  }}>← Descartar sessió i canviar entrenament</button>
                 </div>
               </>
             );
@@ -1557,7 +1557,7 @@ export default function App() {
                   const active=selDay===d;
                   return (
                     <div key={d} style={{textAlign:"center",flexShrink:0}}>
-                      <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1.5px solid ${active?T.accent:T.border}`,background:active?T.accent:T.card,color:active?T.bg:T.textMuted,cursor:"pointer",fontSize:12,fontWeight:active?500:400}}>{["L","M","X","J","V","S","D"][i]}</button>
+                      <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1px solid ${active?T.accent:T.border}`,background:active?T.accent:T.card,color:active?T.bg:T.textMuted,cursor:"pointer",fontSize:12,fontWeight:active?500:400}}>{["L","M","X","J","V","S","D"][i]}</button>
                       {d===TODAY&&<div style={{fontSize:9,color:T.accent,marginTop:2}}>avui</div>}
                     </div>
                   );
@@ -1568,7 +1568,7 @@ export default function App() {
                 {selDay===TODAY&&<div style={{fontSize:12,color:T.accent,fontWeight:500,marginBottom:12}}>Avui</div>}
                 {dayTemplates.length===0?(
                   <div style={{textAlign:"center",padding:"2rem 0",color:T.textSecondary}}>
-                    <div style={{fontSize:40,marginBottom:12}}>ðŸ›‹ï¸</div>
+                    <div style={{fontSize:40,marginBottom:12}}>🛋️</div>
                     <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4}}>Dia de descans</div>
                     <div style={{fontSize:13,marginBottom:16}}>Descansa i recupera energia</div>
                     <div style={{textAlign:"left"}}>
@@ -1578,7 +1578,7 @@ export default function App() {
                           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                             <div>
                               <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>{tpl.name}</div>
-                              <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{tpl.objective} Â· {tpl.estimatedDuration}</div>
+                              <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{tpl.objective} · {tpl.estimatedDuration}</div>
                             </div>
                             <span style={S.tag("purple")}>{tpl.exercises?.length||0} ex</span>
                           </div>
@@ -1594,18 +1594,18 @@ export default function App() {
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
                           <div>
                             <div style={{fontWeight:500,fontSize:15,color:T.textPrimary}}>{tpl.name}</div>
-                            <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{tpl.objective} Â· {tpl.estimatedDuration}</div>
+                            <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{tpl.objective} · {tpl.estimatedDuration}</div>
                           </div>
                           <span style={S.tag("purple")}>{tpl.exercises.length} ex</span>
                         </div>
                         {tpl.exercises.map((ex,i)=>(
-                          <div key={ex.id} style={{display:"flex",alignItems:"center",gap:8,padding:"3px 0",borderBottom:`1.5px solid ${T.border}`}}>
+                          <div key={ex.id} style={{display:"flex",alignItems:"center",gap:8,padding:"3px 0",borderBottom:`1px solid ${T.border}`}}>
                             <span style={{fontSize:11,color:T.textMuted,width:16}}>{i+1}.</span>
                             <span style={{fontSize:12,flex:1,color:T.textSecondary}}>{ex.name}</span>
-                            <span style={{fontSize:11,color:T.textMuted}}>{ex.plannedSets}Ã—{ex.plannedReps}</span>
+                            <span style={{fontSize:11,color:T.textMuted}}>{ex.plannedSets}×{ex.plannedReps}</span>
                           </div>
                         ))}
-                        <button style={{...S.btnPrimary,marginTop:12,padding:"10px",fontSize:13}}>ComenÃ§ar entrenament â†’</button>
+                        <button style={{...S.btnPrimary,marginTop:12,padding:"10px",fontSize:13}}>Començar entrenament →</button>
                       </div>
                     ))}
                   </>
@@ -1618,11 +1618,11 @@ export default function App() {
         {clientViewTab==="perfil"&&(()=>{
           const fields=[
             {key:"age",label:"Edat",placeholder:"Ex. 28"},
-            {key:"level",label:"Nivell",type:"select",options:["principiant","intermedi","avanÃ§at"]},
-            {key:"place",label:"Lloc d'entrenament",type:"select",options:["gimnÃ s","casa","exterior","pista","altre"]},
+            {key:"level",label:"Nivell",type:"select",options:["principiant","intermedi","avançat"]},
+            {key:"place",label:"Lloc d'entrenament",type:"select",options:["gimnàs","casa","exterior","pista","altre"]},
             {key:"material",label:"Material disponible",placeholder:"Ex. manuelles, goma..."},
             {key:"startDate",label:"Data d'inici",placeholder:"Ex. 01/01/2025"},
-            {key:"injuries",label:"Lesions prÃ¨vies",placeholder:"Ex. genoll dret..."},
+            {key:"injuries",label:"Lesions prèvies",placeholder:"Ex. genoll dret..."},
             {key:"currentPain",label:"Dolor actual",placeholder:"Ex. cap / lumbar..."},
             {key:"avoidEx",label:"Exercicis a evitar",placeholder:"Ex. sentadilla profunda..."},
             {key:"likes",label:"Exercicis que li agraden",placeholder:"Ex. rem, dominades..."},
@@ -1639,19 +1639,19 @@ export default function App() {
                 {!editingClient
                   ?<button style={{...S.btnSecondary,fontSize:12}} onClick={()=>{const {coachNotes,...pub}=client;void coachNotes;setClientDraft(pub);setEditingClient(true);}}>Editar</button>
                   :<div style={{display:"flex",gap:8}}>
-                    <button style={{...S.btnSecondary,fontSize:12}} onClick={()=>setEditingClient(false)}>CancelÂ·lar</button>
+                    <button style={{...S.btnSecondary,fontSize:12}} onClick={()=>setEditingClient(false)}>Cancel·lar</button>
                     <button style={{...S.btnPrimary,width:"auto",padding:"6px 14px",fontSize:12}} onClick={saveClientData}>Guardar</button>
                   </div>
                 }
               </div>
               <div style={{...S.card,marginBottom:12}}>
-                <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Dades bÃ siques</div>
+                <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Dades bàsiques</div>
                 <div style={{marginBottom:8}}><label style={S.lbl}>Nom complet</label>{editingClient?<input style={S.inp} value={clientDraft?.name||""} onChange={e=>setClientDraft(p=>({...p,name:e.target.value}))}/>:<div style={{fontSize:14,color:T.textPrimary,fontWeight:500}}>{client?.name}</div>}</div>
-                <div style={{marginBottom:8}}><label style={S.lbl}>Objectiu principal</label>{editingClient?<input style={S.inp} value={clientDraft?.goal||""} onChange={e=>setClientDraft(p=>({...p,goal:e.target.value}))}/>:<div style={{fontSize:13,color:T.textPrimary}}>{client?.goal||"â€”"}</div>}</div>
+                <div style={{marginBottom:8}}><label style={S.lbl}>Objectiu principal</label>{editingClient?<input style={S.inp} value={clientDraft?.goal||""} onChange={e=>setClientDraft(p=>({...p,goal:e.target.value}))}/>:<div style={{fontSize:13,color:T.textPrimary}}>{client?.goal||"—"}</div>}</div>
                 {fields.slice(0,5).map(f=>(
                   <div key={f.key} style={{marginBottom:8}}>
                     <label style={S.lbl}>{f.label}</label>
-                    {editingClient?f.type==="select"?<select style={S.inp} value={clientDraft?.[f.key]||""} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}>{f.options.map(o=><option key={o} value={o}>{o}</option>)}</select>:<input style={S.inp} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>:<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"â€”"}</div>}
+                    {editingClient?f.type==="select"?<select style={S.inp} value={clientDraft?.[f.key]||""} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}>{f.options.map(o=><option key={o} value={o}>{o}</option>)}</select>:<input style={S.inp} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>:<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"—"}</div>}
                   </div>
                 ))}
               </div>
@@ -1660,16 +1660,16 @@ export default function App() {
                 {fields.slice(5,8).map(f=>(
                   <div key={f.key} style={{marginBottom:8}}>
                     <label style={S.lbl}>{f.label}</label>
-                    {editingClient?<input style={S.inp} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>:<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"â€”"}</div>}
+                    {editingClient?<input style={S.inp} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>:<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"—"}</div>}
                   </div>
                 ))}
               </div>
               <div style={S.card}>
-                <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>PreferÃ¨ncies i notes</div>
+                <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Preferències i notes</div>
                 {fields.slice(8).map(f=>(
                   <div key={f.key} style={{marginBottom:8}}>
                     <label style={S.lbl}>{f.label}</label>
-                    {editingClient?<textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>:<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"â€”"}</div>}
+                    {editingClient?<textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>:<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"—"}</div>}
                   </div>
                 ))}
               </div>
@@ -1690,7 +1690,7 @@ export default function App() {
             <div style={S.sec}>
               {totalS===0?(
                 <div style={{textAlign:"center",padding:"3rem 0",color:T.textSecondary}}>
-                  <div style={{fontSize:40,marginBottom:12}}>ðŸ“‹</div>
+                  <div style={{fontSize:40,marginBottom:12}}>📋</div>
                   <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4}}>Encara no hi ha sessions</div>
                   <div style={{fontSize:13}}>Completa el primer entrenament per veure l'historial</div>
                 </div>
@@ -1698,7 +1698,7 @@ export default function App() {
                 <>
                   <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:8,marginBottom:16}}>
                     {[{label:"Total sessions",value:totalS,color:T.accent},{label:"Aquesta setmana",value:thisWeek,color:T.green}].map(st=>(
-                      <div key={st.label} style={{background:T.card,borderRadius:12,padding:"0.75rem",textAlign:"center",border:`1.5px solid ${T.border}`}}>
+                      <div key={st.label} style={{background:T.card,borderRadius:12,padding:"0.75rem",textAlign:"center",border:`1px solid ${T.border}`}}>
                         <div style={{fontSize:22,fontWeight:500,color:st.color}}>{st.value}</div>
                         <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{st.label}</div>
                       </div>
@@ -1713,13 +1713,13 @@ export default function App() {
                       <div key={sessId} style={S.card}>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
                           <div style={{flex:1}}>
-                            <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>{sess.sessionTitle||sess.day||"SessiÃ³"}</div>
-                            <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{sess.date}{sess.durationReal?` Â· ${sess.durationReal} min`:""}</div>
+                            <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>{sess.sessionTitle||sess.day||"Sessió"}</div>
+                            <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{sess.date}{sess.durationReal?` · ${sess.durationReal} min`:""}</div>
                           </div>
-                          <button style={{...S.btnDanger,fontSize:11,padding:"3px 8px"}} onClick={()=>deleteHistorySession(selClient,sessId)}>ðŸ—‘ï¸</button>
+                          <button style={{...S.btnDanger,fontSize:11,padding:"3px 8px"}} onClick={()=>deleteHistorySession(selClient,sessId)}>🗑️</button>
                         </div>
                         <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>
-                          <span style={full?S.tag("green"):S.tag()}>{full?"âœ“ Complet":`${sess.completionPercentage||0}%`}</span>
+                          <span style={full?S.tag("green"):S.tag()}>{full?"✓ Complet":`${sess.completionPercentage||0}%`}</span>
                           {sess.rpe&&<span style={S.tag("purple")}>RPE {sess.rpe}</span>}
                           {(()=>{const l=getSessionInternalLoad(sess);return l!=null?<span style={S.tag("accent")}>{l} UA</span>:null;})()}
                           {sess.feeling&&<span style={S.tag()}>{sess.feeling}</span>}
@@ -1729,40 +1729,40 @@ export default function App() {
                         <div style={{fontSize:12,color:T.textSecondary,marginBottom:8}}>{sess.completedExercises||0}/{sess.totalExercises||0} exercicis</div>
                         <ProgressBar value={sess.completedExercises||0} total={sess.totalExercises||1} color={full?T.green:T.accent}/>
                         <div style={{display:"flex",gap:6,marginTop:10}}>
-                          <button onClick={()=>setExpandedHistory(p=>({...p,[sessId]:!p[sessId]}))} style={{...S.btnSecondary,flex:1,textAlign:"center",fontSize:12}}>{isExpanded?"â–² Amagar":"â–¼ Detalls"}</button>
-                          <button style={{...S.btnSecondary,flex:1,textAlign:"center",fontSize:12}} onClick={()=>openEditHistorySession(selClient,sess,sessId)}>âœï¸ Editar</button>
+                          <button onClick={()=>setExpandedHistory(p=>({...p,[sessId]:!p[sessId]}))} style={{...S.btnSecondary,flex:1,textAlign:"center",fontSize:12}}>{isExpanded?"▲ Amagar":"▼ Detalls"}</button>
+                          <button style={{...S.btnSecondary,flex:1,textAlign:"center",fontSize:12}} onClick={()=>openEditHistorySession(selClient,sess,sessId)}>✏️ Editar</button>
                         </div>
                         {isExpanded&&(
-                          <div style={{marginTop:10,paddingTop:10,borderTop:`1.5px solid ${T.border}`}}>
+                          <div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${T.border}`}}>
                             {sess.checkIn?.completedAt&&(
                               <div style={{background:T.card2,borderRadius:8,padding:"8px 10px",marginBottom:10}}>
                                 <div style={{fontWeight:500,fontSize:11,color:T.textSecondary,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.5px"}}>Check-in inicial</div>
                                 <div style={{display:"flex",flexWrap:"wrap",gap:8,fontSize:12,color:T.textSecondary}}>
-                                  {sess.checkIn.energy&&<span>âš¡ Energia {sess.checkIn.energy}/5</span>}
-                                  {sess.checkIn.sleep&&<span>ðŸ˜´ Son {sess.checkIn.sleep}/5</span>}
-                                  {sess.checkIn.stress&&<span>ðŸ§  EstrÃ¨s {sess.checkIn.stress}/5</span>}
-                                  {sess.checkIn.fatigue&&<span>ðŸ’ª Fatiga {sess.checkIn.fatigue}/5</span>}
-                                  {sess.checkIn.pain!==""&&sess.checkIn.pain!=null&&<span style={{color:Number(sess.checkIn.pain)>=5?T.danger:T.textSecondary}}>ðŸ©¹ Dolor {sess.checkIn.pain}/10{sess.checkIn.painZone?` Â· ${sess.checkIn.painZone}`:""}</span>}
+                                  {sess.checkIn.energy&&<span>⚡ Energia {sess.checkIn.energy}/5</span>}
+                                  {sess.checkIn.sleep&&<span>😴 Son {sess.checkIn.sleep}/5</span>}
+                                  {sess.checkIn.stress&&<span>🧠 Estrès {sess.checkIn.stress}/5</span>}
+                                  {sess.checkIn.fatigue&&<span>💪 Fatiga {sess.checkIn.fatigue}/5</span>}
+                                  {sess.checkIn.pain!==""&&sess.checkIn.pain!=null&&<span style={{color:Number(sess.checkIn.pain)>=5?T.danger:T.textSecondary}}>🩹 Dolor {sess.checkIn.pain}/10{sess.checkIn.painZone?` · ${sess.checkIn.painZone}`:""}</span>}
                                 </div>
                                 {sess.checkIn.notes&&<div style={{fontSize:11,color:T.textMuted,marginTop:4,fontStyle:"italic"}}>"{sess.checkIn.notes}"</div>}
                               </div>
                             )}
-                            {sess.clientNotes&&<div style={{fontSize:12,color:T.textSecondary,marginBottom:10,fontStyle:"italic",background:T.card2,borderRadius:8,padding:"6px 10px"}}>ðŸ’¬ {sess.clientNotes}</div>}
+                            {sess.clientNotes&&<div style={{fontSize:12,color:T.textSecondary,marginBottom:10,fontStyle:"italic",background:T.card2,borderRadius:8,padding:"6px 10px"}}>💬 {sess.clientNotes}</div>}
                             {exercises.map((e,i)=>(
-                              <div key={i} style={{marginBottom:10,paddingBottom:10,borderBottom:`1.5px solid ${T.border}`}}>
+                              <div key={i} style={{marginBottom:10,paddingBottom:10,borderBottom:`1px solid ${T.border}`}}>
                                 <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap",marginBottom:4}}>
-                                  <span style={{fontSize:13,fontWeight:500,color:e.completed?T.green:T.textPrimary}}>{e.completed?"âœ“":"â—‹"} {e.name}</span>
-                                  {e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1.5px solid #3A3A60`}}>Personalitzat</span>}
-                                  {e.isExtra&&!e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1.5px solid ${T.border}`}}>Extra</span>}
+                                  <span style={{fontSize:13,fontWeight:500,color:e.completed?T.green:T.textPrimary}}>{e.completed?"✓":"○"} {e.name}</span>
+                                  {e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1px solid #3A3A60`}}>Personalitzat</span>}
+                                  {e.isExtra&&!e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1px solid ${T.border}`}}>Extra</span>}
                                 </div>
-                                <div style={{fontSize:11,color:T.textSecondary,marginBottom:4}}>{e.plannedSets||0} sÃ¨ries Â· {e.plannedReps||"?"} reps{e.plannedLoad?` Â· ${e.plannedLoad}`:""}{e.plannedRest?` Â· ${e.plannedRest}`:""}</div>
-                                {e.observations&&<div style={{fontSize:11,color:T.textMuted,marginBottom:4,fontStyle:"italic"}}>ðŸ’¬ {e.observations}</div>}
+                                <div style={{fontSize:11,color:T.textSecondary,marginBottom:4}}>{e.plannedSets||0} sèries · {e.plannedReps||"?"} reps{e.plannedLoad?` · ${e.plannedLoad}`:""}{e.plannedRest?` · ${e.plannedRest}`:""}</div>
+                                {e.observations&&<div style={{fontSize:11,color:T.textMuted,marginBottom:4,fontStyle:"italic"}}>💬 {e.observations}</div>}
                                 {Object.values(e.sets||{}).map((st,j)=>{
                                   const parts=[];
                                   if(st.reps) parts.push(`${st.reps} reps`);
                                   if(st.load) parts.push(st.load);
                                   if(st.rest) parts.push(st.rest);
-                                  return <div key={j} style={{fontSize:11,color:st.completed?T.green:T.textMuted,padding:"1px 0 1px 10px"}}>S{j+1}: {parts.length>0?parts.join(" Â· "):"â€”"} {st.completed?"âœ“":"â—‹"}</div>;
+                                  return <div key={j} style={{fontSize:11,color:st.completed?T.green:T.textMuted,padding:"1px 0 1px 10px"}}>S{j+1}: {parts.length>0?parts.join(" · "):"—"} {st.completed?"✓":"○"}</div>;
                                 })}
                               </div>
                             ))}
@@ -1780,17 +1780,17 @@ export default function App() {
     );
   }
 
-  // â”€â”€ ADMIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── ADMIN ─────────────────────────────────────────────────────────────────
   if(mode==="admin"&&adminView==="clients") {
     const filteredClients=data.clients.filter(c=>c.name?.toLowerCase().includes(clientSearch.toLowerCase())||c.goal?.toLowerCase().includes(clientSearch.toLowerCase()));
     const allStats=data.clients.map(c=>getClientDashboardStats(c));
     const totalSessionsWeek=allStats.reduce((a,s)=>a+s.sessionsThisWeek,0);
-    const alertStatuses=["MolÃ¨sties","RPE alt","Sense activitat","SessiÃ³ parcial"];
+    const alertStatuses=["Molèsties","RPE alt","Sense activitat","Sessió parcial"];
     const alertsCount=allStats.filter(s=>alertStatuses.includes(s.status)).length;
     const statusStyle=(status)=>{
       if(status==="Actiu") return S.tag("green");
-      if(status==="MolÃ¨sties") return {...S.tag(),color:T.danger,background:T.dangerBg,border:`1.5px solid ${T.dangerBg}`};
-      if(status==="RPE alt"||status==="Sense activitat"||status==="SessiÃ³ parcial") return {...S.tag(),color:T.orange,background:T.orangeBg,border:`1.5px solid #fdba74`};
+      if(status==="Molèsties") return {...S.tag(),color:T.danger,background:T.dangerBg,border:`1px solid ${T.dangerBg}`};
+      if(status==="RPE alt"||status==="Sense activitat"||status==="Sessió parcial") return {...S.tag(),color:T.orange,background:T.orangeBg,border:`2px solid #fdba74`};
       return S.tag();
     };
     return (
@@ -1805,7 +1805,7 @@ export default function App() {
             <button style={{...S.btnSecondary,background:"rgba(255,255,255,0.08)",color:T.headerText,border:"1px solid rgba(255,255,255,0.2)"}} onClick={()=>setMode("select")}>Sortir</button>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:10}}>
-            {[{label:"Clients",value:data.clients.length,color:T.statClient},{label:"SessiÃ³ setmana",value:totalSessionsWeek,color:T.statSession},{label:"Alertes",value:alertsCount,color:T.statAlert}].map(st=>(
+            {[{label:"Clients",value:data.clients.length,color:T.statClient},{label:"Sessió setmana",value:totalSessionsWeek,color:T.statSession},{label:"Alertes",value:alertsCount,color:T.statAlert}].map(st=>(
               <div key={st.label} style={S.adminStatCard}>
                 <div style={{fontSize:22,fontWeight:700,color:st.color}}>{st.value}</div>
                 <div style={{fontSize:12,color:T.statSubtitle,marginTop:6}}>{st.label}</div>
@@ -1823,25 +1823,25 @@ export default function App() {
             return (
               <div style={{marginBottom:16}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                  <div style={{fontSize:13,fontWeight:500,color:T.textPrimary}}>SolÂ·licituds pendents{pending.length>0&&<span style={{...S.tag("purple"),marginLeft:6,fontSize:10}}>{pending.length}</span>}</div>
-                  <button style={{...S.btnSecondary,fontSize:11}} onClick={loadIntakeSubmissions}>â†» Actualitzar</button>
+                  <div style={{fontSize:13,fontWeight:500,color:T.textPrimary}}>Sol·licituds pendents{pending.length>0&&<span style={{...S.tag("purple"),marginLeft:6,fontSize:10}}>{pending.length}</span>}</div>
+                  <button style={{...S.btnSecondary,fontSize:11}} onClick={loadIntakeSubmissions}>↻ Actualitzar</button>
                 </div>
-                {pending.length===0?<div style={{fontSize:12,color:T.textMuted,textAlign:"center",padding:"8px 0"}}>Cap solÂ·licitud pendent</div>:(
+                {pending.length===0?<div style={{fontSize:12,color:T.textMuted,textAlign:"center",padding:"8px 0"}}>Cap sol·licitud pendent</div>:(
                   pending.map(sub=>(
-                    <div key={sub.id} style={{background:T.card,border:`1.5px solid ${T.purple}40`,borderRadius:12,padding:"0.75rem",marginBottom:8}}>
+                    <div key={sub.id} style={{background:T.card,border:`1px solid ${T.purple}40`,borderRadius:12,padding:"0.75rem",marginBottom:8}}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
                         <div>
                           <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{sub.data?.name||"Sense nom"}</div>
-                          <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{sub.data?.goal||"â€”"}{sub.data?.sport?` Â· ${sub.data.sport}`:""} Â· {new Date(sub.createdAt).toLocaleDateString("ca-ES")}</div>
+                          <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{sub.data?.goal||"—"}{sub.data?.sport?` · ${sub.data.sport}`:""} · {new Date(sub.createdAt).toLocaleDateString("ca-ES")}</div>
                           {(sub.data?.email||sub.data?.phone)&&<div style={{fontSize:11,color:T.purple,marginTop:2}}>{sub.data?.email||sub.data?.phone}</div>}
                         </div>
                         <span style={S.tag("purple")}>Pendent</span>
                       </div>
                       <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-                        <button style={{...S.btnSecondary,fontSize:11}} onClick={()=>setViewingIntake(sub)}>ðŸ‘ Veure</button>
-                        <button style={{...S.btnPrimary,fontSize:11,padding:"4px 10px",width:"auto"}} onClick={()=>convertIntakeToClient(sub)}>âœ“ Crear client</button>
+                        <button style={{...S.btnSecondary,fontSize:11}} onClick={()=>setViewingIntake(sub)}>👁 Veure</button>
+                        <button style={{...S.btnPrimary,fontSize:11,padding:"4px 10px",width:"auto"}} onClick={()=>convertIntakeToClient(sub)}>✓ Crear client</button>
                         <button style={{...S.btnDanger,fontSize:11}} onClick={()=>rejectIntakeSubmission(sub)}>Rebutjar</button>
-                        <button style={{...S.btnDanger,fontSize:11}} onClick={()=>deleteIntakeSubmission(sub.id)}>ðŸ—‘ï¸</button>
+                        <button style={{...S.btnDanger,fontSize:11}} onClick={()=>deleteIntakeSubmission(sub.id)}>🗑️</button>
                       </div>
                     </div>
                   ))
@@ -1859,12 +1859,12 @@ export default function App() {
             const computedStatus = alerts.length===0&&stats.totalSessions===0?"Nou":hasDanger?"Alerta":hasWarning?"Revisar":stats.status;
             const isExpanded=!!expandedClientCards[c.id];
             const alertSeverityStyle = (severity) => {
-              if(severity==="danger") return {fontSize:11,padding:"2px 8px",borderRadius:20,background:T.dangerBg,color:T.danger,border:`1.5px solid ${T.danger}40`};
-              if(severity==="warning") return {fontSize:11,padding:"2px 8px",borderRadius:20,background:T.orangeBg,color:T.orange,border:`1.5px solid #fdba74`};
-              return {fontSize:11,padding:"2px 8px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1.5px solid #3A3A6040`};
+              if(severity==="danger") return {fontSize:11,padding:"2px 8px",borderRadius:20,background:T.dangerBg,color:T.danger,border:`1px solid ${T.danger}40`};
+              if(severity==="warning") return {fontSize:11,padding:"2px 8px",borderRadius:20,background:T.orangeBg,color:T.orange,border:`2px solid #fdba74`};
+              return {fontSize:11,padding:"2px 8px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1px solid #3A3A6040`};
             };
             return (
-              <div key={c.id} style={{background:"#ffffff",border:`1.5px solid #e2e8f0`,borderRadius:12,padding:"1rem",marginBottom:10}}>
+              <div key={c.id} style={{background:"#ffffff",border:`1px solid #e2e8f0`,borderRadius:12,padding:"1rem",marginBottom:10}}>
                 <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
                   <div style={S.avatar(cc)}>{c.avatar}</div>
                   <div style={{flex:1,minWidth:0}}>
@@ -1878,30 +1878,30 @@ export default function App() {
                     {alerts.slice(0,3).map((a,i)=>(
                       <span key={i} style={alertSeverityStyle(a.severity)}>{a.label}</span>
                     ))}
-                    {alerts.length>3&&<span style={{fontSize:11,padding:"2px 8px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1.5px solid ${T.border}`}}>+{alerts.length-3} mÃ©s</span>}
+                    {alerts.length>3&&<span style={{fontSize:11,padding:"2px 8px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1px solid ${T.border}`}}>+{alerts.length-3} més</span>}
                   </div>
                 )}
                 <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:10}}>
-                  {[{label:"Setmana",value:stats.sessionsThisWeek},{label:"RPE mitjÃ ",value:stats.avgRpeRecent??"-"},{label:"CÃ rrega set.",value:stats.weeklyInternalLoad!=null?`${stats.weeklyInternalLoad} UA`:"â€”"}].map(st=>(
+                  {[{label:"Setmana",value:stats.sessionsThisWeek},{label:"RPE mitjà",value:stats.avgRpeRecent??"-"},{label:"Càrrega set.",value:stats.weeklyInternalLoad!=null?`${stats.weeklyInternalLoad} UA`:"—"}].map(st=>(
                     <div key={st.label} style={{background:T.card2,borderRadius:8,padding:"6px 8px",textAlign:"center"}}>
                       <div style={{fontSize:13,fontWeight:500,color:T.textPrimary}}>{st.value}</div>
                       <div style={{fontSize:10,color:T.textSecondary}}>{st.label}</div>
                     </div>
                   ))}
                 </div>
-                {stats.lastSession?<div style={{fontSize:12,color:T.textSecondary,marginBottom:10}}>Ãšltima: <span style={{color:T.textPrimary,fontWeight:500}}>{stats.lastSession.sessionTitle||stats.lastSession.day||"SessiÃ³"}</span>{stats.lastSession.date?` Â· ${stats.lastSession.date}`:""}{stats.lastSession.completionPercentage!=null?` Â· ${stats.lastSession.completionPercentage}%`:""}</div>:<div style={{fontSize:12,color:T.textMuted,marginBottom:10}}>Sense sessions registrades</div>}
+                {stats.lastSession?<div style={{fontSize:12,color:T.textSecondary,marginBottom:10}}>Última: <span style={{color:T.textPrimary,fontWeight:500}}>{stats.lastSession.sessionTitle||stats.lastSession.day||"Sessió"}</span>{stats.lastSession.date?` · ${stats.lastSession.date}`:""}{stats.lastSession.completionPercentage!=null?` · ${stats.lastSession.completionPercentage}%`:""}</div>:<div style={{fontSize:12,color:T.textMuted,marginBottom:10}}>Sense sessions registrades</div>}
                 <div style={{display:"flex",gap:6,marginBottom:6}}>
-                  <button style={{...S.btnSecondary,flex:1,fontSize:11,textAlign:"center"}} onClick={()=>setExpandedClientCards(p=>({...p,[c.id]:!p[c.id]}))}>{ isExpanded?"â–² Amagar":"â–¼ Resum"}</button>
-                  <button style={{...S.btnPrimary,flex:2,fontSize:13,padding:"9px"}} onClick={()=>selectAdminClient(c.id)}>Seleccionar â†’</button>
+                  <button style={{...S.btnSecondary,flex:1,fontSize:11,textAlign:"center"}} onClick={()=>setExpandedClientCards(p=>({...p,[c.id]:!p[c.id]}))}>{ isExpanded?"▲ Amagar":"▼ Resum"}</button>
+                  <button style={{...S.btnPrimary,flex:2,fontSize:13,padding:"9px"}} onClick={()=>selectAdminClient(c.id)}>Seleccionar →</button>
                 </div>
                 <div style={{display:"flex",gap:6}}>
-                  <button style={{...S.btnSecondary,flex:1,fontSize:11,textAlign:"center"}} onClick={()=>copyToClipboard(getClientAccessLink(c),"EnllaÃ§ copiat!")}>ðŸ”— EnllaÃ§</button>
-                  <button style={{...S.btnSecondary,flex:1,fontSize:11,textAlign:"center"}} onClick={()=>copyToClipboard(getClientInviteMessage(c),"Missatge copiat!")}>âœ‰ï¸ Missatge</button>
+                  <button style={{...S.btnSecondary,flex:1,fontSize:11,textAlign:"center"}} onClick={()=>copyToClipboard(getClientAccessLink(c),"Enllaç copiat!")}>🔗 Enllaç</button>
+                  <button style={{...S.btnSecondary,flex:1,fontSize:11,textAlign:"center"}} onClick={()=>copyToClipboard(getClientInviteMessage(c),"Missatge copiat!")}>✉️ Missatge</button>
                 </div>
                 {isExpanded&&(
-                  <div style={{marginTop:12,paddingTop:12,borderTop:`1.5px solid ${T.border}`}}>
+                  <div style={{marginTop:12,paddingTop:12,borderTop:`1px solid ${T.border}`}}>
                     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:10}}>
-                      {[{label:"Total sessions",value:stats.totalSessions},{label:"Dies assignats",value:stats.trainingDaysCount},{label:"Plantilles",value:stats.templatesCount},{label:"Biblioteca",value:`${stats.libraryCount} ex`},{label:"Durada setmana",value:stats.totalDurationThisWeek>0?`${stats.totalDurationThisWeek} min`:"â€”"},{label:"Ãšltima sensaciÃ³",value:stats.lastFeeling||"â€”"},{label:"CÃ rrega setmana",value:stats.weeklyInternalLoad!=null?`${stats.weeklyInternalLoad} UA`:"â€”"},{label:"Ãšltima cÃ rrega",value:stats.lastInternalLoad!=null?`${stats.lastInternalLoad} UA`:"â€”"},{label:"Mitjana cÃ rrega",value:stats.avgInternalLoadRecent!=null?`${stats.avgInternalLoadRecent} UA`:"â€”"}].map(item=>(
+                      {[{label:"Total sessions",value:stats.totalSessions},{label:"Dies assignats",value:stats.trainingDaysCount},{label:"Plantilles",value:stats.templatesCount},{label:"Biblioteca",value:`${stats.libraryCount} ex`},{label:"Durada setmana",value:stats.totalDurationThisWeek>0?`${stats.totalDurationThisWeek} min`:"—"},{label:"Última sensació",value:stats.lastFeeling||"—"},{label:"Càrrega setmana",value:stats.weeklyInternalLoad!=null?`${stats.weeklyInternalLoad} UA`:"—"},{label:"Última càrrega",value:stats.lastInternalLoad!=null?`${stats.lastInternalLoad} UA`:"—"},{label:"Mitjana càrrega",value:stats.avgInternalLoadRecent!=null?`${stats.avgInternalLoadRecent} UA`:"—"}].map(item=>(
                         <div key={item.label} style={{background:T.card2,borderRadius:8,padding:"6px 10px"}}>
                           <div style={{fontSize:11,color:T.textSecondary}}>{item.label}</div>
                           <div style={{fontSize:13,fontWeight:500,color:T.textPrimary,marginTop:2}}>{item.value}</div>
@@ -1909,9 +1909,9 @@ export default function App() {
                       ))}
                     </div>
                     {stats.history.slice(0,3).map((sess,idx)=>(
-                      <div key={idx} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderBottom:`1.5px solid ${T.border}`}}>
+                      <div key={idx} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderBottom:`1px solid ${T.border}`}}>
                         <div>
-                          <div style={{fontSize:12,color:T.textPrimary,fontWeight:500}}>{sess.sessionTitle||sess.day||"SessiÃ³"}</div>
+                          <div style={{fontSize:12,color:T.textPrimary,fontWeight:500}}>{sess.sessionTitle||sess.day||"Sessió"}</div>
                           <div style={{fontSize:11,color:T.textSecondary}}>{sess.date||""}</div>
                         </div>
                         <div style={{display:"flex",gap:4,alignItems:"center"}}>
@@ -1921,7 +1921,7 @@ export default function App() {
                       </div>
                     ))}
                     {stats.history.length===0&&<div style={{fontSize:12,color:T.textMuted,textAlign:"center",padding:"8px 0"}}>Sense sessions</div>}
-                    <div style={{marginTop:10,paddingTop:10,borderTop:`1.5px solid ${T.border}`}}>
+                    <div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${T.border}`}}>
                       <div style={{fontSize:11,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:6}}>Alertes recents</div>
                       {alerts.length===0?(
                         <div style={{fontSize:12,color:T.textMuted}}>Sense alertes recents.</div>
@@ -1943,10 +1943,10 @@ export default function App() {
           {showAddClient&&(
             <FormCard>
               <div style={{fontWeight:500,fontSize:14,color:T.textPrimary,marginBottom:12}}>Nou client</div>
-              <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.inp} value={newClientForm.name} onChange={e=>setNewClientForm(p=>({...p,name:e.target.value}))} placeholder="Ex. Ana GarcÃ­a"/></div>
-              <div style={{marginBottom:12}}><label style={S.lbl}>Objectiu</label><input style={S.inp} value={newClientForm.goal} onChange={e=>setNewClientForm(p=>({...p,goal:e.target.value}))} placeholder="Ex. HipertrÃ²fia..."/></div>
+              <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.inp} value={newClientForm.name} onChange={e=>setNewClientForm(p=>({...p,name:e.target.value}))} placeholder="Ex. Ana García"/></div>
+              <div style={{marginBottom:12}}><label style={S.lbl}>Objectiu</label><input style={S.inp} value={newClientForm.goal} onChange={e=>setNewClientForm(p=>({...p,goal:e.target.value}))} placeholder="Ex. Hipertròfia..."/></div>
               <div style={{...S.row,justifyContent:"flex-end"}}>
-                <button style={S.btnSecondary} onClick={()=>setShowAddClient(false)}>CancelÂ·lar</button>
+                <button style={S.btnSecondary} onClick={()=>setShowAddClient(false)}>Cancel·lar</button>
                 <button style={{...S.btnPrimary,width:"auto",padding:"8px 18px",fontSize:13,marginLeft:8}} onClick={addClient}>Guardar</button>
               </div>
             </FormCard>
@@ -1956,7 +1956,7 @@ export default function App() {
     );
   }
 
-  // â”€â”€ ADMIN DETALL CLIENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── ADMIN DETALL CLIENT ───────────────────────────────────────────────────
   const adminClientData = adminClient ? data.clients.find(c=>c.id===adminClient) : null;
   if(!adminClientData) { setAdminView("clients"); return null; }
   const adminClientIdx = data.clients.findIndex(c=>c.id===adminClient);
@@ -1966,11 +1966,11 @@ export default function App() {
     <div style={S.adminWrap}>
       <style>{cfStyle}</style>
       <div style={S.hdr}>
-        <button style={{...S.btnSecondary,display:"flex",alignItems:"center",gap:6,fontSize:13}} onClick={()=>setAdminView("clients")}>â† Clients</button>
+        <button style={{...S.btnSecondary,display:"flex",alignItems:"center",gap:6,fontSize:13}} onClick={()=>setAdminView("clients")}>← Clients</button>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <span style={{fontSize:11,color:saving?T.textSecondary:T.green}}>{saving?"Guardant...":"âœ“ Guardat"}</span>
+          <span style={{fontSize:11,color:saving?T.textSecondary:T.green}}>{saving?"Guardant...":"✓ Guardat"}</span>
           <button style={{...S.btnDanger,fontSize:11}} onClick={async()=>{
-            if(!window.confirm(`Segur que vols eliminar "${adminClientData?.name}"? Aquesta acciÃ³ eliminarÃ  totes les seves dades, historial i sessions. No es pot desfer.`)) return;
+            if(!window.confirm(`Segur que vols eliminar "${adminClientData?.name}"? Aquesta acció eliminarà totes les seves dades, historial i sessions. No es pot desfer.`)) return;
             const nd={...data,clients:data.clients.filter(c=>c.id!==adminClient),routines:Object.fromEntries(Object.entries(data.routines||{}).filter(([k])=>String(k)!==String(adminClient)))};
             setAdminView("clients");
             setData(nd);
@@ -1978,7 +1978,7 @@ export default function App() {
             persist(nd);
             try { await remove(ref(db,`history-${adminClient}`)); } catch {}
             try { await remove(ref(db,`active-sessions/${adminClient}`)); } catch {}
-          }}>ðŸ—‘ï¸ Eliminar client</button>
+          }}>🗑️ Eliminar client</button>
         </div>
       </div>
       <div style={S.detailHeader}>
@@ -1988,21 +1988,21 @@ export default function App() {
           <div style={{fontSize:14,color:T.accentDim,marginTop:4}}>{adminClientData?.goal}</div>
         </div>
         <div style={{display:"flex",gap:5,flexShrink:0}}>
-          <button style={{...S.btnSecondary,fontSize:11,padding:"4px 8px"}} onClick={()=>copyToClipboard(getClientAccessLink(adminClientData),"EnllaÃ§ copiat!")}>ðŸ”—</button>
-          <button style={{...S.btnSecondary,fontSize:11,padding:"4px 8px"}} onClick={()=>copyToClipboard(getClientInviteMessage(adminClientData),"Missatge copiat!")}>âœ‰ï¸</button>
-          <button style={{...S.btnSecondary,fontSize:11,padding:"4px 8px"}} onClick={()=>window.open(getClientAccessLink(adminClientData),"_blank")}>ðŸ‘</button>
+          <button style={{...S.btnSecondary,fontSize:11,padding:"4px 8px"}} onClick={()=>copyToClipboard(getClientAccessLink(adminClientData),"Enllaç copiat!")}>🔗</button>
+          <button style={{...S.btnSecondary,fontSize:11,padding:"4px 8px"}} onClick={()=>copyToClipboard(getClientInviteMessage(adminClientData),"Missatge copiat!")}>✉️</button>
+          <button style={{...S.btnSecondary,fontSize:11,padding:"4px 8px"}} onClick={()=>window.open(getClientAccessLink(adminClientData),"_blank")}>👁</button>
           <button style={{...S.btnSecondary,fontSize:11,padding:"4px 8px",color:T.orange}} onClick={()=>{
-            if(!window.confirm("Si regeneres l'accÃ©s, l'enllaÃ§ anterior deixarÃ  de funcionar. Vols continuar?")) return;
+            if(!window.confirm("Si regeneres l'accés, l'enllaç anterior deixarà de funcionar. Vols continuar?")) return;
             const newToken = generateAccessToken();
             const nd = {...data,clients:data.clients.map(c=>c.id===adminClient?{...c,accessToken:newToken}:c)};
             updateData(nd);
-            alert("Nou accÃ©s generat. Copia el nou enllaÃ§ i envia'l al client.");
-          }}>ðŸ”„</button>
+            alert("Nou accés generat. Copia el nou enllaç i envia'l al client.");
+          }}>🔄</button>
         </div>
       </div>
-      <div style={{display:"flex",borderBottom:`1.5px solid ${T.border}`,padding:"0 1.25rem",overflowX:"auto"}}>
+      <div style={{display:"flex",borderBottom:`1px solid ${T.border}`,padding:"0 1.25rem",overflowX:"auto"}}>
         {[["dades","Dades"],["routine","Entrenaments"],["history","Historial"],["seguiment","Seguiment"]].map(([tab,label])=>(
-          <button key={tab} onClick={()=>{if(tab==="history"||tab==="seguiment"){loadClientHistory(adminClient);}setAdminTab(tab);}} style={{padding:"10px 14px",fontSize:13,cursor:"pointer",background:"none",border:"none",borderBottom:`1.5px solid ${adminTab===tab?T.accent:"transparent"}`,color:adminTab===tab?T.accent:T.textSecondary,fontWeight:adminTab===tab?500:400,marginBottom:-1,whiteSpace:"nowrap",flexShrink:0}}>{label}</button>
+          <button key={tab} onClick={()=>{if(tab==="history"||tab==="seguiment"){loadClientHistory(adminClient);}setAdminTab(tab);}} style={{padding:"10px 14px",fontSize:13,cursor:"pointer",background:"none",border:"none",borderBottom:`2px solid ${adminTab===tab?T.accent:"transparent"}`,color:adminTab===tab?T.accent:T.textSecondary,fontWeight:adminTab===tab?500:400,marginBottom:-1,whiteSpace:"nowrap",flexShrink:0}}>{label}</button>
         ))}
       </div>
 
@@ -2010,26 +2010,26 @@ export default function App() {
         const client=data.clients.find(c=>c.id===adminClient);
         const fields=[
           {key:"age",label:"Edat",placeholder:"Ex. 28"},
-          {key:"level",label:"Nivell",type:"select",options:["principiant","intermedi","avanÃ§at"]},
-          {key:"place",label:"Lloc d'entrenament",type:"select",options:["gimnÃ s","casa","exterior","pista","altre"]},
+          {key:"level",label:"Nivell",type:"select",options:["principiant","intermedi","avançat"]},
+          {key:"place",label:"Lloc d'entrenament",type:"select",options:["gimnàs","casa","exterior","pista","altre"]},
           {key:"material",label:"Material disponible",placeholder:"Ex. manuelles, goma..."},
           {key:"startDate",label:"Data d'inici",placeholder:"Ex. 01/01/2025"},
-          {key:"injuries",label:"Lesions prÃ¨vies",placeholder:"Ex. genoll dret..."},
+          {key:"injuries",label:"Lesions prèvies",placeholder:"Ex. genoll dret..."},
           {key:"currentPain",label:"Dolor actual",placeholder:"Ex. cap / lumbar..."},
           {key:"avoidEx",label:"Exercicis a evitar",placeholder:"Ex. sentadilla profunda..."},
           {key:"likes",label:"Exercicis que li agraden",placeholder:"Ex. rem, dominades..."},
           {key:"dislikes",label:"Exercicis que no li agraden",placeholder:"Ex. burpees..."},
           {key:"email",label:"Email",placeholder:"correu@email.com"},
-          {key:"phone",label:"TelÃ¨fon",placeholder:"600 000 000"},
-          {key:"sport",label:"Esport principal",placeholder:"Ex. PÃ del"},
+          {key:"phone",label:"Telèfon",placeholder:"600 000 000"},
+          {key:"sport",label:"Esport principal",placeholder:"Ex. Pàdel"},
           {key:"availability",label:"Dies disponibles",placeholder:"Ex. 3 dies/setmana"},
           {key:"matchDays",label:"Quins dies",placeholder:"Ex. Dilluns, Dimecres..."},
           {key:"secondaryGoal",label:"Objectiu secundari",placeholder:""},
           {key:"healthNotes",label:"Notes de salut",placeholder:""},
-          {key:"trainingPreferences",label:"PreferÃ¨ncies d'entrenament",placeholder:""},
+          {key:"trainingPreferences",label:"Preferències d'entrenament",placeholder:""},
           {key:"source",label:"Com ha trobat el servei",placeholder:""},
           {key:"coachNotes",label:"Notes internes (admin)",placeholder:"Notes privades de l'entrenador..."},
-          {key:"onboardingNotes",label:"Notes d'incorporaciÃ³ (admin)",placeholder:""},
+          {key:"onboardingNotes",label:"Notes d'incorporació (admin)",placeholder:""},
         ];
         const saveClientData=()=>{const nd={...data,clients:data.clients.map(c=>c.id===adminClient?{...c,...clientDraft}:c)};updateData(nd);setEditingClient(false);};
         return (
@@ -2038,19 +2038,19 @@ export default function App() {
               <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>Fitxa de {client?.name}</div>
               {!editingClient?<button style={{...S.btnSecondary,fontSize:12}} onClick={()=>{setClientDraft({...client});setEditingClient(true);}}>Editar dades</button>:(
                 <div style={{display:"flex",gap:8}}>
-                  <button style={{...S.btnSecondary,fontSize:12}} onClick={()=>setEditingClient(false)}>CancelÂ·lar</button>
+                  <button style={{...S.btnSecondary,fontSize:12}} onClick={()=>setEditingClient(false)}>Cancel·lar</button>
                   <button style={{...S.btnPrimary,width:"auto",padding:"6px 14px",fontSize:12}} onClick={saveClientData}>Guardar</button>
                 </div>
               )}
             </div>
             <div style={{...S.card,marginBottom:12}}>
-              <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Dades bÃ siques</div>
+              <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Dades bàsiques</div>
               <div style={{marginBottom:8}}><label style={S.lbl}>Nom complet</label>{editingClient?<input style={S.inp} value={clientDraft?.name||""} onChange={e=>setClientDraft(p=>({...p,name:e.target.value}))}/>:<div style={{fontSize:14,color:T.textPrimary,fontWeight:500}}>{client?.name}</div>}</div>
-              <div style={{marginBottom:8}}><label style={S.lbl}>Objectiu principal</label>{editingClient?<input style={S.inp} value={clientDraft?.goal||""} onChange={e=>setClientDraft(p=>({...p,goal:e.target.value}))}/>:<div style={{fontSize:13,color:T.textPrimary}}>{client?.goal||"â€”"}</div>}</div>
+              <div style={{marginBottom:8}}><label style={S.lbl}>Objectiu principal</label>{editingClient?<input style={S.inp} value={clientDraft?.goal||""} onChange={e=>setClientDraft(p=>({...p,goal:e.target.value}))}/>:<div style={{fontSize:13,color:T.textPrimary}}>{client?.goal||"—"}</div>}</div>
               {fields.slice(0,5).map(f=>(
                 <div key={f.key} style={{marginBottom:8}}>
                   <label style={S.lbl}>{f.label}</label>
-                  {editingClient?f.type==="select"?<select style={S.inp} value={clientDraft?.[f.key]||""} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}>{f.options.map(o=><option key={o} value={o}>{o}</option>)}</select>:<input style={S.inp} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>:<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"â€”"}</div>}
+                  {editingClient?f.type==="select"?<select style={S.inp} value={clientDraft?.[f.key]||""} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}>{f.options.map(o=><option key={o} value={o}>{o}</option>)}</select>:<input style={S.inp} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>:<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"—"}</div>}
                 </div>
               ))}
             </div>
@@ -2059,16 +2059,16 @@ export default function App() {
               {fields.slice(5,8).map(f=>(
                 <div key={f.key} style={{marginBottom:8}}>
                   <label style={S.lbl}>{f.label}</label>
-                  {editingClient?<input style={S.inp} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>:<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"â€”"}</div>}
+                  {editingClient?<input style={S.inp} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>:<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"—"}</div>}
                 </div>
               ))}
             </div>
             <div style={S.card}>
-              <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>PreferÃ¨ncies i notes</div>
+              <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Preferències i notes</div>
               {fields.slice(8).map(f=>(
                 <div key={f.key} style={{marginBottom:8}}>
                   <label style={S.lbl}>{f.label}</label>
-                  {editingClient?<textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>:<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"â€”"}</div>}
+                  {editingClient?<textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={clientDraft?.[f.key]||""} placeholder={f.placeholder} onChange={e=>setClientDraft(p=>({...p,[f.key]:e.target.value}))}/>:<div style={{fontSize:13,color:T.textPrimary}}>{client?.[f.key]||"—"}</div>}
                 </div>
               ))}
             </div>
@@ -2086,16 +2086,16 @@ export default function App() {
           <div style={S.sec}>
             {totalS===0?(
               <div style={{textAlign:"center",padding:"2.5rem 0",color:T.textSecondary}}>
-                <div style={{fontSize:36,marginBottom:10}}>ðŸ“‹</div>
-                <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4}}>{client?.name} encara no tÃ© sessions</div>
-                <div style={{fontSize:13}}>Apareixeran aquÃ­ quan el client finalitzi entrenaments</div>
+                <div style={{fontSize:36,marginBottom:10}}>📋</div>
+                <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4}}>{client?.name} encara no té sessions</div>
+                <div style={{fontSize:13}}>Apareixeran aquí quan el client finalitzi entrenaments</div>
               </div>
             ):(
               <>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:8,marginBottom:16}}>
-                  {[{label:"Sessions",value:totalS,color:T.accent},{label:"Completes",value:fullS,color:T.green},{label:"Ãšltima",value:lastS?.date||"â€”",color:T.purple}].map(st=>(
-                    <div key={st.label} style={{background:T.card,borderRadius:12,padding:"0.75rem",textAlign:"center",border:`1.5px solid ${T.border}`}}>
-                      <div style={{fontSize:st.label==="Ãšltima"?13:20,fontWeight:500,color:st.color}}>{st.value}</div>
+                  {[{label:"Sessions",value:totalS,color:T.accent},{label:"Completes",value:fullS,color:T.green},{label:"Última",value:lastS?.date||"—",color:T.purple}].map(st=>(
+                    <div key={st.label} style={{background:T.card,borderRadius:12,padding:"0.75rem",textAlign:"center",border:`1px solid ${T.border}`}}>
+                      <div style={{fontSize:st.label==="Última"?13:20,fontWeight:500,color:st.color}}>{st.value}</div>
                       <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{st.label}</div>
                     </div>
                   ))}
@@ -2109,15 +2109,15 @@ export default function App() {
                     <div key={sessId} style={S.card}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
                         <div style={{flex:1}}>
-                          <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{sess.sessionTitle||sess.day||"SessiÃ³"}</div>
-                          <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{sess.date}{sess.durationReal?` Â· ${sess.durationReal} min`:""}</div>
+                          <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{sess.sessionTitle||sess.day||"Sessió"}</div>
+                          <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{sess.date}{sess.durationReal?` · ${sess.durationReal} min`:""}</div>
                         </div>
-                        <button style={{...S.btnDanger,fontSize:11,padding:"3px 8px"}} onClick={()=>deleteHistorySession(adminClient,sessId)}>ðŸ—‘ï¸</button>
+                        <button style={{...S.btnDanger,fontSize:11,padding:"3px 8px"}} onClick={()=>deleteHistorySession(adminClient,sessId)}>🗑️</button>
                       </div>
                       <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>
-                        <span style={full?S.tag("green"):S.tag()}>{full?"âœ“ Complet":`${sess.completionPercentage||0}%`}</span>
+                        <span style={full?S.tag("green"):S.tag()}>{full?"✓ Complet":`${sess.completionPercentage||0}%`}</span>
                         {sess.rpe&&<span style={S.tag("purple")}>RPE {sess.rpe}</span>}
-                        {sess.durationReal&&<span style={S.tag()}>â± {sess.durationReal} min</span>}
+                        {sess.durationReal&&<span style={S.tag()}>⏱ {sess.durationReal} min</span>}
                         {(()=>{const l=getSessionInternalLoad(sess);return l!=null?<span style={S.tag("accent")}>{l} UA</span>:null;})()}
                         {sess.feeling&&<span style={S.tag()}>{sess.feeling}</span>}
                         {exercises.filter(e=>e.isExtra&&!e.isCustom).length>0&&<span style={S.tag()}>+{exercises.filter(e=>e.isExtra&&!e.isCustom).length} extra</span>}
@@ -2126,40 +2126,40 @@ export default function App() {
                       <div style={{fontSize:12,color:T.textSecondary,marginBottom:8}}>{sess.completedExercises||0}/{sess.totalExercises||0} exercicis</div>
                       <ProgressBar value={sess.completedExercises||0} total={sess.totalExercises||1} color={full?T.green:T.accent}/>
                       <div style={{display:"flex",gap:6,marginTop:10}}>
-                        <button onClick={()=>setExpandedHistory(p=>({...p,[sessId]:!p[sessId]}))} style={{...S.btnSecondary,flex:1,textAlign:"center",fontSize:12}}>{isExpanded?"â–² Amagar":"â–¼ Detalls"}</button>
-                        <button style={{...S.btnSecondary,flex:1,textAlign:"center",fontSize:12}} onClick={()=>openEditHistorySession(adminClient,sess,sessId)}>âœï¸ Editar</button>
+                        <button onClick={()=>setExpandedHistory(p=>({...p,[sessId]:!p[sessId]}))} style={{...S.btnSecondary,flex:1,textAlign:"center",fontSize:12}}>{isExpanded?"▲ Amagar":"▼ Detalls"}</button>
+                        <button style={{...S.btnSecondary,flex:1,textAlign:"center",fontSize:12}} onClick={()=>openEditHistorySession(adminClient,sess,sessId)}>✏️ Editar</button>
                       </div>
                       {isExpanded&&(
-                        <div style={{marginTop:10,paddingTop:10,borderTop:`1.5px solid ${T.border}`}}>
+                        <div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${T.border}`}}>
                           {sess.checkIn?.completedAt&&(
                             <div style={{background:T.card2,borderRadius:8,padding:"8px 10px",marginBottom:10}}>
                               <div style={{fontWeight:500,fontSize:11,color:T.textSecondary,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.5px"}}>Check-in inicial</div>
                               <div style={{display:"flex",flexWrap:"wrap",gap:8,fontSize:12,color:T.textSecondary}}>
-                                {sess.checkIn.energy&&<span>âš¡ Energia {sess.checkIn.energy}/5</span>}
-                                {sess.checkIn.sleep&&<span>ðŸ˜´ Son {sess.checkIn.sleep}/5</span>}
-                                {sess.checkIn.stress&&<span>ðŸ§  EstrÃ¨s {sess.checkIn.stress}/5</span>}
-                                {sess.checkIn.fatigue&&<span>ðŸ’ª Fatiga {sess.checkIn.fatigue}/5</span>}
-                                {sess.checkIn.pain!==""&&sess.checkIn.pain!=null&&<span style={{color:Number(sess.checkIn.pain)>=5?T.danger:T.textSecondary}}>ðŸ©¹ Dolor {sess.checkIn.pain}/10{sess.checkIn.painZone?` Â· ${sess.checkIn.painZone}`:""}</span>}
+                                {sess.checkIn.energy&&<span>⚡ Energia {sess.checkIn.energy}/5</span>}
+                                {sess.checkIn.sleep&&<span>😴 Son {sess.checkIn.sleep}/5</span>}
+                                {sess.checkIn.stress&&<span>🧠 Estrès {sess.checkIn.stress}/5</span>}
+                                {sess.checkIn.fatigue&&<span>💪 Fatiga {sess.checkIn.fatigue}/5</span>}
+                                {sess.checkIn.pain!==""&&sess.checkIn.pain!=null&&<span style={{color:Number(sess.checkIn.pain)>=5?T.danger:T.textSecondary}}>🩹 Dolor {sess.checkIn.pain}/10{sess.checkIn.painZone?` · ${sess.checkIn.painZone}`:""}</span>}
                               </div>
                               {sess.checkIn.notes&&<div style={{fontSize:11,color:T.textMuted,marginTop:4,fontStyle:"italic"}}>"{sess.checkIn.notes}"</div>}
                             </div>
                           )}
-                          {sess.clientNotes&&<div style={{fontSize:12,color:T.textSecondary,marginBottom:10,fontStyle:"italic",background:T.card2,borderRadius:8,padding:"6px 10px"}}>ðŸ’¬ {sess.clientNotes}</div>}
+                          {sess.clientNotes&&<div style={{fontSize:12,color:T.textSecondary,marginBottom:10,fontStyle:"italic",background:T.card2,borderRadius:8,padding:"6px 10px"}}>💬 {sess.clientNotes}</div>}
                           {exercises.map((e,i)=>(
-                            <div key={i} style={{marginBottom:10,paddingBottom:10,borderBottom:`1.5px solid ${T.border}`}}>
+                            <div key={i} style={{marginBottom:10,paddingBottom:10,borderBottom:`1px solid ${T.border}`}}>
                               <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap",marginBottom:4}}>
-                                <span style={{fontSize:13,fontWeight:500,color:e.completed?T.green:T.textPrimary}}>{e.completed?"âœ“":"â—‹"} {e.name}</span>
-                                {e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1.5px solid #3A3A60`}}>Personalitzat</span>}
-                                {e.isExtra&&!e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1.5px solid ${T.border}`}}>Extra</span>}
+                                <span style={{fontSize:13,fontWeight:500,color:e.completed?T.green:T.textPrimary}}>{e.completed?"✓":"○"} {e.name}</span>
+                                {e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1px solid #3A3A60`}}>Personalitzat</span>}
+                                {e.isExtra&&!e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1px solid ${T.border}`}}>Extra</span>}
                               </div>
-                              <div style={{fontSize:11,color:T.textSecondary,marginBottom:4}}>{e.plannedSets||0} sÃ¨ries Â· {e.plannedReps||"?"} reps{e.plannedLoad?` Â· ${e.plannedLoad}`:""}{e.plannedRest?` Â· ${e.plannedRest}`:""}</div>
-                              {e.observations&&<div style={{fontSize:11,color:T.textMuted,marginBottom:4,fontStyle:"italic"}}>ðŸ’¬ {e.observations}</div>}
+                              <div style={{fontSize:11,color:T.textSecondary,marginBottom:4}}>{e.plannedSets||0} sèries · {e.plannedReps||"?"} reps{e.plannedLoad?` · ${e.plannedLoad}`:""}{e.plannedRest?` · ${e.plannedRest}`:""}</div>
+                              {e.observations&&<div style={{fontSize:11,color:T.textMuted,marginBottom:4,fontStyle:"italic"}}>💬 {e.observations}</div>}
                               {Object.values(e.sets||{}).map((st,j)=>{
                                 const parts=[];
                                 if(st.reps) parts.push(`${st.reps} reps`);
                                 if(st.load) parts.push(st.load);
                                 if(st.rest) parts.push(st.rest);
-                                return <div key={j} style={{fontSize:11,color:st.completed?T.green:T.textMuted,padding:"1px 0 1px 10px"}}>S{j+1}: {parts.length>0?parts.join(" Â· "):"â€”"} {st.completed?"âœ“":"â—‹"}</div>;
+                                return <div key={j} style={{fontSize:11,color:st.completed?T.green:T.textMuted,padding:"1px 0 1px 10px"}}>S{j+1}: {parts.length>0?parts.join(" · "):"—"} {st.completed?"✓":"○"}</div>;
                               })}
                             </div>
                           ))}
@@ -2186,7 +2186,7 @@ export default function App() {
         }) : [];
 
         const StatCard = ({label,value,color}) => (
-          <div style={{background:T.card2,borderRadius:12,padding:"0.75rem",textAlign:"center",border:`1.5px solid ${T.border}`}}>
+          <div style={{background:T.card2,borderRadius:12,padding:"0.75rem",textAlign:"center",border:`1px solid ${T.border}`}}>
             <div style={{fontSize:18,fontWeight:500,color:color||T.accent}}>{value??"-"}</div>
             <div style={{fontSize:10,color:T.textSecondary,marginTop:2}}>{label}</div>
           </div>
@@ -2199,35 +2199,35 @@ export default function App() {
         if(!ts) return (
           <div style={S.sec}>
             <div style={{textAlign:"center",padding:"3rem 0",color:T.textSecondary}}>
-              <div style={{fontSize:36,marginBottom:12}}>ðŸ“Š</div>
+              <div style={{fontSize:36,marginBottom:12}}>📊</div>
               <div style={{fontWeight:500,color:T.textPrimary,marginBottom:8}}>Encara no hi ha dades de seguiment</div>
-              <div style={{fontSize:13,lineHeight:1.6}}>Quan {clientData?.name} completi entrenaments, aquÃ­ apareixeran la cÃ rrega, l'RPE, el check-in i l'evoluciÃ³.</div>
+              <div style={{fontSize:13,lineHeight:1.6}}>Quan {clientData?.name} completi entrenaments, aquí apareixeran la càrrega, l'RPE, el check-in i l'evolució.</div>
             </div>
           </div>
         );
 
         return (
           <div style={S.sec}>
-            {/* Resum rÃ pid */}
+            {/* Resum ràpid */}
             <SectionTitle>Resum</SectionTitle>
             <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:4}}>
               <StatCard label="Sessions totals" value={ts.totalSessions} color={T.accent}/>
               <StatCard label="Aquesta setmana" value={ts.sessionsThisWeek} color={T.green}/>
-              <StatCard label="Ãšltims 30 dies" value={ts.sessionsLast30Days} color={T.purple}/>
-              <StatCard label="Ãšltima sessiÃ³" value={ts.lastSessionTitle||(ts.lastSessionDate?ts.lastSessionDate:"â€”")} color={T.textPrimary}/>
+              <StatCard label="Últims 30 dies" value={ts.sessionsLast30Days} color={T.purple}/>
+              <StatCard label="Última sessió" value={ts.lastSessionTitle||(ts.lastSessionDate?ts.lastSessionDate:"—")} color={T.textPrimary}/>
             </div>
 
-            {/* CÃ rrega i entrenament */}
-            <SectionTitle>CÃ rrega i entrenament</SectionTitle>
+            {/* Càrrega i entrenament */}
+            <SectionTitle>Càrrega i entrenament</SectionTitle>
             <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:10}}>
-              <StatCard label="CÃ rrega setmana" value={ts.weeklyInternalLoad!=null?`${ts.weeklyInternalLoad} UA`:"-"} color={T.orange}/>
-              <StatCard label="CÃ rrega 30 dies" value={ts.last30DaysInternalLoad!=null?`${ts.last30DaysInternalLoad} UA`:"-"} color={T.orange}/>
-              <StatCard label="Ãšltima cÃ rrega" value={ts.lastInternalLoad!=null?`${ts.lastInternalLoad} UA`:"-"} color={T.accent}/>
+              <StatCard label="Càrrega setmana" value={ts.weeklyInternalLoad!=null?`${ts.weeklyInternalLoad} UA`:"-"} color={T.orange}/>
+              <StatCard label="Càrrega 30 dies" value={ts.last30DaysInternalLoad!=null?`${ts.last30DaysInternalLoad} UA`:"-"} color={T.orange}/>
+              <StatCard label="Última càrrega" value={ts.lastInternalLoad!=null?`${ts.lastInternalLoad} UA`:"-"} color={T.accent}/>
               <StatCard label="Durada setmana" value={ts.totalDurationThisWeek!=null?`${ts.totalDurationThisWeek} min`:"-"} color={T.green}/>
             </div>
             {ts.recentSessions.filter(s=>getSessionInternalLoad(s)!=null).length>0&&(
               <div style={{...S.card,marginBottom:4}}>
-                <div style={{fontSize:11,color:T.textSecondary,marginBottom:8}}>Ãšltimes sessions amb cÃ rrega</div>
+                <div style={{fontSize:11,color:T.textSecondary,marginBottom:8}}>Últimes sessions amb càrrega</div>
                 {ts.recentSessions.filter(s=>getSessionInternalLoad(s)!=null).map((s,i)=>{
                   const load=getSessionInternalLoad(s);
                   const maxLoad = Math.max(...ts.recentSessions.map(x=>getSessionInternalLoad(x)||0));
@@ -2235,7 +2235,7 @@ export default function App() {
                   return (
                     <div key={i} style={{marginBottom:8}}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
-                        <span style={{fontSize:12,color:T.textPrimary}}>{s.sessionTitle||s.day||"SessiÃ³"}</span>
+                        <span style={{fontSize:12,color:T.textPrimary}}>{s.sessionTitle||s.day||"Sessió"}</span>
                         <span style={{fontSize:11,color:T.orange,fontWeight:500}}>{load} UA</span>
                       </div>
                       <div style={{height:4,borderRadius:2,background:T.border}}>
@@ -2247,21 +2247,21 @@ export default function App() {
               </div>
             )}
 
-            {/* RPE i esforÃ§ */}
-            <SectionTitle>RPE i esforÃ§</SectionTitle>
+            {/* RPE i esforç */}
+            <SectionTitle>RPE i esforç</SectionTitle>
             <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:10}}>
-              <StatCard label="RPE mitjÃ  recent" value={ts.avgRpeRecent!=null?`${ts.avgRpeRecent}/10`:"-"} color={ts.avgRpeRecent>=8?T.danger:ts.avgRpeRecent>=6?T.orange:T.green}/>
-              <StatCard label="Ãšltim RPE" value={ts.lastRpe!=null?`${ts.lastRpe}/10`:"-"} color={Number(ts.lastRpe)>=8?T.danger:Number(ts.lastRpe)>=6?T.orange:T.green}/>
+              <StatCard label="RPE mitjà recent" value={ts.avgRpeRecent!=null?`${ts.avgRpeRecent}/10`:"-"} color={ts.avgRpeRecent>=8?T.danger:ts.avgRpeRecent>=6?T.orange:T.green}/>
+              <StatCard label="Últim RPE" value={ts.lastRpe!=null?`${ts.lastRpe}/10`:"-"} color={Number(ts.lastRpe)>=8?T.danger:Number(ts.lastRpe)>=6?T.orange:T.green}/>
             </div>
             {ts.recentSessions.filter(s=>s.rpe).length>0&&(
               <div style={{...S.card,marginBottom:4}}>
-                <div style={{fontSize:11,color:T.textSecondary,marginBottom:8}}>Ãšltims RPE</div>
+                <div style={{fontSize:11,color:T.textSecondary,marginBottom:8}}>Últims RPE</div>
                 <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                   {ts.recentSessions.filter(s=>s.rpe).map((s,i)=>{
                     const c=getRpeColor(Number(s.rpe));
                     return (
                       <div key={i} style={{textAlign:"center"}}>
-                        <div style={{width:36,height:36,borderRadius:8,border:`1.5px solid ${c.text}`,background:c.bg,color:c.text,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:600,fontSize:14}}>{s.rpe}</div>
+                        <div style={{width:36,height:36,borderRadius:8,border:`2px solid ${c.text}`,background:c.bg,color:c.text,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:600,fontSize:14}}>{s.rpe}</div>
                         <div style={{fontSize:9,color:T.textMuted,marginTop:2}}>{s.date?.slice(-5)||""}</div>
                       </div>
                     );
@@ -2270,23 +2270,23 @@ export default function App() {
               </div>
             )}
 
-            {/* Check-in i recuperaciÃ³ */}
-            <SectionTitle>Check-in i recuperaciÃ³</SectionTitle>
+            {/* Check-in i recuperació */}
+            <SectionTitle>Check-in i recuperació</SectionTitle>
             {(ts.avgEnergyRecent||ts.avgSleepRecent||ts.avgStressRecent||ts.avgFatigueRecent||ts.avgPainRecent!=null)?(
               <>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:10}}>
                   {[
                     {label:"Energia",value:ts.avgEnergyRecent!=null?`${ts.avgEnergyRecent}/5`:"-",color:ts.avgEnergyRecent!=null&&ts.avgEnergyRecent<=2?T.danger:T.green},
                     {label:"Son",value:ts.avgSleepRecent!=null?`${ts.avgSleepRecent}/5`:"-",color:ts.avgSleepRecent!=null&&ts.avgSleepRecent<=2?T.danger:T.green},
-                    {label:"EstrÃ¨s",value:ts.avgStressRecent!=null?`${ts.avgStressRecent}/5`:"-",color:ts.avgStressRecent!=null&&ts.avgStressRecent>=4?T.orange:T.textPrimary},
+                    {label:"Estrès",value:ts.avgStressRecent!=null?`${ts.avgStressRecent}/5`:"-",color:ts.avgStressRecent!=null&&ts.avgStressRecent>=4?T.orange:T.textPrimary},
                     {label:"Fatiga",value:ts.avgFatigueRecent!=null?`${ts.avgFatigueRecent}/5`:"-",color:ts.avgFatigueRecent!=null&&ts.avgFatigueRecent>=4?T.orange:T.textPrimary},
-                    {label:"Dolor mitjÃ ",value:ts.avgPainRecent!=null?`${ts.avgPainRecent}/10`:"-",color:ts.avgPainRecent!=null&&ts.avgPainRecent>=5?T.danger:T.textPrimary},
+                    {label:"Dolor mitjà",value:ts.avgPainRecent!=null?`${ts.avgPainRecent}/10`:"-",color:ts.avgPainRecent!=null&&ts.avgPainRecent>=5?T.danger:T.textPrimary},
                   ].map(st=><StatCard key={st.label} label={st.label} value={st.value} color={st.color}/>)}
                 </div>
                 {ts.lastPain!=null&&Number(ts.lastPain)>0&&(
-                  <div style={{...S.card,background:T.dangerBg,border:`1.5px solid ${T.danger}40`,marginBottom:4}}>
-                    <div style={{fontSize:12,color:T.danger,fontWeight:500}}>Ãšltim dolor reportat</div>
-                    <div style={{fontSize:13,color:T.textPrimary,marginTop:4}}>{ts.lastPainZone?`${ts.lastPainZone} Â· `:""}{ts.lastPain}/10</div>
+                  <div style={{...S.card,background:T.dangerBg,border:`1px solid ${T.danger}40`,marginBottom:4}}>
+                    <div style={{fontSize:12,color:T.danger,fontWeight:500}}>Últim dolor reportat</div>
+                    <div style={{fontSize:13,color:T.textPrimary,marginTop:4}}>{ts.lastPainZone?`${ts.lastPainZone} · `:""}{ts.lastPain}/10</div>
                   </div>
                 )}
               </>
@@ -2294,15 +2294,15 @@ export default function App() {
               <div style={{fontSize:13,color:T.textMuted,padding:"8px 0"}}>Encara no hi ha dades de check-in.</div>
             )}
 
-            {/* Ãšltimes sessions */}
-            <SectionTitle>Ãšltimes sessions</SectionTitle>
+            {/* Últimes sessions */}
+            <SectionTitle>Últimes sessions</SectionTitle>
             <div style={S.card}>
               {ts.recentSessions.map((s,i)=>{
                 const load=getSessionInternalLoad(s);
                 return (
                   <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 0",borderBottom:i<ts.recentSessions.length-1?`1px solid ${T.border}`:"none"}}>
                     <div style={{fontSize:11,color:T.textMuted,width:42,flexShrink:0}}>{s.date||""}</div>
-                    <div style={{flex:1,fontSize:12,color:T.textPrimary}}>{s.sessionTitle||s.day||"SessiÃ³"}</div>
+                    <div style={{flex:1,fontSize:12,color:T.textPrimary}}>{s.sessionTitle||s.day||"Sessió"}</div>
                     <div style={{display:"flex",gap:5,flexShrink:0}}>
                       {s.rpe&&<span style={{...S.tag("purple"),fontSize:10}}>RPE {s.rpe}</span>}
                       {load!=null&&<span style={{...S.tag("accent"),fontSize:10}}>{load} UA</span>}
@@ -2340,9 +2340,9 @@ export default function App() {
       {adminTab==="routine"&&(()=>{
         return (
           <div style={S.sec}>
-            <div style={{display:"flex",gap:0,marginBottom:16,borderBottom:`1.5px solid ${T.border}`}}>
-              {[["rutina","ðŸ“… Rutina"],["plantilles","ðŸ“‹ Plantilles"],["biblioteca","ðŸ“š Biblioteca"]].map(([tab,label])=>(
-                <button key={tab} onClick={()=>setAdminRoutineTab(tab)} style={{padding:"8px 14px",fontSize:12,cursor:"pointer",background:"none",border:"none",borderBottom:`1.5px solid ${adminRoutineTab===tab?T.accent:"transparent"}`,color:adminRoutineTab===tab?T.accent:T.textSecondary,fontWeight:adminRoutineTab===tab?500:400,marginBottom:-1}}>{label}</button>
+            <div style={{display:"flex",gap:0,marginBottom:16,borderBottom:`1px solid ${T.border}`}}>
+              {[["rutina","📅 Rutina"],["plantilles","📋 Plantilles"],["biblioteca","📚 Biblioteca"]].map(([tab,label])=>(
+                <button key={tab} onClick={()=>setAdminRoutineTab(tab)} style={{padding:"8px 14px",fontSize:12,cursor:"pointer",background:"none",border:"none",borderBottom:`2px solid ${adminRoutineTab===tab?T.accent:"transparent"}`,color:adminRoutineTab===tab?T.accent:T.textSecondary,fontWeight:adminRoutineTab===tab?500:400,marginBottom:-1}}>{label}</button>
               ))}
             </div>
             {adminRoutineTab==="rutina"&&(()=>{
@@ -2351,7 +2351,7 @@ export default function App() {
               const updateSchedule=(day,tplIds)=>updateClientSchedule(adminClient,{...schedule,[day]:tplIds});
               return (
                 <div>
-                  <div style={{fontSize:12,color:T.textSecondary,marginBottom:16}}>Assigna plantilles d'entrenament a cada dia Â· {data.clients.find(c=>c.id===adminClient)?.name}</div>
+                  <div style={{fontSize:12,color:T.textSecondary,marginBottom:16}}>Assigna plantilles d'entrenament a cada dia · {data.clients.find(c=>c.id===adminClient)?.name}</div>
                   {DAYS.map(day=>{
                     const dayTpls=schedule[day]||[];
                     return (
@@ -2365,9 +2365,9 @@ export default function App() {
                             {dayTpls.map(tplId=>{
                               const tpl=templates.find(t=>t.id===tplId);
                               return tpl?(
-                                <div key={tplId} style={{display:"flex",alignItems:"center",gap:4,background:T.purpleBg,border:`1.5px solid #3A3A60`,borderRadius:20,padding:"3px 10px"}}>
+                                <div key={tplId} style={{display:"flex",alignItems:"center",gap:4,background:T.purpleBg,border:`1px solid #3A3A60`,borderRadius:20,padding:"3px 10px"}}>
                                   <span style={{fontSize:12,color:T.purple}}>{tpl.name}</span>
-                                  <button onClick={()=>updateSchedule(day,dayTpls.filter(id=>id!==tplId))} style={{background:"none",border:"none",color:T.textMuted,cursor:"pointer",fontSize:14,lineHeight:1,padding:"0 2px"}}>Ã—</button>
+                                  <button onClick={()=>updateSchedule(day,dayTpls.filter(id=>id!==tplId))} style={{background:"none",border:"none",color:T.textMuted,cursor:"pointer",fontSize:14,lineHeight:1,padding:"0 2px"}}>×</button>
                                 </div>
                               ):null;
                             })}
@@ -2375,7 +2375,7 @@ export default function App() {
                         )}
                         <select style={{...S.inp,fontSize:12}} value="" onChange={e=>{if(e.target.value&&!dayTpls.includes(e.target.value)) updateSchedule(day,[...dayTpls,e.target.value]);}}>
                           <option value="">+ Afegir plantilla...</option>
-                          {templates.filter(t=>!dayTpls.includes(t.id)).map(t=><option key={t.id} value={t.id}>{t.name} â€” {t.objective}</option>)}
+                          {templates.filter(t=>!dayTpls.includes(t.id)).map(t=><option key={t.id} value={t.id}>{t.name} — {t.objective}</option>)}
                         </select>
                       </div>
                     );
@@ -2388,7 +2388,7 @@ export default function App() {
               const updateTemplates=(tpls)=>updateClientTemplates(adminClient,tpls);
               const deleteTemplate=(id)=>updateTemplates(templates.filter(t=>t.id!==id));
               const duplicateTemplate=(tpl)=>{
-                const copy={...tpl,id:`tpl_${Date.now()}`,name:`${tpl.name} (cÃ²pia)`,exercises:tpl.exercises.map(e=>({...e,id:`tex_${Date.now()}_${Math.random().toString(36).slice(2)}`}))};
+                const copy={...tpl,id:`tpl_${Date.now()}`,name:`${tpl.name} (còpia)`,exercises:tpl.exercises.map(e=>({...e,id:`tex_${Date.now()}_${Math.random().toString(36).slice(2)}`}))};
                 updateTemplates([...templates,copy]);
               };
               return (
@@ -2409,18 +2409,18 @@ export default function App() {
                               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6,gap:6}}>
                                 <input style={{...S.inp,fontWeight:500,flex:1}} value={ex.name} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,name:e.target.value}:ex2)}))} placeholder="Nom exercici"/>
                                 <div style={{display:"flex",gap:4,flexShrink:0}}>
-                                  <button style={{...S.btnSecondary,padding:"4px 7px",fontSize:13}} onClick={()=>setEditingTemplate(p=>{const exs=[...p.exercises];if(i===0)return p;[exs[i-1],exs[i]]=[exs[i],exs[i-1]];return {...p,exercises:exs};})} disabled={i===0}>â†‘</button>
-                                  <button style={{...S.btnSecondary,padding:"4px 7px",fontSize:13}} onClick={()=>setEditingTemplate(p=>{const exs=[...p.exercises];if(i===exs.length-1)return p;[exs[i+1],exs[i]]=[exs[i],exs[i+1]];return {...p,exercises:exs};})} disabled={i===editingTemplate.exercises.length-1}>â†“</button>
-                                  <button style={S.btnDanger} onClick={()=>setEditingTemplate(p=>({...p,exercises:p.exercises.filter((_,j)=>j!==i)}))}>Ã—</button>
+                                  <button style={{...S.btnSecondary,padding:"4px 7px",fontSize:13}} onClick={()=>setEditingTemplate(p=>{const exs=[...p.exercises];if(i===0)return p;[exs[i-1],exs[i]]=[exs[i],exs[i-1]];return {...p,exercises:exs};})} disabled={i===0}>↑</button>
+                                  <button style={{...S.btnSecondary,padding:"4px 7px",fontSize:13}} onClick={()=>setEditingTemplate(p=>{const exs=[...p.exercises];if(i===exs.length-1)return p;[exs[i+1],exs[i]]=[exs[i],exs[i+1]];return {...p,exercises:exs};})} disabled={i===editingTemplate.exercises.length-1}>↓</button>
+                                  <button style={S.btnDanger} onClick={()=>setEditingTemplate(p=>({...p,exercises:p.exercises.filter((_,j)=>j!==i)}))}>×</button>
                                 </div>
                               </div>
                             <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                              <div style={{flex:1,minWidth:60}}><label style={S.lbl}>SÃ¨ries</label><input style={S.inp} type="number" value={ex.plannedSets} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedSets:+e.target.value}:ex2)}))}/></div>
+                              <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Sèries</label><input style={S.inp} type="number" value={ex.plannedSets} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedSets:+e.target.value}:ex2)}))}/></div>
                               <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Reps</label><input style={S.inp} value={ex.plannedReps} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedReps:e.target.value}:ex2)}))}/></div>
-                              <div style={{flex:1,minWidth:60}}><label style={S.lbl}>CÃ rrega</label><input style={S.inp} value={ex.plannedLoad} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedLoad:e.target.value}:ex2)}))}/></div>
+                              <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Càrrega</label><input style={S.inp} value={ex.plannedLoad} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedLoad:e.target.value}:ex2)}))}/></div>
                               <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Descans</label><input style={S.inp} value={ex.plannedRest} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedRest:e.target.value}:ex2)}))}/></div>
                             </div>
-                            <div style={{marginTop:6}}><label style={S.lbl}>Observacions</label><textarea style={{...S.inp,minHeight:70,resize:"vertical"}} value={ex.observations||""} placeholder="Indicacions especÃ­fiques..." onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,observations:e.target.value}:ex2)}))}></textarea></div>
+                            <div style={{marginTop:6}}><label style={S.lbl}>Observacions</label><textarea style={{...S.inp,minHeight:70,resize:"vertical"}} value={ex.observations||""} placeholder="Indicacions específiques..." onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,observations:e.target.value}:ex2)}))}></textarea></div>
                           </div>
                         ))}
                         <select style={{...S.inp,fontSize:12,marginBottom:12}} value="" onChange={e=>{const libEx=getClientLibrary(adminClient).find(l=>l.id===e.target.value);if(libEx) setEditingTemplate(p=>({...p,exercises:[...p.exercises,{id:`tex_${Date.now()}`,exerciseId:libEx.id,name:libEx.name,plannedSets:libEx.defaultSets,plannedReps:libEx.defaultReps,plannedLoad:libEx.defaultLoad||"",plannedRest:libEx.defaultRest||"",observations:"",order:p.exercises.length+1}]}));}}>
@@ -2428,7 +2428,7 @@ export default function App() {
                           {getClientLibrary(adminClient).map(l=><option key={l.id} value={l.id}>{l.name}</option>)}
                         </select>
                         <div style={{...S.row,justifyContent:"flex-end"}}>
-                          <button style={S.btnSecondary} onClick={()=>setEditingTemplate(null)}>CancelÂ·lar</button>
+                          <button style={S.btnSecondary} onClick={()=>setEditingTemplate(null)}>Cancel·lar</button>
                           <button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={()=>{updateTemplates(templates.map(t=>t.id===editingTemplate.id?editingTemplate:t));setEditingTemplate(null);}}>Guardar</button>
                         </div>
                       </FormCard>
@@ -2437,7 +2437,7 @@ export default function App() {
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
                           <div>
                             <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>{tpl.name}</div>
-                            <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{tpl.objective} Â· {tpl.estimatedDuration}</div>
+                            <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{tpl.objective} · {tpl.estimatedDuration}</div>
                           </div>
                           <div style={{display:"flex",gap:4}}>
                             <button style={S.btnEdit} onClick={()=>setEditingTemplate({...tpl,exercises:[...tpl.exercises]})}>Editar</button>
@@ -2447,10 +2447,10 @@ export default function App() {
                         </div>
                         <div style={{fontSize:11,color:T.textSecondary,marginBottom:8}}>{tpl.exercises?.length||0} exercicis</div>
                         {(tpl.exercises||[]).map((ex,i)=>(
-                          <div key={ex.id} style={{display:"flex",alignItems:"center",gap:8,padding:"4px 0",borderBottom:`1.5px solid ${T.border}`}}>
+                          <div key={ex.id} style={{display:"flex",alignItems:"center",gap:8,padding:"4px 0",borderBottom:`1px solid ${T.border}`}}>
                             <span style={{fontSize:12,color:T.textMuted,width:16}}>{i+1}.</span>
                             <span style={{fontSize:13,flex:1,color:T.textPrimary}}>{ex.name}</span>
-                            <span style={{fontSize:11,color:T.textSecondary}}>{ex.plannedSets}Ã—{ex.plannedReps}{ex.plannedLoad?` Â· ${ex.plannedLoad}`:""}</span>
+                            <span style={{fontSize:11,color:T.textSecondary}}>{ex.plannedSets}×{ex.plannedReps}{ex.plannedLoad?` · ${ex.plannedLoad}`:""}</span>
                           </div>
                         ))}
                       </div>
@@ -2460,7 +2460,7 @@ export default function App() {
                     <FormCard>
                       <div style={{fontWeight:500,fontSize:13,color:T.textPrimary,marginBottom:12}}>Nova plantilla</div>
                       <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.inp} value={newTemplate.name} onChange={e=>setNewTemplate(p=>({...p,name:e.target.value}))} placeholder="Ex. Push"/></div>
-                      <div style={{marginBottom:8}}><label style={S.lbl}>Objectiu</label><input style={S.inp} value={newTemplate.objective} onChange={e=>setNewTemplate(p=>({...p,objective:e.target.value}))} placeholder="Ex. ForÃ§a tren superior"/></div>
+                      <div style={{marginBottom:8}}><label style={S.lbl}>Objectiu</label><input style={S.inp} value={newTemplate.objective} onChange={e=>setNewTemplate(p=>({...p,objective:e.target.value}))} placeholder="Ex. Força tren superior"/></div>
                       <div style={{...S.row,marginBottom:12}}>
                         <div style={{flex:1}}><label style={S.lbl}>Tipus</label><input style={S.inp} value={newTemplate.type} onChange={e=>setNewTemplate(p=>({...p,type:e.target.value}))}/></div>
                         <div style={{flex:1}}><label style={S.lbl}>Durada</label><input style={S.inp} value={newTemplate.estimatedDuration} onChange={e=>setNewTemplate(p=>({...p,estimatedDuration:e.target.value}))} placeholder="45-60 min"/></div>
@@ -2472,7 +2472,7 @@ export default function App() {
                             <div key={i} style={{...S.card,marginBottom:4,padding:"6px 10px"}}>
                               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                                 <span style={{fontSize:13,color:T.textPrimary}}>{ex.name}</span>
-                                <button style={S.btnDanger} onClick={()=>setNewTemplate(p=>({...p,exercises:p.exercises.filter((_,j)=>j!==i)}))}>Ã—</button>
+                                <button style={S.btnDanger} onClick={()=>setNewTemplate(p=>({...p,exercises:p.exercises.filter((_,j)=>j!==i)}))}>×</button>
                               </div>
                             </div>
                           ))}
@@ -2483,8 +2483,8 @@ export default function App() {
                         {getClientLibrary(adminClient).map(l=><option key={l.id} value={l.id}>{l.name}</option>)}
                       </select>
                       <div style={{...S.row,justifyContent:"flex-end"}}>
-                        <button style={S.btnSecondary} onClick={()=>setShowAddTemplate(false)}>CancelÂ·lar</button>
-                        <button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={()=>{if(!newTemplate.name)return;updateTemplates([...templates,{...newTemplate,id:`tpl_${Date.now()}`}]);setNewTemplate({name:"",description:"",type:"ForÃ§a",objective:"",estimatedDuration:"",exercises:[]});setShowAddTemplate(false);}}>Crear</button>
+                        <button style={S.btnSecondary} onClick={()=>setShowAddTemplate(false)}>Cancel·lar</button>
+                        <button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={()=>{if(!newTemplate.name)return;updateTemplates([...templates,{...newTemplate,id:`tpl_${Date.now()}`}]);setNewTemplate({name:"",description:"",type:"Força",objective:"",estimatedDuration:"",exercises:[]});setShowAddTemplate(false);}}>Crear</button>
                       </div>
                     </FormCard>
                   ):(
@@ -2508,15 +2508,15 @@ export default function App() {
                           <div style={{flex:1}}><label style={S.lbl}>Grup muscular</label><input style={S.inp} value={editingLibEx.muscleGroup} onChange={e=>setEditingLibEx(p=>({...p,muscleGroup:e.target.value}))}/></div>
                         </div>
                         <div style={{...S.row,marginBottom:8}}>
-                          <div style={{flex:1}}><label style={S.lbl}>SÃ¨ries</label><input style={S.inp} type="number" value={editingLibEx.defaultSets} onChange={e=>setEditingLibEx(p=>({...p,defaultSets:+e.target.value}))}/></div>
+                          <div style={{flex:1}}><label style={S.lbl}>Sèries</label><input style={S.inp} type="number" value={editingLibEx.defaultSets} onChange={e=>setEditingLibEx(p=>({...p,defaultSets:+e.target.value}))}/></div>
                           <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} value={editingLibEx.defaultReps} onChange={e=>setEditingLibEx(p=>({...p,defaultReps:e.target.value}))}/></div>
                           <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={editingLibEx.defaultRest} onChange={e=>setEditingLibEx(p=>({...p,defaultRest:e.target.value}))}/></div>
                         </div>
                         <div style={{marginBottom:8}}><label style={S.lbl}>Material</label><input style={S.inp} value={editingLibEx.material} onChange={e=>setEditingLibEx(p=>({...p,material:e.target.value}))}/></div>
                         <div style={{marginBottom:8}}><label style={S.lbl}>Indicacions</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={editingLibEx.instructions} onChange={e=>setEditingLibEx(p=>({...p,instructions:e.target.value}))}/></div>
-                        <div style={{marginBottom:12}}><label style={S.lbl}>Nivell</label><select style={S.inp} value={editingLibEx.level} onChange={e=>setEditingLibEx(p=>({...p,level:e.target.value}))}>{["Principiant","Intermedi","AvanÃ§at"].map(l=><option key={l} value={l}>{l}</option>)}</select></div>
+                        <div style={{marginBottom:12}}><label style={S.lbl}>Nivell</label><select style={S.inp} value={editingLibEx.level} onChange={e=>setEditingLibEx(p=>({...p,level:e.target.value}))}>{["Principiant","Intermedi","Avançat"].map(l=><option key={l} value={l}>{l}</option>)}</select></div>
                         <div style={{...S.row,justifyContent:"flex-end"}}>
-                          <button style={S.btnSecondary} onClick={()=>setEditingLibEx(null)}>CancelÂ·lar</button>
+                          <button style={S.btnSecondary} onClick={()=>setEditingLibEx(null)}>Cancel·lar</button>
                           <button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={()=>{updateLib(lib.map(e=>e.id===editingLibEx.id?editingLibEx:e));setEditingLibEx(null);}}>Guardar</button>
                         </div>
                       </FormCard>
@@ -2525,8 +2525,8 @@ export default function App() {
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
                           <div>
                             <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{ex.name}</div>
-                            <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{ex.category} Â· {ex.muscleGroup} Â· {ex.level}</div>
-                            <div style={{fontSize:11,color:T.textMuted,marginTop:2}}>{ex.defaultSets}Ã—{ex.defaultReps} Â· {ex.defaultRest}</div>
+                            <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{ex.category} · {ex.muscleGroup} · {ex.level}</div>
+                            <div style={{fontSize:11,color:T.textMuted,marginTop:2}}>{ex.defaultSets}×{ex.defaultReps} · {ex.defaultRest}</div>
                           </div>
                           <div style={{display:"flex",gap:4}}>
                             <button style={S.btnEdit} onClick={()=>setEditingLibEx({...ex})}>Editar</button>
@@ -2545,16 +2545,16 @@ export default function App() {
                         <div style={{flex:1}}><label style={S.lbl}>Grup muscular</label><input style={S.inp} value={newLibEx.muscleGroup} onChange={e=>setNewLibEx(p=>({...p,muscleGroup:e.target.value}))}/></div>
                       </div>
                       <div style={{...S.row,marginBottom:8}}>
-                        <div style={{flex:1}}><label style={S.lbl}>SÃ¨ries</label><input style={S.inp} type="number" value={newLibEx.defaultSets} onChange={e=>setNewLibEx(p=>({...p,defaultSets:+e.target.value}))}/></div>
+                        <div style={{flex:1}}><label style={S.lbl}>Sèries</label><input style={S.inp} type="number" value={newLibEx.defaultSets} onChange={e=>setNewLibEx(p=>({...p,defaultSets:+e.target.value}))}/></div>
                         <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} value={newLibEx.defaultReps} onChange={e=>setNewLibEx(p=>({...p,defaultReps:e.target.value}))}/></div>
                         <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={newLibEx.defaultRest} onChange={e=>setNewLibEx(p=>({...p,defaultRest:e.target.value}))}/></div>
                       </div>
                       <div style={{marginBottom:8}}><label style={S.lbl}>Material</label><input style={S.inp} value={newLibEx.material} onChange={e=>setNewLibEx(p=>({...p,material:e.target.value}))}/></div>
                       <div style={{marginBottom:8}}><label style={S.lbl}>Indicacions</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={newLibEx.instructions} onChange={e=>setNewLibEx(p=>({...p,instructions:e.target.value}))}/></div>
-                      <div style={{marginBottom:12}}><label style={S.lbl}>Nivell</label><select style={S.inp} value={newLibEx.level} onChange={e=>setNewLibEx(p=>({...p,level:e.target.value}))}>{["Principiant","Intermedi","AvanÃ§at"].map(l=><option key={l} value={l}>{l}</option>)}</select></div>
+                      <div style={{marginBottom:12}}><label style={S.lbl}>Nivell</label><select style={S.inp} value={newLibEx.level} onChange={e=>setNewLibEx(p=>({...p,level:e.target.value}))}>{["Principiant","Intermedi","Avançat"].map(l=><option key={l} value={l}>{l}</option>)}</select></div>
                       <div style={{...S.row,justifyContent:"flex-end"}}>
-                        <button style={S.btnSecondary} onClick={()=>setShowAddLibEx(false)}>CancelÂ·lar</button>
-                        <button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={()=>{if(!newLibEx.name)return;updateLib([...lib,{...newLibEx,id:`ex_${Date.now()}`}]);setNewLibEx({name:"",category:"ForÃ§a",muscleGroup:"",movementPattern:"",material:"",defaultSets:3,defaultReps:"10",defaultLoad:"",defaultRest:"60s",instructions:"",observations:"",level:"Principiant"});setShowAddLibEx(false);}}>Afegir</button>
+                        <button style={S.btnSecondary} onClick={()=>setShowAddLibEx(false)}>Cancel·lar</button>
+                        <button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={()=>{if(!newLibEx.name)return;updateLib([...lib,{...newLibEx,id:`ex_${Date.now()}`}]);setNewLibEx({name:"",category:"Força",muscleGroup:"",movementPattern:"",material:"",defaultSets:3,defaultReps:"10",defaultLoad:"",defaultRest:"60s",instructions:"",observations:"",level:"Principiant"});setShowAddLibEx(false);}}>Afegir</button>
                       </div>
                     </FormCard>
                   ):(
@@ -2569,4 +2569,3 @@ export default function App() {
     </div>
   );
 }
-
