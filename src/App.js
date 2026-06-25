@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { db } from "./firebase";
 import { ref, set, get, remove } from "firebase/database";
 
@@ -61,29 +61,29 @@ const S = {
   formHeader: { background:T.headerBg, color:T.headerText, padding:"1.25rem 1.25rem 1rem", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 },
   formSectionTitle: { fontSize:13, fontWeight:700, color:T.headerBg, textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:12, marginTop:20 },
   adminHeader: { display:"flex", flexDirection:"column", gap:12, padding:"1.5rem 1.25rem", background:T.headerBg, color:T.headerText },
-  adminStatCard: { background:"rgba(255,255,255,0.12)", border:"1.5px solid rgba(255,255,255,0.2)", borderRadius:10, padding:"0.85rem 1rem", textAlign:"center" },
+  adminStatCard: { background:"rgba(255,255,255,0.12)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:10, padding:"0.85rem 1rem", textAlign:"center" },
   adminContent: { background:"#ffffff", borderRadius:20, padding:"1.5rem 1.25rem 2rem", marginTop:-10 },
   detailHeader: { background:T.headerBg, color:T.headerText, padding:"1.5rem 1.25rem", display:"flex", alignItems:"center", gap:16, minHeight:140, borderRadius:12 },
   clientHeader: { background:T.headerBg, color:T.headerText, padding:"1.5rem 1.25rem", display:"flex", alignItems:"center", gap:16, minHeight:140, borderRadius:"0 0 18px 18px" },
   sec: { padding:"1rem 1.25rem" },
-  card: { background:T.card, border:`1.5px solid ${T.border}`, borderRadius:10, padding:"0.9rem 1rem", marginBottom:10, boxShadow:"0 1px 4px rgba(26,58,107,0.06)" },
-  inp: { padding:"9px 12px", borderRadius:10, border:`1.5px solid ${T.border}`, fontSize:13, width:"100%", background:T.card2, color:T.textPrimary, boxSizing:"border-box", outline:"none" },
+  card: { background:T.card, border:`1px solid ${T.border}`, borderRadius:10, padding:"0.9rem 1rem", marginBottom:10, boxShadow:"0 1px 4px rgba(26,58,107,0.06)" },
+  inp: { padding:"9px 12px", borderRadius:10, border:`1px solid ${T.border}`, fontSize:13, width:"100%", background:T.card2, color:T.textPrimary, boxSizing:"border-box", outline:"none" },
   formInp: { padding:"10px 12px", borderRadius:8, border:"1.5px solid #c7d2fe", fontSize:13, width:"100%", background:T.card2, color:T.textPrimary, boxSizing:"border-box", outline:"none" },
   formLbl: { fontSize:12, color:T.headerBg, display:"block", marginBottom:5, fontWeight:500 },
   row: { display:"flex", gap:10 },
-  avatar: (c) => ({ width:40, height:40, borderRadius:12, background:c.bg, border:`1.5px solid ${c.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:600, fontSize:13, color:c.text, flexShrink:0 }),
+  avatar: (c) => ({ width:40, height:40, borderRadius:12, background:c.bg, border:`1px solid ${c.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:600, fontSize:13, color:c.text, flexShrink:0 }),
   btnPrimary: { background:T.accent, color:T.headerBg, border:"none", borderRadius:10, fontWeight:500, fontSize:15, padding:"10px 16px", cursor:"pointer", width:"100%" },
-  btnSecondary: { background:T.card, color:T.headerBg, border:`1.5px solid #c7d2fe`, borderRadius:10, fontSize:12, padding:"6px 12px", cursor:"pointer" },
-  btnDanger: { background:T.dangerBg, color:T.danger, border:`1.5px solid ${T.dangerBorder}`, borderRadius:10, fontSize:12, padding:"6px 12px", cursor:"pointer" },
-  btnEdit: { background:"transparent", color:T.textSecondary, border:`1.5px solid ${T.border}`, borderRadius:10, fontSize:11, padding:"4px 9px", cursor:"pointer" },
+  btnSecondary: { background:T.card, color:T.headerBg, border:`1px solid #c7d2fe`, borderRadius:10, fontSize:12, padding:"6px 12px", cursor:"pointer" },
+  btnDanger: { background:T.dangerBg, color:T.danger, border:`1px solid ${T.dangerBorder}`, borderRadius:10, fontSize:12, padding:"6px 12px", cursor:"pointer" },
+  btnEdit: { background:"transparent", color:T.textSecondary, border:`1px solid ${T.border}`, borderRadius:10, fontSize:11, padding:"4px 9px", cursor:"pointer" },
   tag: (variant) => {
     if (variant==="no_activity") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#fff7ed", color:"#c2410c", border:`2px solid #fdba74` };
-    if (variant==="active") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#f0fdf4", color:"#15803d", border:`1.5px solid #86efac` };
-    if (variant==="alert") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#fef2f2", color:"#991b1b", border:`1.5px solid #fca5a5` };
-    if (variant==="new") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#eef2ff", color:"#1d4ed8", border:`1.5px solid #c7d2fe` };
-    return { fontSize:11, padding:"4px 9px", borderRadius:14, background:T.card2, color:T.textSecondary, border:`1.5px solid ${T.border}` };
+    if (variant==="active") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#f0fdf4", color:"#15803d", border:`1px solid #86efac` };
+    if (variant==="alert") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#fef2f2", color:"#991b1b", border:`1px solid #fca5a5` };
+    if (variant==="new") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#eef2ff", color:"#1d4ed8", border:`1px solid #c7d2fe` };
+    return { fontSize:11, padding:"4px 9px", borderRadius:14, background:T.card2, color:T.textSecondary, border:`1px solid ${T.border}` };
   },
-  cCard: (active, c) => ({ background: active ? T.card2 : T.card, border:`${active?"2px":"1.5px"} solid ${active ? c.border : T.border}`, borderRadius:14, padding:"0.75rem 1rem", marginBottom:8, cursor:"pointer", display:"flex", alignItems:"center", gap:12 }),
+  cCard: (active, c) => ({ background: active ? T.card2 : T.card, border:`${active?"2px":"1px"} solid ${active ? c.border : T.border}`, borderRadius:14, padding:"0.75rem 1rem", marginBottom:8, cursor:"pointer", display:"flex", alignItems:"center", gap:12 }),
 };
 
 // ── Default data ──────────────────────────────────────────────────────────────
@@ -109,7 +109,7 @@ const ProgressBar = ({value, total, color=T.accent}) => {
 };
 
 const FormCard = ({children, style={}}) => (
-  <div style={{background:"#1A1A24",border:"1.5px solid #E8FF4740",borderRadius:14,padding:"0.9rem 1rem",marginBottom:10,...style}}>{children}</div>
+  <div style={{background:"#1A1A24",border:"1px solid #E8FF4740",borderRadius:14,padding:"0.9rem 1rem",marginBottom:10,...style}}>{children}</div>
 );
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -865,7 +865,7 @@ export default function App() {
                     const current=(IF.matchDays||"").split(",").map(s=>s.trim()).filter(Boolean);
                     const updated=sel?current.filter(x=>x!==d):[...current,d];
                     setIF("matchDays",updated.join(", "));
-                  }} style={{padding:"7px 12px",borderRadius:10,fontSize:12,cursor:"pointer",border:`1.5px solid ${sel?T.accent:T.border}`,background:sel?T.accent:T.card2,color:sel?T.bg:T.textSecondary,fontWeight:sel?500:400}}>
+                  }} style={{padding:"7px 12px",borderRadius:10,fontSize:12,cursor:"pointer",border:`1px solid ${sel?T.accent:T.border}`,background:sel?T.accent:T.card2,color:sel?T.bg:T.textSecondary,fontWeight:sel?500:400}}>
                     {d}
                   </button>
                 );
@@ -898,7 +898,7 @@ export default function App() {
           {(IF.source==="Recomanació"||IF.source==="Client actual"||IF.source==="Amic/familiar")&&(
             <div style={{marginBottom:10}}><label style={S.formLbl}>Qui t'ha recomanat?</label><input style={S.formInp} value={IF.referredBy} onChange={e=>setIF("referredBy",e.target.value)} placeholder="Nom de la persona"/></div>
           )}
-          {intakeError&&<div style={{background:T.dangerBg,border:`1.5px solid ${T.danger}40`,borderRadius:10,padding:"10px 12px",marginBottom:12,fontSize:13,color:T.danger}}>{intakeError}</div>}
+          {intakeError&&<div style={{background:T.dangerBg,border:`1px solid ${T.danger}40`,borderRadius:10,padding:"10px 12px",marginBottom:12,fontSize:13,color:T.danger}}>{intakeError}</div>}
           <button style={{...S.btnPrimary,padding:"14px",marginTop:16}} onClick={submitIntakeForm}>Enviar formulari</button>
         </div>
       </div>
@@ -933,7 +933,7 @@ export default function App() {
     return (
       <div style={S.wrap}>
         <style>{cfStyle}</style>
-        <div style={{position:"sticky",top:0,background:T.card,borderBottom:`1.5px solid ${T.border}`,padding:"1rem 1.25rem",zIndex:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{position:"sticky",top:0,background:T.card,borderBottom:`1px solid ${T.border}`,padding:"1rem 1.25rem",zIndex:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>Editar sessió</div>
           <button style={S.btnSecondary} onClick={()=>{setEditingHistorySession(null);setEditingHistoryClientId(null);setEditingHistorySessionId(null);}}>Cancel·lar</button>
         </div>
@@ -965,7 +965,7 @@ export default function App() {
             <label style={S.lbl}>Sensació</label>
             <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
               {[["😄","Molt bé"],["🙂","Bé"],["😐","Normal"],["😓","Cansat"],["😣","Molèsties"]].map(([emoji,label])=>(
-                <button key={label} onClick={()=>updateSess("feeling",label)} style={{padding:"5px 9px",borderRadius:8,border:`1.5px solid ${sess.feeling===label?T.accent:T.border}`,background:sess.feeling===label?T.accent:T.card2,color:sess.feeling===label?T.bg:T.textSecondary,cursor:"pointer",fontSize:11}}>{emoji} {label}</button>
+                <button key={label} onClick={()=>updateSess("feeling",label)} style={{padding:"5px 9px",borderRadius:8,border:`1px solid ${sess.feeling===label?T.accent:T.border}`,background:sess.feeling===label?T.accent:T.card2,color:sess.feeling===label?T.bg:T.textSecondary,cursor:"pointer",fontSize:11}}>{emoji} {label}</button>
               ))}
             </div>
           </div>
@@ -976,7 +976,7 @@ export default function App() {
               <label style={S.lbl}>{label} {(sess.checkIn||{})[key]?`${(sess.checkIn||{})[key]}/${max}`:""}</label>
               <div style={{display:"flex",gap:5}}>
                 {Array.from({length:max},(_,i)=>i+1).map(n=>(
-                  <button key={n} onClick={()=>updateSess("checkIn",{...(sess.checkIn||{}),[key]:String(n)})} style={{width:34,height:34,borderRadius:8,border:`1.5px solid ${Number((sess.checkIn||{})[key])===n?T.accent:T.border}`,background:Number((sess.checkIn||{})[key])===n?T.accent:T.card2,color:Number((sess.checkIn||{})[key])===n?T.bg:T.textSecondary,cursor:"pointer",fontSize:12}}>{n}</button>
+                  <button key={n} onClick={()=>updateSess("checkIn",{...(sess.checkIn||{}),[key]:String(n)})} style={{width:34,height:34,borderRadius:8,border:`1px solid ${Number((sess.checkIn||{})[key])===n?T.accent:T.border}`,background:Number((sess.checkIn||{})[key])===n?T.accent:T.card2,color:Number((sess.checkIn||{})[key])===n?T.bg:T.textSecondary,cursor:"pointer",fontSize:12}}>{n}</button>
                 ))}
               </div>
             </div>
@@ -985,7 +985,7 @@ export default function App() {
             <label style={S.lbl}>Dolor actual</label>
             <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
               {Array.from({length:11},(_,i)=>i).map(n=>(
-                <button key={n} onClick={()=>updateSess("checkIn",{...(sess.checkIn||{}),pain:String(n)})} style={{width:32,height:32,borderRadius:8,border:`1.5px solid ${Number((sess.checkIn||{}).pain)===n&&(sess.checkIn||{}).pain!==""?T.accent:T.border}`,background:Number((sess.checkIn||{}).pain)===n&&(sess.checkIn||{}).pain!==""?T.accent:T.card2,color:Number((sess.checkIn||{}).pain)===n&&(sess.checkIn||{}).pain!==""?T.bg:T.textSecondary,cursor:"pointer",fontSize:11}}>{n}</button>
+                <button key={n} onClick={()=>updateSess("checkIn",{...(sess.checkIn||{}),pain:String(n)})} style={{width:32,height:32,borderRadius:8,border:`1px solid ${Number((sess.checkIn||{}).pain)===n&&(sess.checkIn||{}).pain!==""?T.accent:T.border}`,background:Number((sess.checkIn||{}).pain)===n&&(sess.checkIn||{}).pain!==""?T.accent:T.card2,color:Number((sess.checkIn||{}).pain)===n&&(sess.checkIn||{}).pain!==""?T.bg:T.textSecondary,cursor:"pointer",fontSize:11}}>{n}</button>
               ))}
             </div>
           </div>
@@ -1006,7 +1006,7 @@ export default function App() {
               <div style={{marginBottom:8}}><label style={S.lbl}>Observacions</label><input style={S.inp} value={ex.observations||""} onChange={e=>updateEx(ei,"observations",e.target.value)}/></div>
               <div style={{fontSize:11,fontWeight:500,color:T.textSecondary,marginBottom:6}}>Sèries</div>
               {(ex.sets||[]).map((st,si)=>(
-                <div key={si} style={{background:T.card2,borderRadius:8,padding:"8px 10px",marginBottom:5,border:`1.5px solid ${st.completed?T.accent:T.border}`}}>
+                <div key={si} style={{background:T.card2,borderRadius:8,padding:"8px 10px",marginBottom:5,border:`1px solid ${st.completed?T.accent:T.border}`}}>
                   <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6}}>
                     <button onClick={()=>updateSt(ei,si,"completed",!st.completed)} style={{width:22,height:22,borderRadius:"50%",border:`2px solid ${st.completed?T.accent:T.border}`,background:st.completed?T.accent:T.bg,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                       {st.completed&&<svg viewBox="0 0 16 16" width="11" height="11"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
@@ -1025,8 +1025,8 @@ export default function App() {
             </div>
           ))}
           {editHistoryAddEx ? (
-            <div style={{background:"#1A1A24",border:"1.5px solid #E8FF4740",borderRadius:14,padding:"0.9rem",marginBottom:10}}>
-              <div style={{display:"flex",gap:0,marginBottom:12,borderBottom:`1.5px solid ${T.border}`}}>
+            <div style={{background:"#1A1A24",border:"1px solid #E8FF4740",borderRadius:14,padding:"0.9rem",marginBottom:10}}>
+              <div style={{display:"flex",gap:0,marginBottom:12,borderBottom:`1px solid ${T.border}`}}>
                 {[["biblioteca","📚 Biblioteca"],["custom","✏️ Nou exercici"]].map(([tab,label])=>(
                   <button key={tab} onClick={()=>setEditHistoryNewEx(p=>({...p,_tab:tab}))} style={{padding:"6px 12px",fontSize:11,cursor:"pointer",background:"none",border:"none",borderBottom:`2px solid ${(editHistoryNewEx._tab||"biblioteca")===tab?T.accent:"transparent"}`,color:(editHistoryNewEx._tab||"biblioteca")===tab?T.accent:T.textSecondary,marginBottom:-1}}>{label}</button>
                 ))}
@@ -1090,7 +1090,7 @@ export default function App() {
     const SecT = ({children}) => <div style={{fontSize:11,fontWeight:500,color:T.accent,textTransform:"uppercase",letterSpacing:"0.5px",marginTop:16,marginBottom:8}}>{children}</div>;
     return (
       <div style={S.wrap}>
-        <div style={{position:"sticky",top:0,background:T.card,borderBottom:`1.5px solid ${T.border}`,padding:"1rem 1.25rem",zIndex:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{position:"sticky",top:0,background:T.card,borderBottom:`1px solid ${T.border}`,padding:"1rem 1.25rem",zIndex:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>{d.name||"Sol·licitud"}</div>
           <button style={S.btnSecondary} onClick={()=>setViewingIntake(null)}>Tancar</button>
         </div>
@@ -1155,13 +1155,13 @@ export default function App() {
     <div style={{...S.wrap,display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>
       <style>{cfStyle}</style>
       <div style={{width:"100%",maxWidth:320,padding:"2rem 1.25rem",textAlign:"center"}}>
-        <div style={{width:56,height:56,background:T.card,borderRadius:16,margin:"0 auto 20px",display:"flex",alignItems:"center",justifyContent:"center",border:`1.5px solid ${T.border}`}}>
+        <div style={{width:56,height:56,background:T.card,borderRadius:16,margin:"0 auto 20px",display:"flex",alignItems:"center",justifyContent:"center",border:`1px solid ${T.border}`}}>
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke={T.accent} strokeWidth="1.5"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke={T.accent} strokeWidth="1.5" strokeLinecap="round"/><circle cx="12" cy="16" r="1.5" fill={T.accent}/></svg>
         </div>
         <div style={{fontWeight:500,fontSize:18,color:T.textPrimary,marginBottom:6}}>Àrea del preparador</div>
         <div style={{fontSize:13,color:T.textSecondary,marginBottom:24}}>Introdueix el teu PIN</div>
         <input type="password" maxLength={6}
-          style={{...S.inp,textAlign:"center",fontSize:24,letterSpacing:10,maxWidth:160,margin:"0 auto 12px",display:"block",border:`1.5px solid ${pinError?T.danger:T.border}`}}
+          style={{...S.inp,textAlign:"center",fontSize:24,letterSpacing:10,maxWidth:160,margin:"0 auto 12px",display:"block",border:`1px solid ${pinError?T.danger:T.border}`}}
           value={pinInput}
           onChange={e=>{setPinInput(e.target.value);setPinError(false);}}
           onKeyDown={e=>{if(e.key==="Enter"){if(pinInput===PIN){setMode("admin");setPinInput("");}else setPinError(true);}}}
@@ -1196,16 +1196,16 @@ export default function App() {
 
         {showFinishModal&&(
           <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
-            <div style={{background:T.card,borderRadius:"20px 20px 0 0",padding:"1.5rem 1.25rem",width:"100%",maxWidth:520,border:`1.5px solid ${T.border}`}}>
+            <div style={{background:T.card,borderRadius:"20px 20px 0 0",padding:"1.5rem 1.25rem",width:"100%",maxWidth:520,border:`1px solid ${T.border}`}}>
               <div style={{fontWeight:500,fontSize:16,color:T.textPrimary,marginBottom:4}}>Finalitzar entrenament</div>
               <div style={{fontSize:13,color:T.textSecondary,marginBottom:20}}>Com ha anat la sessió?</div>
               <div style={{marginBottom:12}}>
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
                   <label style={{...S.lbl,marginBottom:0}}>RPE — Esforç percebut (1-10)</label>
-                  <button onClick={()=>setShowRpeInfo(p=>!p)} style={{width:18,height:18,borderRadius:"50%",border:`1.5px solid ${T.border}`,background:T.card2,color:T.textSecondary,cursor:"pointer",fontSize:11,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>i</button>
+                  <button onClick={()=>setShowRpeInfo(p=>!p)} style={{width:18,height:18,borderRadius:"50%",border:`1px solid ${T.border}`,background:T.card2,color:T.textSecondary,cursor:"pointer",fontSize:11,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>i</button>
                 </div>
                 {showRpeInfo&&(
-                  <div style={{background:T.card2,border:`1.5px solid ${T.border}`,borderRadius:10,padding:"10px 12px",marginBottom:10,fontSize:12}}>
+                  <div style={{background:T.card2,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 12px",marginBottom:10,fontSize:12}}>
                     <div style={{fontWeight:500,color:T.textPrimary,marginBottom:6}}>Què és l'RPE?</div>
                     <div style={{color:T.textSecondary,marginBottom:6,lineHeight:1.5}}>Percepció subjectiva de l'esforç de la sessió. "Com de dura t'ha semblat?"</div>
                     <div style={{color:T.textSecondary,lineHeight:1.8,fontSize:11}}>
@@ -1235,7 +1235,7 @@ export default function App() {
                 <label style={S.lbl}>Sensació</label>
                 <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                   {[["😄","Molt bé"],["🙂","Bé"],["😐","Normal"],["😓","Cansat"],["😣","Molèsties"]].map(([emoji,label])=>(
-                    <button key={label} onClick={()=>setFinishForm(p=>({...p,feeling:label}))} style={{padding:"6px 10px",borderRadius:10,border:`1.5px solid ${finishForm.feeling===label?T.accent:T.border}`,background:finishForm.feeling===label?T.accent:T.card2,color:finishForm.feeling===label?T.bg:T.textSecondary,cursor:"pointer",fontSize:12}}>{emoji} {label}</button>
+                    <button key={label} onClick={()=>setFinishForm(p=>({...p,feeling:label}))} style={{padding:"6px 10px",borderRadius:10,border:`1px solid ${finishForm.feeling===label?T.accent:T.border}`,background:finishForm.feeling===label?T.accent:T.card2,color:finishForm.feeling===label?T.bg:T.textSecondary,cursor:"pointer",fontSize:12}}>{emoji} {label}</button>
                   ))}
                 </div>
               </div>
@@ -1269,7 +1269,7 @@ export default function App() {
           </div>
         )}
 
-        <div style={{display:"flex",borderBottom:`1.5px solid ${T.border}`,padding:"0 1.25rem"}}>
+        <div style={{display:"flex",borderBottom:`1px solid ${T.border}`,padding:"0 1.25rem"}}>
           {[["entrenament","🏋️ Entrenament"],["perfil","👤 Perfil"],["historial","📋 Historial"]].map(([tab,label])=>(
             <button key={tab} onClick={()=>setClientViewTab(tab)} style={{padding:"10px 16px",fontSize:13,cursor:"pointer",background:"none",border:"none",borderBottom:`2px solid ${clientViewTab===tab?T.accent:"transparent"}`,color:clientViewTab===tab?T.accent:T.textSecondary,fontWeight:clientViewTab===tab?500:400,marginBottom:-1,transition:"all 0.15s"}}>{label}</button>
           ))}
@@ -1301,7 +1301,7 @@ export default function App() {
 
             if(!checkInDone) {
               const ScaleBtn=({value,selected,onClick})=>(
-                <button onClick={onClick} style={{width:36,height:36,borderRadius:8,border:`1.5px solid ${selected?T.accent:T.border}`,background:selected?T.accent:T.card2,color:selected?T.bg:T.textSecondary,cursor:"pointer",fontSize:13,fontWeight:selected?500:400}}>{value}</button>
+                <button onClick={onClick} style={{width:36,height:36,borderRadius:8,border:`1px solid ${selected?T.accent:T.border}`,background:selected?T.accent:T.card2,color:selected?T.bg:T.textSecondary,cursor:"pointer",fontSize:13,fontWeight:selected?500:400}}>{value}</button>
               );
               const ci2=checkInForm;
               const showPainAlert=ci2.pain!==""&&Number(ci2.pain)>=5;
@@ -1318,7 +1318,7 @@ export default function App() {
                       const active=selDay===d;
                       return (
                         <div key={d} style={{textAlign:"center",flexShrink:0}}>
-                          <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1.5px solid ${active?T.accent:T.border}`,background:active?T.accent:T.card,color:active?T.bg:T.textMuted,cursor:"pointer",fontSize:12}}>{["L","M","X","J","V","S","D"][i]}</button>
+                          <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1px solid ${active?T.accent:T.border}`,background:active?T.accent:T.card,color:active?T.bg:T.textMuted,cursor:"pointer",fontSize:12}}>{["L","M","X","J","V","S","D"][i]}</button>
                           {d===TODAY&&<div style={{fontSize:9,color:T.accent,marginTop:2}}>avui</div>}
                         </div>
                       );
@@ -1327,8 +1327,8 @@ export default function App() {
                   <div style={S.sec}>
                     <div style={{fontWeight:500,fontSize:18,color:T.textPrimary,marginBottom:4}}>Com arribes avui?</div>
                     <div style={{fontSize:13,color:T.textSecondary,marginBottom:20}}>Respon ràpid abans de començar l'entrenament.</div>
-                    {showPainAlert&&<div style={{background:T.dangerBg,border:`1.5px solid ${T.danger}40`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:12,color:T.danger}}>⚠️ Dolor elevat reportat. Ajusta la intensitat o consulta amb l'entrenador.</div>}
-                    {showRecoveryAlert&&<div style={{background:T.orangeBg,border:`1.5px solid #7C2D12`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:12,color:T.orange}}>⚠️ Recuperació baixa. Considera baixar la intensitat.</div>}
+                    {showPainAlert&&<div style={{background:T.dangerBg,border:`1px solid ${T.danger}40`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:12,color:T.danger}}>⚠️ Dolor elevat reportat. Ajusta la intensitat o consulta amb l'entrenador.</div>}
+                    {showRecoveryAlert&&<div style={{background:T.orangeBg,border:`1px solid #7C2D12`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:12,color:T.orange}}>⚠️ Recuperació baixa. Considera baixar la intensitat.</div>}
                     {[{key:"energy",label:"Energia",max:5},{key:"sleep",label:"Son",max:5},{key:"stress",label:"Estrès",max:5},{key:"fatigue",label:"Fatiga muscular",max:5}].map(({key,label,max})=>(
                       <div key={key} style={{marginBottom:14}}>
                         <label style={S.lbl}>{label} {checkInForm[key]?`${checkInForm[key]}/${max}`:""}</label>
@@ -1396,7 +1396,7 @@ export default function App() {
                     const active=selDay===d;
                     return (
                       <div key={d} style={{textAlign:"center",flexShrink:0}}>
-                        <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1.5px solid ${active?T.accent:T.border}`,background:active?T.accent:T.card,color:active?T.bg:T.textMuted,cursor:"pointer",fontSize:12,fontWeight:active?500:400}}>{["L","M","X","J","V","S","D"][i]}</button>
+                        <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1px solid ${active?T.accent:T.border}`,background:active?T.accent:T.card,color:active?T.bg:T.textMuted,cursor:"pointer",fontSize:12,fontWeight:active?500:400}}>{["L","M","X","J","V","S","D"][i]}</button>
                         {d===TODAY&&<div style={{fontSize:9,color:T.accent,marginTop:2}}>avui</div>}
                       </div>
                     );
@@ -1404,7 +1404,7 @@ export default function App() {
                 </div>
                 <div style={S.sec}>
                   {currentSession.checkIn?.completedAt&&(currentSession.checkIn.energy||currentSession.checkIn.pain!=="")&&(
-                    <div style={{background:T.card2,border:`1.5px solid ${T.border}`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:11,color:T.textSecondary}}>
+                    <div style={{background:T.card2,border:`1px solid ${T.border}`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:11,color:T.textSecondary}}>
                       <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4,fontSize:12}}>Check-in inicial</div>
                       <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
                         {currentSession.checkIn.energy&&<span>⚡ {currentSession.checkIn.energy}/5</span>}
@@ -1416,7 +1416,7 @@ export default function App() {
                       {currentSession.checkIn.notes&&<div style={{marginTop:4,fontStyle:"italic"}}>"{currentSession.checkIn.notes}"</div>}
                     </div>
                   )}
-                  {wasRecovered&&<div style={{background:"#1A1A00",border:`1.5px solid ${T.accent}40`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:12,color:T.accent}}>⚡ Sessió recuperada — continua on ho vas deixar</div>}
+                  {wasRecovered&&<div style={{background:"#1A1A00",border:`1px solid ${T.accent}40`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:12,color:T.accent}}>⚡ Sessió recuperada — continua on ho vas deixar</div>}
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
                     <div>
                       <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>{currentSession.templateName}</div>
@@ -1440,8 +1440,8 @@ export default function App() {
                             <div style={{flex:1}}>
                               <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
                                 <div style={{fontWeight:500,fontSize:14,color:allSetsCompleted?T.textMuted:T.textPrimary,textDecoration:allSetsCompleted?"line-through":"none"}}>{i+1}. {ex.name}</div>
-                                {ex.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1.5px solid #3A3A60`}}>Personalitzat</span>}
-                                {ex.isExtra&&!ex.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1.5px solid ${T.border}`}}>Extra</span>}
+                                {ex.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1px solid #3A3A60`}}>Personalitzat</span>}
+                                {ex.isExtra&&!ex.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1px solid ${T.border}`}}>Extra</span>}
                               </div>
                               <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{ex.sets?.filter(s=>s.completed).length||0}/{ex.sets?.length||0} sèries · {ex.plannedReps} reps{ex.plannedLoad?` · ${ex.plannedLoad}`:""}</div>
                             </div>
@@ -1453,7 +1453,7 @@ export default function App() {
                           <div style={{paddingLeft:36}}>
                             {ex.observations&&<div style={{fontSize:12,color:T.textSecondary,marginBottom:8}}>💬 {ex.observations}</div>}
                             {(ex.sets||[]).map((st,j)=>(
-                              <div key={j} style={{background:T.card2,borderRadius:10,padding:"10px 12px",marginBottom:6,border:`1.5px solid ${st.completed?T.accent:T.border}`}}>
+                              <div key={j} style={{background:T.card2,borderRadius:10,padding:"10px 12px",marginBottom:6,border:`1px solid ${st.completed?T.accent:T.border}`}}>
                                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
                                   <button onClick={()=>toggleSet(i,j)} style={{width:24,height:24,borderRadius:"50%",border:`2px solid ${st.completed?T.accent:T.border}`,background:st.completed?T.accent:T.bg,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.2s"}}>
                                     {st.completed&&<svg viewBox="0 0 16 16" width="12" height="12"><polyline points="3,8 7,12 13,4" fill="none" stroke={T.bg} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
@@ -1475,7 +1475,7 @@ export default function App() {
                     );
                   })}
                   {dc===exs.length&&exs.length>0&&(
-                    <div style={{background:T.greenBg,border:`1.5px solid ${T.greenBorder}`,borderRadius:14,padding:"1.25rem",textAlign:"center",marginBottom:8}}>
+                    <div style={{background:T.greenBg,border:`1px solid ${T.greenBorder}`,borderRadius:14,padding:"1.25rem",textAlign:"center",marginBottom:8}}>
                       <div style={{fontSize:32,marginBottom:6}}>🎉</div>
                       <div style={{fontWeight:500,color:T.green}}>Tots els exercicis completats!</div>
                     </div>
@@ -1485,12 +1485,12 @@ export default function App() {
                   </button>
                   {showAddExModal&&(
                     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
-                      <div style={{background:T.card,borderRadius:"20px 20px 0 0",padding:"1.5rem 1.25rem",width:"100%",maxWidth:520,border:`1.5px solid ${T.border}`,maxHeight:"80vh",overflowY:"auto"}}>
+                      <div style={{background:T.card,borderRadius:"20px 20px 0 0",padding:"1.5rem 1.25rem",width:"100%",maxWidth:520,border:`1px solid ${T.border}`,maxHeight:"80vh",overflowY:"auto"}}>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
                           <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>Afegir exercici</div>
                           <button style={{...S.btnSecondary,fontSize:12}} onClick={()=>{setShowAddExModal(false);setAddExTab("biblioteca");setCustomExForm({name:"",sets:3,reps:"10",load:"",rest:"60s",notes:""});}}>Tancar</button>
                         </div>
-                        <div style={{display:"flex",gap:0,marginBottom:16,borderBottom:`1.5px solid ${T.border}`}}>
+                        <div style={{display:"flex",gap:0,marginBottom:16,borderBottom:`1px solid ${T.border}`}}>
                           {[["biblioteca","📚 Biblioteca"],["custom","✏️ Exercici puntual"]].map(([tab,label])=>(
                             <button key={tab} onClick={()=>setAddExTab(tab)} style={{padding:"8px 14px",fontSize:12,cursor:"pointer",background:"none",border:"none",borderBottom:`2px solid ${addExTab===tab?T.accent:"transparent"}`,color:addExTab===tab?T.accent:T.textSecondary,fontWeight:addExTab===tab?500:400,marginBottom:-1}}>{label}</button>
                           ))}
@@ -1557,7 +1557,7 @@ export default function App() {
                   const active=selDay===d;
                   return (
                     <div key={d} style={{textAlign:"center",flexShrink:0}}>
-                      <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1.5px solid ${active?T.accent:T.border}`,background:active?T.accent:T.card,color:active?T.bg:T.textMuted,cursor:"pointer",fontSize:12,fontWeight:active?500:400}}>{["L","M","X","J","V","S","D"][i]}</button>
+                      <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1px solid ${active?T.accent:T.border}`,background:active?T.accent:T.card,color:active?T.bg:T.textMuted,cursor:"pointer",fontSize:12,fontWeight:active?500:400}}>{["L","M","X","J","V","S","D"][i]}</button>
                       {d===TODAY&&<div style={{fontSize:9,color:T.accent,marginTop:2}}>avui</div>}
                     </div>
                   );
@@ -1599,7 +1599,7 @@ export default function App() {
                           <span style={S.tag("purple")}>{tpl.exercises.length} ex</span>
                         </div>
                         {tpl.exercises.map((ex,i)=>(
-                          <div key={ex.id} style={{display:"flex",alignItems:"center",gap:8,padding:"3px 0",borderBottom:`1.5px solid ${T.border}`}}>
+                          <div key={ex.id} style={{display:"flex",alignItems:"center",gap:8,padding:"3px 0",borderBottom:`1px solid ${T.border}`}}>
                             <span style={{fontSize:11,color:T.textMuted,width:16}}>{i+1}.</span>
                             <span style={{fontSize:12,flex:1,color:T.textSecondary}}>{ex.name}</span>
                             <span style={{fontSize:11,color:T.textMuted}}>{ex.plannedSets}×{ex.plannedReps}</span>
@@ -1698,7 +1698,7 @@ export default function App() {
                 <>
                   <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:8,marginBottom:16}}>
                     {[{label:"Total sessions",value:totalS,color:T.accent},{label:"Aquesta setmana",value:thisWeek,color:T.green}].map(st=>(
-                      <div key={st.label} style={{background:T.card,borderRadius:12,padding:"0.75rem",textAlign:"center",border:`1.5px solid ${T.border}`}}>
+                      <div key={st.label} style={{background:T.card,borderRadius:12,padding:"0.75rem",textAlign:"center",border:`1px solid ${T.border}`}}>
                         <div style={{fontSize:22,fontWeight:500,color:st.color}}>{st.value}</div>
                         <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{st.label}</div>
                       </div>
@@ -1733,7 +1733,7 @@ export default function App() {
                           <button style={{...S.btnSecondary,flex:1,textAlign:"center",fontSize:12}} onClick={()=>openEditHistorySession(selClient,sess,sessId)}>✏️ Editar</button>
                         </div>
                         {isExpanded&&(
-                          <div style={{marginTop:10,paddingTop:10,borderTop:`1.5px solid ${T.border}`}}>
+                          <div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${T.border}`}}>
                             {sess.checkIn?.completedAt&&(
                               <div style={{background:T.card2,borderRadius:8,padding:"8px 10px",marginBottom:10}}>
                                 <div style={{fontWeight:500,fontSize:11,color:T.textSecondary,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.5px"}}>Check-in inicial</div>
@@ -1749,11 +1749,11 @@ export default function App() {
                             )}
                             {sess.clientNotes&&<div style={{fontSize:12,color:T.textSecondary,marginBottom:10,fontStyle:"italic",background:T.card2,borderRadius:8,padding:"6px 10px"}}>💬 {sess.clientNotes}</div>}
                             {exercises.map((e,i)=>(
-                              <div key={i} style={{marginBottom:10,paddingBottom:10,borderBottom:`1.5px solid ${T.border}`}}>
+                              <div key={i} style={{marginBottom:10,paddingBottom:10,borderBottom:`1px solid ${T.border}`}}>
                                 <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap",marginBottom:4}}>
                                   <span style={{fontSize:13,fontWeight:500,color:e.completed?T.green:T.textPrimary}}>{e.completed?"✓":"○"} {e.name}</span>
-                                  {e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1.5px solid #3A3A60`}}>Personalitzat</span>}
-                                  {e.isExtra&&!e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1.5px solid ${T.border}`}}>Extra</span>}
+                                  {e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1px solid #3A3A60`}}>Personalitzat</span>}
+                                  {e.isExtra&&!e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1px solid ${T.border}`}}>Extra</span>}
                                 </div>
                                 <div style={{fontSize:11,color:T.textSecondary,marginBottom:4}}>{e.plannedSets||0} sèries · {e.plannedReps||"?"} reps{e.plannedLoad?` · ${e.plannedLoad}`:""}{e.plannedRest?` · ${e.plannedRest}`:""}</div>
                                 {e.observations&&<div style={{fontSize:11,color:T.textMuted,marginBottom:4,fontStyle:"italic"}}>💬 {e.observations}</div>}
@@ -1789,7 +1789,7 @@ export default function App() {
     const alertsCount=allStats.filter(s=>alertStatuses.includes(s.status)).length;
     const statusStyle=(status)=>{
       if(status==="Actiu") return S.tag("green");
-      if(status==="Molèsties") return {...S.tag(),color:T.danger,background:T.dangerBg,border:`1.5px solid ${T.dangerBg}`};
+      if(status==="Molèsties") return {...S.tag(),color:T.danger,background:T.dangerBg,border:`1px solid ${T.dangerBg}`};
       if(status==="RPE alt"||status==="Sense activitat"||status==="Sessió parcial") return {...S.tag(),color:T.orange,background:T.orangeBg,border:`2px solid #fdba74`};
       return S.tag();
     };
@@ -1802,7 +1802,7 @@ export default function App() {
               <div style={{width:10,height:10,borderRadius:"50%",background:T.accent}}/>
               <span style={{fontWeight:700,fontSize:20,color:T.headerText}}>TrainConcerNow</span>
             </div>
-            <button style={{...S.btnSecondary,background:"rgba(255,255,255,0.08)",color:T.headerText,border:"1.5px solid rgba(255,255,255,0.2)"}} onClick={()=>setMode("select")}>Sortir</button>
+            <button style={{...S.btnSecondary,background:"rgba(255,255,255,0.08)",color:T.headerText,border:"1px solid rgba(255,255,255,0.2)"}} onClick={()=>setMode("select")}>Sortir</button>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:10}}>
             {[{label:"Clients",value:data.clients.length,color:T.statClient},{label:"Sessió setmana",value:totalSessionsWeek,color:T.statSession},{label:"Alertes",value:alertsCount,color:T.statAlert}].map(st=>(
@@ -1828,7 +1828,7 @@ export default function App() {
                 </div>
                 {pending.length===0?<div style={{fontSize:12,color:T.textMuted,textAlign:"center",padding:"8px 0"}}>Cap sol·licitud pendent</div>:(
                   pending.map(sub=>(
-                    <div key={sub.id} style={{background:T.card,border:`1.5px solid ${T.purple}40`,borderRadius:12,padding:"0.75rem",marginBottom:8}}>
+                    <div key={sub.id} style={{background:T.card,border:`1px solid ${T.purple}40`,borderRadius:12,padding:"0.75rem",marginBottom:8}}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
                         <div>
                           <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{sub.data?.name||"Sense nom"}</div>
@@ -1859,12 +1859,12 @@ export default function App() {
             const computedStatus = alerts.length===0&&stats.totalSessions===0?"Nou":hasDanger?"Alerta":hasWarning?"Revisar":stats.status;
             const isExpanded=!!expandedClientCards[c.id];
             const alertSeverityStyle = (severity) => {
-              if(severity==="danger") return {fontSize:11,padding:"2px 8px",borderRadius:20,background:T.dangerBg,color:T.danger,border:`1.5px solid ${T.danger}40`};
+              if(severity==="danger") return {fontSize:11,padding:"2px 8px",borderRadius:20,background:T.dangerBg,color:T.danger,border:`1px solid ${T.danger}40`};
               if(severity==="warning") return {fontSize:11,padding:"2px 8px",borderRadius:20,background:T.orangeBg,color:T.orange,border:`2px solid #fdba74`};
-              return {fontSize:11,padding:"2px 8px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1.5px solid #3A3A6040`};
+              return {fontSize:11,padding:"2px 8px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1px solid #3A3A6040`};
             };
             return (
-              <div key={c.id} style={{background:"#ffffff",border:`1.5px solid #e2e8f0`,borderRadius:12,padding:"1rem",marginBottom:10}}>
+              <div key={c.id} style={{background:"#ffffff",border:`1px solid #e2e8f0`,borderRadius:12,padding:"1rem",marginBottom:10}}>
                 <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
                   <div style={S.avatar(cc)}>{c.avatar}</div>
                   <div style={{flex:1,minWidth:0}}>
@@ -1878,7 +1878,7 @@ export default function App() {
                     {alerts.slice(0,3).map((a,i)=>(
                       <span key={i} style={alertSeverityStyle(a.severity)}>{a.label}</span>
                     ))}
-                    {alerts.length>3&&<span style={{fontSize:11,padding:"2px 8px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1.5px solid ${T.border}`}}>+{alerts.length-3} més</span>}
+                    {alerts.length>3&&<span style={{fontSize:11,padding:"2px 8px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1px solid ${T.border}`}}>+{alerts.length-3} més</span>}
                   </div>
                 )}
                 <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:10}}>
@@ -1899,7 +1899,7 @@ export default function App() {
                   <button style={{...S.btnSecondary,flex:1,fontSize:11,textAlign:"center"}} onClick={()=>copyToClipboard(getClientInviteMessage(c),"Missatge copiat!")}>✉️ Missatge</button>
                 </div>
                 {isExpanded&&(
-                  <div style={{marginTop:12,paddingTop:12,borderTop:`1.5px solid ${T.border}`}}>
+                  <div style={{marginTop:12,paddingTop:12,borderTop:`1px solid ${T.border}`}}>
                     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:10}}>
                       {[{label:"Total sessions",value:stats.totalSessions},{label:"Dies assignats",value:stats.trainingDaysCount},{label:"Plantilles",value:stats.templatesCount},{label:"Biblioteca",value:`${stats.libraryCount} ex`},{label:"Durada setmana",value:stats.totalDurationThisWeek>0?`${stats.totalDurationThisWeek} min`:"—"},{label:"Última sensació",value:stats.lastFeeling||"—"},{label:"Càrrega setmana",value:stats.weeklyInternalLoad!=null?`${stats.weeklyInternalLoad} UA`:"—"},{label:"Última càrrega",value:stats.lastInternalLoad!=null?`${stats.lastInternalLoad} UA`:"—"},{label:"Mitjana càrrega",value:stats.avgInternalLoadRecent!=null?`${stats.avgInternalLoadRecent} UA`:"—"}].map(item=>(
                         <div key={item.label} style={{background:T.card2,borderRadius:8,padding:"6px 10px"}}>
@@ -1909,7 +1909,7 @@ export default function App() {
                       ))}
                     </div>
                     {stats.history.slice(0,3).map((sess,idx)=>(
-                      <div key={idx} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderBottom:`1.5px solid ${T.border}`}}>
+                      <div key={idx} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderBottom:`1px solid ${T.border}`}}>
                         <div>
                           <div style={{fontSize:12,color:T.textPrimary,fontWeight:500}}>{sess.sessionTitle||sess.day||"Sessió"}</div>
                           <div style={{fontSize:11,color:T.textSecondary}}>{sess.date||""}</div>
@@ -1921,7 +1921,7 @@ export default function App() {
                       </div>
                     ))}
                     {stats.history.length===0&&<div style={{fontSize:12,color:T.textMuted,textAlign:"center",padding:"8px 0"}}>Sense sessions</div>}
-                    <div style={{marginTop:10,paddingTop:10,borderTop:`1.5px solid ${T.border}`}}>
+                    <div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${T.border}`}}>
                       <div style={{fontSize:11,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:6}}>Alertes recents</div>
                       {alerts.length===0?(
                         <div style={{fontSize:12,color:T.textMuted}}>Sense alertes recents.</div>
@@ -2000,7 +2000,7 @@ export default function App() {
           }}>🔄</button>
         </div>
       </div>
-      <div style={{display:"flex",borderBottom:`1.5px solid ${T.border}`,padding:"0 1.25rem",overflowX:"auto"}}>
+      <div style={{display:"flex",borderBottom:`1px solid ${T.border}`,padding:"0 1.25rem",overflowX:"auto"}}>
         {[["dades","Dades"],["routine","Entrenaments"],["history","Historial"],["seguiment","Seguiment"]].map(([tab,label])=>(
           <button key={tab} onClick={()=>{if(tab==="history"||tab==="seguiment"){loadClientHistory(adminClient);}setAdminTab(tab);}} style={{padding:"10px 14px",fontSize:13,cursor:"pointer",background:"none",border:"none",borderBottom:`2px solid ${adminTab===tab?T.accent:"transparent"}`,color:adminTab===tab?T.accent:T.textSecondary,fontWeight:adminTab===tab?500:400,marginBottom:-1,whiteSpace:"nowrap",flexShrink:0}}>{label}</button>
         ))}
@@ -2094,7 +2094,7 @@ export default function App() {
               <>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:8,marginBottom:16}}>
                   {[{label:"Sessions",value:totalS,color:T.accent},{label:"Completes",value:fullS,color:T.green},{label:"Última",value:lastS?.date||"—",color:T.purple}].map(st=>(
-                    <div key={st.label} style={{background:T.card,borderRadius:12,padding:"0.75rem",textAlign:"center",border:`1.5px solid ${T.border}`}}>
+                    <div key={st.label} style={{background:T.card,borderRadius:12,padding:"0.75rem",textAlign:"center",border:`1px solid ${T.border}`}}>
                       <div style={{fontSize:st.label==="Última"?13:20,fontWeight:500,color:st.color}}>{st.value}</div>
                       <div style={{fontSize:11,color:T.textSecondary,marginTop:2}}>{st.label}</div>
                     </div>
@@ -2130,7 +2130,7 @@ export default function App() {
                         <button style={{...S.btnSecondary,flex:1,textAlign:"center",fontSize:12}} onClick={()=>openEditHistorySession(adminClient,sess,sessId)}>✏️ Editar</button>
                       </div>
                       {isExpanded&&(
-                        <div style={{marginTop:10,paddingTop:10,borderTop:`1.5px solid ${T.border}`}}>
+                        <div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${T.border}`}}>
                           {sess.checkIn?.completedAt&&(
                             <div style={{background:T.card2,borderRadius:8,padding:"8px 10px",marginBottom:10}}>
                               <div style={{fontWeight:500,fontSize:11,color:T.textSecondary,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.5px"}}>Check-in inicial</div>
@@ -2146,11 +2146,11 @@ export default function App() {
                           )}
                           {sess.clientNotes&&<div style={{fontSize:12,color:T.textSecondary,marginBottom:10,fontStyle:"italic",background:T.card2,borderRadius:8,padding:"6px 10px"}}>💬 {sess.clientNotes}</div>}
                           {exercises.map((e,i)=>(
-                            <div key={i} style={{marginBottom:10,paddingBottom:10,borderBottom:`1.5px solid ${T.border}`}}>
+                            <div key={i} style={{marginBottom:10,paddingBottom:10,borderBottom:`1px solid ${T.border}`}}>
                               <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap",marginBottom:4}}>
                                 <span style={{fontSize:13,fontWeight:500,color:e.completed?T.green:T.textPrimary}}>{e.completed?"✓":"○"} {e.name}</span>
-                                {e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1.5px solid #3A3A60`}}>Personalitzat</span>}
-                                {e.isExtra&&!e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1.5px solid ${T.border}`}}>Extra</span>}
+                                {e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1px solid #3A3A60`}}>Personalitzat</span>}
+                                {e.isExtra&&!e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1px solid ${T.border}`}}>Extra</span>}
                               </div>
                               <div style={{fontSize:11,color:T.textSecondary,marginBottom:4}}>{e.plannedSets||0} sèries · {e.plannedReps||"?"} reps{e.plannedLoad?` · ${e.plannedLoad}`:""}{e.plannedRest?` · ${e.plannedRest}`:""}</div>
                               {e.observations&&<div style={{fontSize:11,color:T.textMuted,marginBottom:4,fontStyle:"italic"}}>💬 {e.observations}</div>}
@@ -2186,7 +2186,7 @@ export default function App() {
         }) : [];
 
         const StatCard = ({label,value,color}) => (
-          <div style={{background:T.card2,borderRadius:12,padding:"0.75rem",textAlign:"center",border:`1.5px solid ${T.border}`}}>
+          <div style={{background:T.card2,borderRadius:12,padding:"0.75rem",textAlign:"center",border:`1px solid ${T.border}`}}>
             <div style={{fontSize:18,fontWeight:500,color:color||T.accent}}>{value??"-"}</div>
             <div style={{fontSize:10,color:T.textSecondary,marginTop:2}}>{label}</div>
           </div>
@@ -2284,7 +2284,7 @@ export default function App() {
                   ].map(st=><StatCard key={st.label} label={st.label} value={st.value} color={st.color}/>)}
                 </div>
                 {ts.lastPain!=null&&Number(ts.lastPain)>0&&(
-                  <div style={{...S.card,background:T.dangerBg,border:`1.5px solid ${T.danger}40`,marginBottom:4}}>
+                  <div style={{...S.card,background:T.dangerBg,border:`1px solid ${T.danger}40`,marginBottom:4}}>
                     <div style={{fontSize:12,color:T.danger,fontWeight:500}}>Últim dolor reportat</div>
                     <div style={{fontSize:13,color:T.textPrimary,marginTop:4}}>{ts.lastPainZone?`${ts.lastPainZone} · `:""}{ts.lastPain}/10</div>
                   </div>
@@ -2300,7 +2300,7 @@ export default function App() {
               {ts.recentSessions.map((s,i)=>{
                 const load=getSessionInternalLoad(s);
                 return (
-                  <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 0",borderBottom:i<ts.recentSessions.length-1?`1.5px solid ${T.border}`:"none"}}>
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 0",borderBottom:i<ts.recentSessions.length-1?`1px solid ${T.border}`:"none"}}>
                     <div style={{fontSize:11,color:T.textMuted,width:42,flexShrink:0}}>{s.date||""}</div>
                     <div style={{flex:1,fontSize:12,color:T.textPrimary}}>{s.sessionTitle||s.day||"Sessió"}</div>
                     <div style={{display:"flex",gap:5,flexShrink:0}}>
@@ -2340,7 +2340,7 @@ export default function App() {
       {adminTab==="routine"&&(()=>{
         return (
           <div style={S.sec}>
-            <div style={{display:"flex",gap:0,marginBottom:16,borderBottom:`1.5px solid ${T.border}`}}>
+            <div style={{display:"flex",gap:0,marginBottom:16,borderBottom:`1px solid ${T.border}`}}>
               {[["rutina","📅 Rutina"],["plantilles","📋 Plantilles"],["biblioteca","📚 Biblioteca"]].map(([tab,label])=>(
                 <button key={tab} onClick={()=>setAdminRoutineTab(tab)} style={{padding:"8px 14px",fontSize:12,cursor:"pointer",background:"none",border:"none",borderBottom:`2px solid ${adminRoutineTab===tab?T.accent:"transparent"}`,color:adminRoutineTab===tab?T.accent:T.textSecondary,fontWeight:adminRoutineTab===tab?500:400,marginBottom:-1}}>{label}</button>
               ))}
@@ -2365,7 +2365,7 @@ export default function App() {
                             {dayTpls.map(tplId=>{
                               const tpl=templates.find(t=>t.id===tplId);
                               return tpl?(
-                                <div key={tplId} style={{display:"flex",alignItems:"center",gap:4,background:T.purpleBg,border:`1.5px solid #3A3A60`,borderRadius:20,padding:"3px 10px"}}>
+                                <div key={tplId} style={{display:"flex",alignItems:"center",gap:4,background:T.purpleBg,border:`1px solid #3A3A60`,borderRadius:20,padding:"3px 10px"}}>
                                   <span style={{fontSize:12,color:T.purple}}>{tpl.name}</span>
                                   <button onClick={()=>updateSchedule(day,dayTpls.filter(id=>id!==tplId))} style={{background:"none",border:"none",color:T.textMuted,cursor:"pointer",fontSize:14,lineHeight:1,padding:"0 2px"}}>×</button>
                                 </div>
@@ -2447,7 +2447,7 @@ export default function App() {
                         </div>
                         <div style={{fontSize:11,color:T.textSecondary,marginBottom:8}}>{tpl.exercises?.length||0} exercicis</div>
                         {(tpl.exercises||[]).map((ex,i)=>(
-                          <div key={ex.id} style={{display:"flex",alignItems:"center",gap:8,padding:"4px 0",borderBottom:`1.5px solid ${T.border}`}}>
+                          <div key={ex.id} style={{display:"flex",alignItems:"center",gap:8,padding:"4px 0",borderBottom:`1px solid ${T.border}`}}>
                             <span style={{fontSize:12,color:T.textMuted,width:16}}>{i+1}.</span>
                             <span style={{fontSize:13,flex:1,color:T.textPrimary}}>{ex.name}</span>
                             <span style={{fontSize:11,color:T.textSecondary}}>{ex.plannedSets}×{ex.plannedReps}{ex.plannedLoad?` · ${ex.plannedLoad}`:""}</span>
@@ -2569,4 +2569,3 @@ export default function App() {
     </div>
   );
 }
-
