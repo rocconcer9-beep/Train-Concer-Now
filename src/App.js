@@ -30,6 +30,8 @@ const T = {
   // Accent / actions
   accent:   "#e8d800", // primary accent (yellow)
   accentDim: "#93c5fd",
+  orange:   "#c2410c",
+  orangeBg: "#fff7ed",
 
   // Stat colors
   statClient: "#e8d800",
@@ -75,7 +77,7 @@ const S = {
   btnDanger: { background:T.dangerBg, color:T.danger, border:`1px solid ${T.dangerBorder}`, borderRadius:10, fontSize:12, padding:"6px 12px", cursor:"pointer" },
   btnEdit: { background:"transparent", color:T.textSecondary, border:`1px solid ${T.border}`, borderRadius:10, fontSize:11, padding:"4px 9px", cursor:"pointer" },
   tag: (variant) => {
-    if (variant==="no_activity") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#fff7ed", color:"#ea580c", border:`1px solid #fcd34d` };
+    if (variant==="no_activity") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#fff7ed", color:"#c2410c", border:`2px solid #fdba74` };
     if (variant==="active") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#f0fdf4", color:"#15803d", border:`1px solid #86efac` };
     if (variant==="alert") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#fef2f2", color:"#991b1b", border:`1px solid #fca5a5` };
     if (variant==="new") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#eef2ff", color:"#1d4ed8", border:`1px solid #c7d2fe` };
@@ -1788,7 +1790,7 @@ export default function App() {
     const statusStyle=(status)=>{
       if(status==="Actiu") return S.tag("green");
       if(status==="Molèsties") return {...S.tag(),color:T.danger,background:T.dangerBg,border:`1px solid ${T.dangerBg}`};
-      if(status==="RPE alt"||status==="Sense activitat"||status==="Sessió parcial") return {...S.tag(),color:T.orange,background:T.orangeBg,border:`1px solid #7C2D12`};
+      if(status==="RPE alt"||status==="Sense activitat"||status==="Sessió parcial") return {...S.tag(),color:T.orange,background:T.orangeBg,border:`2px solid #fdba74`};
       return S.tag();
     };
     return (
@@ -1858,7 +1860,7 @@ export default function App() {
             const isExpanded=!!expandedClientCards[c.id];
             const alertSeverityStyle = (severity) => {
               if(severity==="danger") return {fontSize:11,padding:"2px 8px",borderRadius:20,background:T.dangerBg,color:T.danger,border:`1px solid ${T.danger}40`};
-              if(severity==="warning") return {fontSize:11,padding:"2px 8px",borderRadius:20,background:T.orangeBg,color:T.orange,border:`1px solid #7C2D1240`};
+              if(severity==="warning") return {fontSize:11,padding:"2px 8px",borderRadius:20,background:T.orangeBg,color:T.orange,border:`2px solid #fdba74`};
               return {fontSize:11,padding:"2px 8px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1px solid #3A3A6040`};
             };
             return (
