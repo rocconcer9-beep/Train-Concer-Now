@@ -54,7 +54,12 @@ const cClr = (i) => CLIENT_COLORS[Math.max(0,i) % 3];
 // ── Shared styles ─────────────────────────────────────────────────────────────
 const S = {
   wrap: { fontFamily:"system-ui,sans-serif", maxWidth:920, margin:"0 auto", background:T.bg, minHeight:"100vh", padding:"0 0 3rem", color:T.textPrimary },
+  adminWrap: { fontFamily:"system-ui,sans-serif", maxWidth:920, margin:"0 auto", background:T.headerBg, minHeight:"100vh", padding:"0 0 3rem", color:T.headerText },
   hdr: { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"1rem 1.25rem 0.75rem", background:T.headerBg, color:T.headerText, boxSizing:"border-box" },
+  adminHeader: { display:"flex", flexDirection:"column", gap:12, padding:"1.5rem 1.25rem", background:T.headerBg, color:T.headerText },
+  adminStatCard: { background:"rgba(255,255,255,0.12)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:10, padding:"0.85rem 1rem", textAlign:"center" },
+  detailHeader: { background:T.headerBg, color:T.headerText, padding:"1.5rem 1.25rem", display:"flex", alignItems:"center", gap:16, minHeight:140, borderRadius:12 },
+  clientHeader: { background:T.headerBg, color:T.headerText, padding:"1.5rem 1.25rem", display:"flex", alignItems:"center", gap:16, minHeight:140, borderRadius:"0 0 18px 18px" },
   sec: { padding:"1rem 1.25rem" },
   card: { background:T.card, border:`1px solid ${T.border}`, borderRadius:10, padding:"0.9rem 1rem", marginBottom:10, boxShadow:"0 1px 4px rgba(26,58,107,0.06)" },
   inp: { padding:"9px 12px", borderRadius:10, border:`1px solid ${T.border}`, fontSize:13, width:"100%", background:T.card2, color:T.textPrimary, boxSizing:"border-box", outline:"none" },
@@ -1169,15 +1174,12 @@ export default function App() {
     return (
       <div style={S.wrap}>
         <style>{cfStyle}</style>
-        <div style={S.hdr}>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <div style={S.avatar(cc)}>{client.avatar}</div>
-            <div>
-              <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>{client.name}</div>
-              <div style={{fontSize:11,color:cc.text}}>{client.goal}</div>
-            </div>
+        <div style={S.clientHeader}>
+          <div style={S.avatar(cc)}>{client.avatar}</div>
+          <div>
+            <div style={{fontWeight:700,fontSize:22,color:T.headerText}}>{client.name}</div>
+            <div style={{fontSize:15,color:T.accentDim,marginTop:4}}>{client.goal}</div>
           </div>
-          <div style={{width:1}}/>
         </div>
 
         {showFinishModal&&(
@@ -1780,25 +1782,26 @@ export default function App() {
       return S.tag();
     };
     return (
-      <div style={S.wrap}>
+      <div style={S.adminWrap}>
         <style>{cfStyle}</style>
-        <div style={S.hdr}>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <div style={{width:8,height:8,borderRadius:"50%",background:T.accent}}/>
-            <span style={{fontWeight:500,fontSize:15,color:T.textPrimary}}>TrainConcerNow</span>
-            <span style={{fontSize:11,color:saving?T.textSecondary:T.green}}>{saving?"Guardant...":"✓ Guardat"}</span>
+        <div style={S.adminHeader}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <div style={{width:10,height:10,borderRadius:"50%",background:T.accent}}/>
+              <span style={{fontWeight:700,fontSize:20,color:T.headerText}}>TrainConcerNow</span>
+            </div>
+            <button style={{...S.btnSecondary,background:"rgba(255,255,255,0.08)",color:T.headerText,border:"1px solid rgba(255,255,255,0.2)"}} onClick={()=>setMode("select")}>Sortir</button>
           </div>
-          <button style={S.btnSecondary} onClick={()=>setMode("select")}>Sortir</button>
-        </div>
-        <div style={S.sec}>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:8,marginBottom:20}}>
-            {[{label:"Clients",value:data.clients.length,color:T.accent},{label:"Sessió setmana",value:totalSessionsWeek,color:T.green},{label:"Alertes",value:alertsCount,color:alertsCount>0?T.orange:T.textMuted}].map(st=>(
-              <div key={st.label} style={{background:T.card,borderRadius:12,padding:"0.75rem",textAlign:"center",border:`1px solid ${T.border}`}}>
-                <div style={{fontSize:22,fontWeight:500,color:st.color}}>{st.value}</div>
-                <div style={{fontSize:10,color:T.textSecondary,marginTop:2}}>{st.label}</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:10}}>
+            {[{label:"Clients",value:data.clients.length,color:T.statClient},{label:"Sessió setmana",value:totalSessionsWeek,color:T.statSession},{label:"Alertes",value:alertsCount,color:T.statAlert}].map(st=>(
+              <div key={st.label} style={S.adminStatCard}>
+                <div style={{fontSize:22,fontWeight:700,color:st.color}}>{st.value}</div>
+                <div style={{fontSize:12,color:T.statSubtitle,marginTop:6}}>{st.label}</div>
               </div>
             ))}
           </div>
+        </div>
+        <div style={S.sec}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
             <div style={{fontWeight:500,fontSize:16,color:T.textPrimary}}>Clients</div>
             <button style={S.btnSecondary} onClick={()=>setShowAddClient(true)}>+ Afegir</button>
@@ -1948,7 +1951,7 @@ export default function App() {
   const adminCc = cClr(Math.max(0,adminClientIdx));
 
   return (
-    <div style={S.wrap}>
+    <div style={S.adminWrap}>
       <style>{cfStyle}</style>
       <div style={S.hdr}>
         <button style={{...S.btnSecondary,display:"flex",alignItems:"center",gap:6,fontSize:13}} onClick={()=>setAdminView("clients")}>← Clients</button>
@@ -1966,11 +1969,11 @@ export default function App() {
           }}>🗑️ Eliminar client</button>
         </div>
       </div>
-      <div style={{padding:"0.85rem 1.25rem 0.75rem",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",gap:12}}>
+      <div style={S.detailHeader}>
         <div style={S.avatar(adminCc)}>{adminClientData?.avatar}</div>
-        <div style={{flex:1}}>
-          <div style={{fontWeight:500,fontSize:15,color:T.textPrimary}}>{adminClientData?.name}</div>
-          <div style={{fontSize:12,color:adminCc.text,marginTop:2}}>{adminClientData?.goal}</div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontWeight:700,fontSize:20,color:T.headerText}}>{adminClientData?.name}</div>
+          <div style={{fontSize:14,color:T.accentDim,marginTop:4}}>{adminClientData?.goal}</div>
         </div>
         <div style={{display:"flex",gap:5,flexShrink:0}}>
           <button style={{...S.btnSecondary,fontSize:11,padding:"4px 8px"}} onClick={()=>copyToClipboard(getClientAccessLink(adminClientData),"Enllaç copiat!")}>🔗</button>
