@@ -11,30 +11,31 @@ const PIN = "1234";
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const T = {
-  bg:       "#0F0F14",
-  card:     "#1A1A24",
-  card2:    "#1F1F2E",
-  border:   "#2A2A38",
-  accent:   "#E8FF47",
-  accentDim:"#B8CC30",
-  textPrimary: "#E0E0FF",
-  textSecondary: "#6060A0",
-  textMuted: "#3A3A5A",
-  green:    "#4ADE80",
-  greenBg:  "#0F2A1F",
-  greenBorder:"#22543D",
-  orange:   "#FB923C",
-  orangeBg: "#2D1A0A",
-  purple:   "#7F77DD",
-  purpleBg: "#1F1F40",
-  danger:   "#E05050",
-  dangerBg: "#3A1A1A",
+  bg:       "#0f172a",
+  card:     "#1e293b",
+  card2:    "#1e293b",
+  border:   "#334155",
+  accent:   "#3b82f6",
+  accentDim:"#60a5fa",
+  textPrimary: "#e2e8f0",
+  textSecondary: "#94a3b8",
+  textMuted: "#64748b",
+  green:    "#10b981",
+  greenBg:  "#052e1f",
+  greenBorder:"#064e3b",
+  orange:   "#fb923c",
+  orangeBg: "#2d1a0a",
+  purple:   "#7f77dd",
+  purpleBg: "#1f1f40",
+  danger:   "#ef4444",
+  dangerBg: "#3a1a1a",
 };
 
 const CLIENT_COLORS = [
-  { text: T.purple, bg: T.purpleBg, border: "#3A3A60" },
-  { text: T.green,  bg: T.greenBg,  border: T.greenBorder },
-  { text: T.orange, bg: T.orangeBg, border: "#7C2D12" },
+  { text: T.accent, bg: "#071233", border: "#0b2546" },
+  { text: T.accentDim,  bg: "#072037",  border: "#0b3358" },
+  { text: "#93c5fd", bg: "#08243b", border: "#0b3b59" },
+  btnPrimary: { background:T.accent, color:T.bg, border:"none", borderRadius:12, fontWeight:500, fontSize:15, padding:"13px 20px", cursor:"pointer", width:"100%" },
 ];
 const cClr = (i) => CLIENT_COLORS[Math.max(0,i) % 3];
 
