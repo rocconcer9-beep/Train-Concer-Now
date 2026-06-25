@@ -900,6 +900,7 @@ export default function App() {
           <button style={{...S.btnPrimary,padding:"14px",marginTop:16}} onClick={submitIntakeForm}>Enviar formulari</button>
         </div>
       </div>
+    </div>
     );
   }
 
