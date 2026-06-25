@@ -159,6 +159,24 @@ const getRpeLabel = (value) => {
   return "Màxim";
 };
 
+const getRpeTagStyle = (rpe, fontSize=11) => {
+  const v = Number(rpe);
+  const color = v<=3?"#4ade80":v<=5?"#a3e635":v===6?"#e8d800":v===7?"#fb923c":v===8?"#f97316":v===9?"#ef4444":"#dc2626";
+  const bg = v<=3?"#f0fdf4":v<=5?"#f7fee7":v===6?"#fefce8":v<=8?"#fff7ed":"#fef2f2";
+  return { fontSize, padding:"4px 9px", borderRadius:14, fontWeight:500, background:bg, color, border:`1.5px solid ${color}40` };
+};
+
+const getFeelingTagStyle = (feeling, fontSize=11) => {
+  const base = { fontSize, padding:"4px 9px", borderRadius:14, fontWeight:500 };
+  if(feeling==="Molt bé"||feeling==="Excel·lent") return {...base, background:"#f0fdf4", color:"#4ade80", border:"1.5px solid #86efac"};
+  if(feeling==="Bé") return {...base, background:"#f7fef9", color:"#86efac", border:"1.5px solid #bbf7d0"};
+  if(feeling==="Normal") return {...base, background:"#f8fafc", color:"#6b7280", border:"1.5px solid #e2e8f0"};
+  if(feeling==="Regular") return {...base, background:"#fff7ed", color:"#fb923c", border:"1.5px solid #fdba74"};
+  if(feeling==="Cansat"||feeling==="Molt cansat") return {...base, background:"#fef2f2", color:"#ef4444", border:"1.5px solid #fca5a5"};
+  if(feeling==="Molèsties") return {...base, background:"#fef2f2", color:"#dc2626", border:"1.5px solid #fca5a5"};
+  return {...base, background:"#f8fafc", color:"#6b7280", border:"1.5px solid #e2e8f0"};
+};
+
 const getSessionInternalLoad = (sess) =>
   sess.internalLoad ?? calculateInternalLoad(sess.durationReal, sess.rpe);
 
@@ -1728,9 +1746,9 @@ export default function App() {
                         </div>
                         <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>
                           <span style={full?S.tag("green"):S.tag()}>{full?"✓ Complet":`${sess.completionPercentage||0}%`}</span>
-                          {sess.rpe&&<span style={S.tag("warning")}>RPE {sess.rpe}</span>}
+                          {sess.rpe&&<span style={getRpeTagStyle(sess.rpe)}>RPE {sess.rpe}</span>}
                           {(()=>{const l=getSessionInternalLoad(sess);return l!=null?<span style={S.tag("accent")}>{l} UA</span>:null;})()}
-                          {sess.feeling&&<span style={sess.feeling==="Molèsties"?{...S.tag(),color:'#ef4444',background:'#fef2f2',border:'1.5px solid #fca5a5'}:S.tag()}>{sess.feeling}</span>}
+                          {sess.feeling&&<span style={getFeelingTagStyle(sess.feeling)}>{sess.feeling}</span>}
                           {exercises.filter(e=>e.isExtra&&!e.isCustom).length>0&&<span style={S.tag()}>+{exercises.filter(e=>e.isExtra&&!e.isCustom).length} extra</span>}
                           {exercises.filter(e=>e.isCustom).length>0&&<span style={{...S.tag("purple"),fontSize:10}}>+{exercises.filter(e=>e.isCustom).length} personalitzat</span>}
                         </div>
@@ -1923,7 +1941,7 @@ export default function App() {
                           <div style={{fontSize:11,color:T.textSecondary}}>{sess.date||""}</div>
                         </div>
                         <div style={{display:"flex",gap:4,alignItems:"center"}}>
-                          {sess.rpe&&<span style={{...S.tag("purple"),fontSize:10}}>RPE {sess.rpe}</span>}
+                          {sess.rpe&&<span style={getRpeTagStyle(sess.rpe,10)}>RPE {sess.rpe}</span>}
                           {sess.completionPercentage!=null&&<span style={{...S.tag(sess.completionPercentage===100?"green":""),fontSize:10}}>{sess.completionPercentage}%</span>}
                         </div>
                       </div>
@@ -2125,10 +2143,10 @@ export default function App() {
                       </div>
                       <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>
                         <span style={full?S.tag("green"):S.tag()}>{full?"✓ Complet":`${sess.completionPercentage||0}%`}</span>
-                        {sess.rpe&&<span style={S.tag("warning")}>RPE {sess.rpe}</span>}
+                        {sess.rpe&&<span style={getRpeTagStyle(sess.rpe)}>RPE {sess.rpe}</span>}
                         {sess.durationReal&&<span style={S.tag("accent")}>⏱ {sess.durationReal} min</span>}
                         {(()=>{const l=getSessionInternalLoad(sess);return l!=null?<span style={S.tag("accent")}>{l} UA</span>:null;})()}
-                        {sess.feeling&&<span style={sess.feeling==="Molèsties"?{...S.tag(),color:'#ef4444',background:'#fef2f2',border:'1.5px solid #fca5a5'}:S.tag()}>{sess.feeling}</span>}
+                        {sess.feeling&&<span style={getFeelingTagStyle(sess.feeling)}>{sess.feeling}</span>}
                         {exercises.filter(e=>e.isExtra&&!e.isCustom).length>0&&<span style={S.tag()}>+{exercises.filter(e=>e.isExtra&&!e.isCustom).length} extra</span>}
                         {exercises.filter(e=>e.isCustom).length>0&&<span style={{...S.tag("purple"),fontSize:10}}>+{exercises.filter(e=>e.isCustom).length} personalitzat</span>}
                       </div>
@@ -2313,7 +2331,7 @@ export default function App() {
                     <div style={{fontSize:11,color:T.textMuted,width:42,flexShrink:0}}>{s.date||""}</div>
                     <div style={{flex:1,fontSize:12,color:T.textPrimary}}>{s.sessionTitle||s.day||"Sessió"}</div>
                     <div style={{display:"flex",gap:5,flexShrink:0}}>
-                      {s.rpe&&<span style={{...S.tag("purple"),fontSize:10}}>RPE {s.rpe}</span>}
+                      {s.rpe&&<span style={getRpeTagStyle(s.rpe,10)}>RPE {s.rpe}</span>}
                       {load!=null&&<span style={{...S.tag("accent"),fontSize:10}}>{load} UA</span>}
                       {s.completionPercentage!=null&&<span style={{...S.tag(s.completionPercentage===100?"green":""),fontSize:10}}>{s.completionPercentage}%</span>}
                     </div>
