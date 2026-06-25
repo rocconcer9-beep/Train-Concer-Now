@@ -44,6 +44,9 @@ const T = {
   danger:   "#dc2626",
   dangerBg: "#fef2f2",
   dangerBorder: "#fca5a5",
+  green:    "#4ade80",
+  purple:   "#7c3aed",
+  purpleBg: "#f3e8ff",
 };
 
 const CLIENT_COLORS = [
@@ -82,6 +85,10 @@ const S = {
     if (variant==="active") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#f0fdf4", color:"#15803d", border:`1.5px solid #86efac` };
     if (variant==="alert") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#fef2f2", color:"#991b1b", border:`1.5px solid #fca5a5` };
     if (variant==="new") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#eef2ff", color:"#1d4ed8", border:`1.5px solid #c7d2fe` };
+    if (variant==="green") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#f0fdf4", color:"#4ade80", border:"1.5px solid #86efac" };
+    if (variant==="purple") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#f3e8ff", color:"#7c3aed", border:"1.5px solid #e9d5ff" };
+    if (variant==="accent") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#fefce8", color:"#b45309", border:"1.5px solid #fde68a" };
+    if (variant==="warning") return { fontSize:11, padding:"4px 9px", borderRadius:14, background:"#fff7ed", color:"#fb923c", border:"2px solid #fdba74" };
     return { fontSize:11, padding:"4px 9px", borderRadius:14, background:T.card2, color:T.textSecondary, border:`1.5px solid ${T.border}` };
   },
   cCard: (active, c) => ({ background: active ? T.card2 : T.card, border:`${active?"2px":"1.5px"} solid ${active ? c.border : T.border}`, borderRadius:14, padding:"0.75rem 1rem", marginBottom:8, cursor:"pointer", display:"flex", alignItems:"center", gap:12 }),
@@ -1714,20 +1721,20 @@ export default function App() {
                       <div key={sessId} style={S.card}>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
                           <div style={{flex:1}}>
-                            <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>{sess.sessionTitle||sess.day||"Sessió"}</div>
-                            <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{sess.date}{sess.durationReal?` · ${sess.durationReal} min`:""}</div>
+                            <div style={{fontWeight:500,fontSize:14,color:'#1a3a6b'}}>{sess.sessionTitle||sess.day||"Sessió"}</div>
+                            <div style={{fontSize:12,color:'#6b7280',marginTop:2}}>{sess.date}{sess.durationReal&&<span style={{color:'#e8d800',fontWeight:500}}> · {sess.durationReal} min</span>}</div>
                           </div>
                           <button style={{...S.btnDanger,fontSize:11,padding:"3px 8px"}} onClick={()=>deleteHistorySession(selClient,sessId)}>🗑️</button>
                         </div>
                         <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>
                           <span style={full?S.tag("green"):S.tag()}>{full?"✓ Complet":`${sess.completionPercentage||0}%`}</span>
-                          {sess.rpe&&<span style={S.tag("purple")}>RPE {sess.rpe}</span>}
+                          {sess.rpe&&<span style={S.tag("warning")}>RPE {sess.rpe}</span>}
                           {(()=>{const l=getSessionInternalLoad(sess);return l!=null?<span style={S.tag("accent")}>{l} UA</span>:null;})()}
-                          {sess.feeling&&<span style={S.tag()}>{sess.feeling}</span>}
+                          {sess.feeling&&<span style={sess.feeling==="Molèsties"?{...S.tag(),color:'#ef4444',background:'#fef2f2',border:'1.5px solid #fca5a5'}:S.tag()}>{sess.feeling}</span>}
                           {exercises.filter(e=>e.isExtra&&!e.isCustom).length>0&&<span style={S.tag()}>+{exercises.filter(e=>e.isExtra&&!e.isCustom).length} extra</span>}
                           {exercises.filter(e=>e.isCustom).length>0&&<span style={{...S.tag("purple"),fontSize:10}}>+{exercises.filter(e=>e.isCustom).length} personalitzat</span>}
                         </div>
-                        <div style={{fontSize:12,color:T.textSecondary,marginBottom:8}}>{sess.completedExercises||0}/{sess.totalExercises||0} exercicis</div>
+                        <div style={{fontSize:12,color:'#6b7280',marginBottom:8}}><span style={{color:'#4ade80',fontWeight:500}}>{sess.completedExercises||0}</span>/{sess.totalExercises||0} exercicis</div>
                         <ProgressBar value={sess.completedExercises||0} total={sess.totalExercises||1} color={full?T.green:T.accent}/>
                         <div style={{display:"flex",gap:6,marginTop:10}}>
                           <button onClick={()=>setExpandedHistory(p=>({...p,[sessId]:!p[sessId]}))} style={{...S.btnSecondary,flex:1,textAlign:"center",fontSize:12}}>{isExpanded?"▲ Amagar":"▼ Detalls"}</button>
@@ -1737,33 +1744,33 @@ export default function App() {
                           <div style={{marginTop:10,paddingTop:10,borderTop:`1.5px solid ${T.border}`}}>
                             {sess.checkIn?.completedAt&&(
                               <div style={{background:T.card2,borderRadius:8,padding:"8px 10px",marginBottom:10}}>
-                                <div style={{fontWeight:500,fontSize:11,color:T.textSecondary,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.5px"}}>Check-in inicial</div>
-                                <div style={{display:"flex",flexWrap:"wrap",gap:8,fontSize:12,color:T.textSecondary}}>
+                                <div style={{fontWeight:500,fontSize:11,color:'#1a3a6b',marginBottom:6,textTransform:"uppercase",letterSpacing:"0.5px"}}>Check-in inicial</div>
+                                <div style={{display:"flex",flexWrap:"wrap",gap:8,fontSize:12,color:'#374151'}}>
                                   {sess.checkIn.energy&&<span>⚡ Energia {sess.checkIn.energy}/5</span>}
                                   {sess.checkIn.sleep&&<span>😴 Son {sess.checkIn.sleep}/5</span>}
                                   {sess.checkIn.stress&&<span>🧠 Estrès {sess.checkIn.stress}/5</span>}
                                   {sess.checkIn.fatigue&&<span>💪 Fatiga {sess.checkIn.fatigue}/5</span>}
-                                  {sess.checkIn.pain!==""&&sess.checkIn.pain!=null&&<span style={{color:Number(sess.checkIn.pain)>=5?T.danger:T.textSecondary}}>🩹 Dolor {sess.checkIn.pain}/10{sess.checkIn.painZone?` · ${sess.checkIn.painZone}`:""}</span>}
+                                  {sess.checkIn.pain!==""&&sess.checkIn.pain!=null&&<span style={{color:Number(sess.checkIn.pain)>=5?T.danger:'#374151'}}>🩹 Dolor {sess.checkIn.pain}/10{sess.checkIn.painZone?` · ${sess.checkIn.painZone}`:""}</span>}
                                 </div>
-                                {sess.checkIn.notes&&<div style={{fontSize:11,color:T.textMuted,marginTop:4,fontStyle:"italic"}}>"{sess.checkIn.notes}"</div>}
+                                {sess.checkIn.notes&&<div style={{fontSize:11,color:'#6b7280',marginTop:4,fontStyle:"italic"}}>"{sess.checkIn.notes}"</div>}
                               </div>
                             )}
-                            {sess.clientNotes&&<div style={{fontSize:12,color:T.textSecondary,marginBottom:10,fontStyle:"italic",background:T.card2,borderRadius:8,padding:"6px 10px"}}>💬 {sess.clientNotes}</div>}
+                            {sess.clientNotes&&<div style={{fontSize:12,color:'#6b7280',marginBottom:10,fontStyle:"italic",background:'#f8fafc',borderRadius:8,padding:"6px 10px"}}>💬 {sess.clientNotes}</div>}
                             {exercises.map((e,i)=>(
                               <div key={i} style={{marginBottom:10,paddingBottom:10,borderBottom:`1.5px solid ${T.border}`}}>
                                 <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap",marginBottom:4}}>
-                                  <span style={{fontSize:13,fontWeight:500,color:e.completed?T.green:T.textPrimary}}>{e.completed?"✓":"○"} {e.name}</span>
-                                  {e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1.5px solid #3A3A60`}}>Personalitzat</span>}
-                                  {e.isExtra&&!e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1.5px solid ${T.border}`}}>Extra</span>}
+                                  <span style={{fontSize:13,fontWeight:500,color:e.completed?'#4ade80':'#1a3a6b'}}>{e.completed?"✓":"○"} {e.name}</span>
+                                  {e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:'#f3e8ff',color:'#7c3aed',border:'1.5px solid #e9d5ff'}}>Personalitzat</span>}
+                                  {e.isExtra&&!e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:'#f1f5f9',color:'#6b7280',border:'1.5px solid #e2e8f0'}}>Extra</span>}
                                 </div>
-                                <div style={{fontSize:11,color:T.textSecondary,marginBottom:4}}>{e.plannedSets||0} sèries · {e.plannedReps||"?"} reps{e.plannedLoad?` · ${e.plannedLoad}`:""}{e.plannedRest?` · ${e.plannedRest}`:""}</div>
-                                {e.observations&&<div style={{fontSize:11,color:T.textMuted,marginBottom:4,fontStyle:"italic"}}>💬 {e.observations}</div>}
+                                <div style={{fontSize:11,color:'#374151',marginBottom:4}}>{e.plannedSets||0} sèries · {e.plannedReps||"?"} reps{e.plannedLoad?` · ${e.plannedLoad}`:""}{e.plannedRest?` · ${e.plannedRest}`:""}</div>
+                                {e.observations&&<div style={{fontSize:11,color:'#6b7280',marginBottom:4,fontStyle:"italic"}}>💬 {e.observations}</div>}
                                 {Object.values(e.sets||{}).map((st,j)=>{
                                   const parts=[];
                                   if(st.reps) parts.push(`${st.reps} reps`);
                                   if(st.load) parts.push(st.load);
                                   if(st.rest) parts.push(st.rest);
-                                  return <div key={j} style={{fontSize:11,color:st.completed?T.green:T.textMuted,padding:"1px 0 1px 10px"}}>S{j+1}: {parts.length>0?parts.join(" · "):"—"} {st.completed?"✓":"○"}</div>;
+                                  return <div key={j} style={{fontSize:11,color:st.completed?'#4ade80':'#6b7280',padding:"1px 0 1px 10px"}}>S{j+1}: {parts.length>0?parts.join(" · "):"—"} {st.completed?"✓":"○"}</div>;
                                 })}
                               </div>
                             ))}
@@ -2111,21 +2118,21 @@ export default function App() {
                     <div key={sessId} style={S.card}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
                         <div style={{flex:1}}>
-                          <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{sess.sessionTitle||sess.day||"Sessió"}</div>
-                          <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{sess.date}{sess.durationReal?` · ${sess.durationReal} min`:""}</div>
+                          <div style={{fontWeight:500,fontSize:13,color:'#1a3a6b'}}>{sess.sessionTitle||sess.day||"Sessió"}</div>
+                          <div style={{fontSize:12,color:'#6b7280',marginTop:2}}>{sess.date}{sess.durationReal&&<span style={{color:'#e8d800',fontWeight:500}}> · {sess.durationReal} min</span>}</div>
                         </div>
                         <button style={{...S.btnDanger,fontSize:11,padding:"3px 8px"}} onClick={()=>deleteHistorySession(adminClient,sessId)}>🗑️</button>
                       </div>
                       <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>
                         <span style={full?S.tag("green"):S.tag()}>{full?"✓ Complet":`${sess.completionPercentage||0}%`}</span>
-                        {sess.rpe&&<span style={S.tag("purple")}>RPE {sess.rpe}</span>}
-                        {sess.durationReal&&<span style={S.tag()}>⏱ {sess.durationReal} min</span>}
+                        {sess.rpe&&<span style={S.tag("warning")}>RPE {sess.rpe}</span>}
+                        {sess.durationReal&&<span style={S.tag("accent")}>⏱ {sess.durationReal} min</span>}
                         {(()=>{const l=getSessionInternalLoad(sess);return l!=null?<span style={S.tag("accent")}>{l} UA</span>:null;})()}
-                        {sess.feeling&&<span style={S.tag()}>{sess.feeling}</span>}
+                        {sess.feeling&&<span style={sess.feeling==="Molèsties"?{...S.tag(),color:'#ef4444',background:'#fef2f2',border:'1.5px solid #fca5a5'}:S.tag()}>{sess.feeling}</span>}
                         {exercises.filter(e=>e.isExtra&&!e.isCustom).length>0&&<span style={S.tag()}>+{exercises.filter(e=>e.isExtra&&!e.isCustom).length} extra</span>}
                         {exercises.filter(e=>e.isCustom).length>0&&<span style={{...S.tag("purple"),fontSize:10}}>+{exercises.filter(e=>e.isCustom).length} personalitzat</span>}
                       </div>
-                      <div style={{fontSize:12,color:T.textSecondary,marginBottom:8}}>{sess.completedExercises||0}/{sess.totalExercises||0} exercicis</div>
+                      <div style={{fontSize:12,color:'#6b7280',marginBottom:8}}><span style={{color:'#4ade80',fontWeight:500}}>{sess.completedExercises||0}</span>/{sess.totalExercises||0} exercicis</div>
                       <ProgressBar value={sess.completedExercises||0} total={sess.totalExercises||1} color={full?T.green:T.accent}/>
                       <div style={{display:"flex",gap:6,marginTop:10}}>
                         <button onClick={()=>setExpandedHistory(p=>({...p,[sessId]:!p[sessId]}))} style={{...S.btnSecondary,flex:1,textAlign:"center",fontSize:12}}>{isExpanded?"▲ Amagar":"▼ Detalls"}</button>
@@ -2135,7 +2142,7 @@ export default function App() {
                         <div style={{marginTop:10,paddingTop:10,borderTop:`1.5px solid ${T.border}`}}>
                           {sess.checkIn?.completedAt&&(
                             <div style={{background:T.card2,borderRadius:8,padding:"8px 10px",marginBottom:10}}>
-                              <div style={{fontWeight:500,fontSize:11,color:T.textSecondary,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.5px"}}>Check-in inicial</div>
+                              <div style={{fontWeight:500,fontSize:11,color:'#1a3a6b',marginBottom:6,textTransform:"uppercase",letterSpacing:"0.5px"}}>Check-in inicial</div>
                               <div style={{display:"flex",flexWrap:"wrap",gap:8,fontSize:12,color:T.textSecondary}}>
                                 {sess.checkIn.energy&&<span>⚡ Energia {sess.checkIn.energy}/5</span>}
                                 {sess.checkIn.sleep&&<span>😴 Son {sess.checkIn.sleep}/5</span>}
@@ -2146,22 +2153,22 @@ export default function App() {
                               {sess.checkIn.notes&&<div style={{fontSize:11,color:T.textMuted,marginTop:4,fontStyle:"italic"}}>"{sess.checkIn.notes}"</div>}
                             </div>
                           )}
-                          {sess.clientNotes&&<div style={{fontSize:12,color:T.textSecondary,marginBottom:10,fontStyle:"italic",background:T.card2,borderRadius:8,padding:"6px 10px"}}>💬 {sess.clientNotes}</div>}
+                          {sess.clientNotes&&<div style={{fontSize:12,color:'#6b7280',marginBottom:10,fontStyle:"italic",background:'#f8fafc',borderRadius:8,padding:"6px 10px"}}>💬 {sess.clientNotes}</div>}
                           {exercises.map((e,i)=>(
                             <div key={i} style={{marginBottom:10,paddingBottom:10,borderBottom:`1.5px solid ${T.border}`}}>
                               <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap",marginBottom:4}}>
-                                <span style={{fontSize:13,fontWeight:500,color:e.completed?T.green:T.textPrimary}}>{e.completed?"✓":"○"} {e.name}</span>
+                                <span style={{fontSize:13,fontWeight:500,color:e.completed?'#4ade80':'#1a3a6b'}}>{e.completed?"✓":"○"} {e.name}</span>
                                 {e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.purpleBg,color:T.purple,border:`1.5px solid #3A3A60`}}>Personalitzat</span>}
                                 {e.isExtra&&!e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1.5px solid ${T.border}`}}>Extra</span>}
                               </div>
-                              <div style={{fontSize:11,color:T.textSecondary,marginBottom:4}}>{e.plannedSets||0} sèries · {e.plannedReps||"?"} reps{e.plannedLoad?` · ${e.plannedLoad}`:""}{e.plannedRest?` · ${e.plannedRest}`:""}</div>
-                              {e.observations&&<div style={{fontSize:11,color:T.textMuted,marginBottom:4,fontStyle:"italic"}}>💬 {e.observations}</div>}
+                              <div style={{fontSize:11,color:'#374151',marginBottom:4}}>{e.plannedSets||0} sèries · {e.plannedReps||"?"} reps{e.plannedLoad?` · ${e.plannedLoad}`:""}{e.plannedRest?` · ${e.plannedRest}`:""}</div>
+                              {e.observations&&<div style={{fontSize:11,color:'#6b7280',marginBottom:4,fontStyle:"italic"}}>💬 {e.observations}</div>}
                               {Object.values(e.sets||{}).map((st,j)=>{
                                 const parts=[];
                                 if(st.reps) parts.push(`${st.reps} reps`);
                                 if(st.load) parts.push(st.load);
                                 if(st.rest) parts.push(st.rest);
-                                return <div key={j} style={{fontSize:11,color:st.completed?T.green:T.textMuted,padding:"1px 0 1px 10px"}}>S{j+1}: {parts.length>0?parts.join(" · "):"—"} {st.completed?"✓":"○"}</div>;
+                                return <div key={j} style={{fontSize:11,color:st.completed?'#4ade80':'#6b7280',padding:"1px 0 1px 10px"}}>S{j+1}: {parts.length>0?parts.join(" · "):"—"} {st.completed?"✓":"○"}</div>;
                               })}
                             </div>
                           ))}
