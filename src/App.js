@@ -533,7 +533,7 @@ export default function App() {
     } catch {}
   };
 
-  const persist = async (nd) => { setSaving(true); try { await set(ref(db,"fitcoach-data2"),nd); } catch {} setSaving(false); };
+  const persist = async (nd) => { setSaving(true); try { await set(ref(db,"fitcoach-data2"),nd); } catch(err) { console.error("Error guardant a Firebase:", err); } setSaving(false); };
   // eslint-disable-next-line no-unused-vars
   const persistStdCompleted = async (c) => { try { await set(ref(db,"fitcoach-completed"),c); } catch {} };
   const updateData = (d) => { setData(d); persist(d); };
@@ -631,9 +631,9 @@ export default function App() {
   const getClientTemplates = (clientId) => data.clients.find(c=>c.id===clientId)?.templates||[];
   const getClientLibrary = (clientId) => data.clients.find(c=>c.id===clientId)?.exerciseLibrary||[];
   const getClientSchedule = (clientId) => data.clients.find(c=>c.id===clientId)?.schedule||DAYS.reduce((a,d)=>({...a,[d]:[]}),{});
-  const updateClientTemplates = (clientId, tpls) => updateData({...data,clients:data.clients.map(c=>c.id===clientId?{...c,templates:tpls}:c)});
-  const updateClientLibrary = (clientId, lib) => updateData({...data,clients:data.clients.map(c=>c.id===clientId?{...c,exerciseLibrary:lib}:c)});
-  const updateClientSchedule = (clientId, sch) => updateData({...data,clients:data.clients.map(c=>c.id===clientId?{...c,schedule:sch}:c)});
+  const updateClientTemplates = (clientId, tpls) => setData(prev => { const nd={...prev,clients:prev.clients.map(c=>c.id===clientId?{...c,templates:tpls}:c)}; persist(nd); return nd; });
+  const updateClientLibrary   = (clientId, lib)  => setData(prev => { const nd={...prev,clients:prev.clients.map(c=>c.id===clientId?{...c,exerciseLibrary:lib}:c)}; persist(nd); return nd; });
+  const updateClientSchedule  = (clientId, sch)  => setData(prev => { const nd={...prev,clients:prev.clients.map(c=>c.id===clientId?{...c,schedule:sch}:c)}; persist(nd); return nd; });
 
   const selectAdminClient = (id) => {
     const sid = normalizeClientId(id);
