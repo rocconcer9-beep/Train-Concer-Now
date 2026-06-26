@@ -118,7 +118,7 @@ const ProgressBar = ({value, total, color=T.accent}) => {
 };
 
 const FormCard = ({children, style={}}) => (
-  <div style={{background:"#1A1A24",border:"1.5px solid #E8FF4740",borderRadius:14,padding:"0.9rem 1rem",marginBottom:10,...style}}>{children}</div>
+  <div style={{background:"#ffffff",border:"1.5px solid #c7d2fe",borderRadius:14,padding:"0.9rem 1rem",marginBottom:10,...style}}>{children}</div>
 );
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1969,9 +1969,9 @@ export default function App() {
           {filteredClients.length===0&&clientSearch&&<div style={{textAlign:"center",padding:"2rem 0",color:T.textSecondary,fontSize:13}}>Cap client coincideix amb "{clientSearch}"</div>}
           {showAddClient&&(
             <FormCard>
-              <div style={{fontWeight:500,fontSize:14,color:T.textPrimary,marginBottom:12}}>Nou client</div>
-              <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.inp} value={newClientForm.name} onChange={e=>setNewClientForm(p=>({...p,name:e.target.value}))} placeholder="Ex. Ana García"/></div>
-              <div style={{marginBottom:12}}><label style={S.lbl}>Objectiu</label><input style={S.inp} value={newClientForm.goal} onChange={e=>setNewClientForm(p=>({...p,goal:e.target.value}))} placeholder="Ex. Hipertròfia..."/></div>
+              <div style={{fontWeight:500,fontSize:14,color:'#1a3a6b',marginBottom:12}}>Nou client</div>
+              <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.formInp} value={newClientForm.name} onChange={e=>setNewClientForm(p=>({...p,name:e.target.value}))} placeholder="Ex. Ana García"/></div>
+              <div style={{marginBottom:12}}><label style={S.lbl}>Objectiu</label><input style={S.formInp} value={newClientForm.goal} onChange={e=>setNewClientForm(p=>({...p,goal:e.target.value}))} placeholder="Ex. Hipertròfia..."/></div>
               <div style={{...S.row,justifyContent:"flex-end"}}>
                 <button style={S.btnSecondary} onClick={()=>setShowAddClient(false)}>Cancel·lar</button>
                 <button style={{...S.btnPrimary,width:"auto",padding:"8px 18px",fontSize:13,marginLeft:8}} onClick={addClient}>Guardar</button>
@@ -2486,12 +2486,12 @@ export default function App() {
                   ))}
                   {showAddTemplate?(
                     <FormCard>
-                      <div style={{fontWeight:500,fontSize:13,color:T.textPrimary,marginBottom:12}}>Nova plantilla</div>
-                      <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.inp} value={newTemplate.name} onChange={e=>setNewTemplate(p=>({...p,name:e.target.value}))} placeholder="Ex. Push"/></div>
-                      <div style={{marginBottom:8}}><label style={S.lbl}>Objectiu</label><input style={S.inp} value={newTemplate.objective} onChange={e=>setNewTemplate(p=>({...p,objective:e.target.value}))} placeholder="Ex. Força tren superior"/></div>
+                      <div style={{fontWeight:500,fontSize:13,color:'#1a3a6b',marginBottom:12}}>Nova plantilla</div>
+                      <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.formInp} value={newTemplate.name} onChange={e=>setNewTemplate(p=>({...p,name:e.target.value}))} placeholder="Ex. Push"/></div>
+                      <div style={{marginBottom:8}}><label style={S.lbl}>Objectiu</label><input style={S.formInp} value={newTemplate.objective} onChange={e=>setNewTemplate(p=>({...p,objective:e.target.value}))} placeholder="Ex. Força tren superior"/></div>
                       <div style={{...S.row,marginBottom:12}}>
-                        <div style={{flex:1}}><label style={S.lbl}>Tipus</label><input style={S.inp} value={newTemplate.type} onChange={e=>setNewTemplate(p=>({...p,type:e.target.value}))}/></div>
-                        <div style={{flex:1}}><label style={S.lbl}>Durada</label><input style={S.inp} value={newTemplate.estimatedDuration} onChange={e=>setNewTemplate(p=>({...p,estimatedDuration:e.target.value}))} placeholder="45-60 min"/></div>
+                        <div style={{flex:1}}><label style={S.lbl}>Tipus</label><input style={S.formInp} value={newTemplate.type} onChange={e=>setNewTemplate(p=>({...p,type:e.target.value}))}/></div>
+                        <div style={{flex:1}}><label style={S.lbl}>Durada</label><input style={S.formInp} value={newTemplate.estimatedDuration} onChange={e=>setNewTemplate(p=>({...p,estimatedDuration:e.target.value}))} placeholder="45-60 min"/></div>
                       </div>
                       {(newTemplate.exercises||[]).length>0&&(
                         <div style={{marginBottom:8}}>
@@ -2506,7 +2506,7 @@ export default function App() {
                           ))}
                         </div>
                       )}
-                      <select style={{...S.inp,fontSize:12,marginBottom:12}} value="" onChange={e=>{const libEx=getClientLibrary(adminClient).find(l=>l.id===e.target.value);if(libEx) setNewTemplate(p=>({...p,exercises:[...(p.exercises||[]),{id:`tex_${Date.now()}`,exerciseId:libEx.id,name:libEx.name,plannedSets:libEx.defaultSets,plannedReps:libEx.defaultReps,plannedLoad:libEx.defaultLoad||"",plannedRest:libEx.defaultRest||"",observations:"",order:(p.exercises||[]).length+1}]}));}}>
+                      <select style={{...S.formInp,fontSize:12,marginBottom:12}} value="" onChange={e=>{const libEx=getClientLibrary(adminClient).find(l=>l.id===e.target.value);if(libEx) setNewTemplate(p=>({...p,exercises:[...(p.exercises||[]),{id:`tex_${Date.now()}`,exerciseId:libEx.id,name:libEx.name,plannedSets:libEx.defaultSets,plannedReps:libEx.defaultReps,plannedLoad:libEx.defaultLoad||"",plannedRest:libEx.defaultRest||"",observations:"",order:(p.exercises||[]).length+1}]}));}}>
                         <option value="">+ Afegir exercici de la biblioteca...</option>
                         {getClientLibrary(adminClient).map(l=><option key={l.id} value={l.id}>{l.name}</option>)}
                       </select>
@@ -2530,19 +2530,19 @@ export default function App() {
                   {lib.map(ex=>(
                     editingLibEx?.id===ex.id?(
                       <FormCard key={ex.id}>
-                        <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.inp} value={editingLibEx.name} onChange={e=>setEditingLibEx(p=>({...p,name:e.target.value}))}/></div>
+                        <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.formInp} value={editingLibEx.name} onChange={e=>setEditingLibEx(p=>({...p,name:e.target.value}))}/></div>
                         <div style={{...S.row,marginBottom:8}}>
-                          <div style={{flex:1}}><label style={S.lbl}>Categoria</label><input style={S.inp} value={editingLibEx.category} onChange={e=>setEditingLibEx(p=>({...p,category:e.target.value}))}/></div>
-                          <div style={{flex:1}}><label style={S.lbl}>Grup muscular</label><input style={S.inp} value={editingLibEx.muscleGroup} onChange={e=>setEditingLibEx(p=>({...p,muscleGroup:e.target.value}))}/></div>
+                          <div style={{flex:1}}><label style={S.lbl}>Categoria</label><input style={S.formInp} value={editingLibEx.category} onChange={e=>setEditingLibEx(p=>({...p,category:e.target.value}))}/></div>
+                          <div style={{flex:1}}><label style={S.lbl}>Grup muscular</label><input style={S.formInp} value={editingLibEx.muscleGroup} onChange={e=>setEditingLibEx(p=>({...p,muscleGroup:e.target.value}))}/></div>
                         </div>
                         <div style={{...S.row,marginBottom:8}}>
-                          <div style={{flex:1}}><label style={S.lbl}>Sèries</label><input style={S.inp} type="number" value={editingLibEx.defaultSets} onChange={e=>setEditingLibEx(p=>({...p,defaultSets:+e.target.value}))}/></div>
-                          <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} value={editingLibEx.defaultReps} onChange={e=>setEditingLibEx(p=>({...p,defaultReps:e.target.value}))}/></div>
-                          <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={editingLibEx.defaultRest} onChange={e=>setEditingLibEx(p=>({...p,defaultRest:e.target.value}))}/></div>
+                          <div style={{flex:1}}><label style={S.lbl}>Sèries</label><input style={S.formInp} type="number" value={editingLibEx.defaultSets} onChange={e=>setEditingLibEx(p=>({...p,defaultSets:+e.target.value}))}/></div>
+                          <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.formInp} value={editingLibEx.defaultReps} onChange={e=>setEditingLibEx(p=>({...p,defaultReps:e.target.value}))}/></div>
+                          <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.formInp} value={editingLibEx.defaultRest} onChange={e=>setEditingLibEx(p=>({...p,defaultRest:e.target.value}))}/></div>
                         </div>
-                        <div style={{marginBottom:8}}><label style={S.lbl}>Material</label><input style={S.inp} value={editingLibEx.material} onChange={e=>setEditingLibEx(p=>({...p,material:e.target.value}))}/></div>
-                        <div style={{marginBottom:8}}><label style={S.lbl}>Indicacions</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={editingLibEx.instructions} onChange={e=>setEditingLibEx(p=>({...p,instructions:e.target.value}))}/></div>
-                        <div style={{marginBottom:12}}><label style={S.lbl}>Nivell</label><select style={S.inp} value={editingLibEx.level} onChange={e=>setEditingLibEx(p=>({...p,level:e.target.value}))}>{["Principiant","Intermedi","Avançat"].map(l=><option key={l} value={l}>{l}</option>)}</select></div>
+                        <div style={{marginBottom:8}}><label style={S.lbl}>Material</label><input style={S.formInp} value={editingLibEx.material} onChange={e=>setEditingLibEx(p=>({...p,material:e.target.value}))}/></div>
+                        <div style={{marginBottom:8}}><label style={S.lbl}>Indicacions</label><textarea style={{...S.formInp,minHeight:60,resize:"vertical"}} value={editingLibEx.instructions} onChange={e=>setEditingLibEx(p=>({...p,instructions:e.target.value}))}/></div>
+                        <div style={{marginBottom:12}}><label style={S.lbl}>Nivell</label><select style={S.formInp} value={editingLibEx.level} onChange={e=>setEditingLibEx(p=>({...p,level:e.target.value}))}>{["Principiant","Intermedi","Avançat"].map(l=><option key={l} value={l}>{l}</option>)}</select></div>
                         <div style={{...S.row,justifyContent:"flex-end"}}>
                           <button style={S.btnSecondary} onClick={()=>setEditingLibEx(null)}>Cancel·lar</button>
                           <button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={()=>{updateLib(lib.map(e=>e.id===editingLibEx.id?editingLibEx:e));setEditingLibEx(null);}}>Guardar</button>
@@ -2566,20 +2566,20 @@ export default function App() {
                   ))}
                   {showAddLibEx?(
                     <FormCard>
-                      <div style={{fontWeight:500,fontSize:13,color:T.textPrimary,marginBottom:12}}>Nou exercici</div>
-                      <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.inp} value={newLibEx.name} onChange={e=>setNewLibEx(p=>({...p,name:e.target.value}))} placeholder="Ex. Press Banca"/></div>
+                      <div style={{fontWeight:500,fontSize:13,color:'#1a3a6b',marginBottom:12}}>Nou exercici</div>
+                      <div style={{marginBottom:8}}><label style={S.lbl}>Nom</label><input style={S.formInp} value={newLibEx.name} onChange={e=>setNewLibEx(p=>({...p,name:e.target.value}))} placeholder="Ex. Press Banca"/></div>
                       <div style={{...S.row,marginBottom:8}}>
-                        <div style={{flex:1}}><label style={S.lbl}>Categoria</label><input style={S.inp} value={newLibEx.category} onChange={e=>setNewLibEx(p=>({...p,category:e.target.value}))}/></div>
-                        <div style={{flex:1}}><label style={S.lbl}>Grup muscular</label><input style={S.inp} value={newLibEx.muscleGroup} onChange={e=>setNewLibEx(p=>({...p,muscleGroup:e.target.value}))}/></div>
+                        <div style={{flex:1}}><label style={S.lbl}>Categoria</label><input style={S.formInp} value={newLibEx.category} onChange={e=>setNewLibEx(p=>({...p,category:e.target.value}))}/></div>
+                        <div style={{flex:1}}><label style={S.lbl}>Grup muscular</label><input style={S.formInp} value={newLibEx.muscleGroup} onChange={e=>setNewLibEx(p=>({...p,muscleGroup:e.target.value}))}/></div>
                       </div>
                       <div style={{...S.row,marginBottom:8}}>
-                        <div style={{flex:1}}><label style={S.lbl}>Sèries</label><input style={S.inp} type="number" value={newLibEx.defaultSets} onChange={e=>setNewLibEx(p=>({...p,defaultSets:+e.target.value}))}/></div>
-                        <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} value={newLibEx.defaultReps} onChange={e=>setNewLibEx(p=>({...p,defaultReps:e.target.value}))}/></div>
-                        <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={newLibEx.defaultRest} onChange={e=>setNewLibEx(p=>({...p,defaultRest:e.target.value}))}/></div>
+                        <div style={{flex:1}}><label style={S.lbl}>Sèries</label><input style={S.formInp} type="number" value={newLibEx.defaultSets} onChange={e=>setNewLibEx(p=>({...p,defaultSets:+e.target.value}))}/></div>
+                        <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.formInp} value={newLibEx.defaultReps} onChange={e=>setNewLibEx(p=>({...p,defaultReps:e.target.value}))}/></div>
+                        <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.formInp} value={newLibEx.defaultRest} onChange={e=>setNewLibEx(p=>({...p,defaultRest:e.target.value}))}/></div>
                       </div>
-                      <div style={{marginBottom:8}}><label style={S.lbl}>Material</label><input style={S.inp} value={newLibEx.material} onChange={e=>setNewLibEx(p=>({...p,material:e.target.value}))}/></div>
-                      <div style={{marginBottom:8}}><label style={S.lbl}>Indicacions</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={newLibEx.instructions} onChange={e=>setNewLibEx(p=>({...p,instructions:e.target.value}))}/></div>
-                      <div style={{marginBottom:12}}><label style={S.lbl}>Nivell</label><select style={S.inp} value={newLibEx.level} onChange={e=>setNewLibEx(p=>({...p,level:e.target.value}))}>{["Principiant","Intermedi","Avançat"].map(l=><option key={l} value={l}>{l}</option>)}</select></div>
+                      <div style={{marginBottom:8}}><label style={S.lbl}>Material</label><input style={S.formInp} value={newLibEx.material} onChange={e=>setNewLibEx(p=>({...p,material:e.target.value}))}/></div>
+                      <div style={{marginBottom:8}}><label style={S.lbl}>Indicacions</label><textarea style={{...S.formInp,minHeight:60,resize:"vertical"}} value={newLibEx.instructions} onChange={e=>setNewLibEx(p=>({...p,instructions:e.target.value}))}/></div>
+                      <div style={{marginBottom:12}}><label style={S.lbl}>Nivell</label><select style={S.formInp} value={newLibEx.level} onChange={e=>setNewLibEx(p=>({...p,level:e.target.value}))}>{["Principiant","Intermedi","Avançat"].map(l=><option key={l} value={l}>{l}</option>)}</select></div>
                       <div style={{...S.row,justifyContent:"flex-end"}}>
                         <button style={S.btnSecondary} onClick={()=>setShowAddLibEx(false)}>Cancel·lar</button>
                         <button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={()=>{if(!newLibEx.name)return;updateLib([...lib,{...newLibEx,id:`ex_${Date.now()}`}]);setNewLibEx({name:"",category:"Força",muscleGroup:"",movementPattern:"",material:"",defaultSets:3,defaultReps:"10",defaultLoad:"",defaultRest:"60s",instructions:"",observations:"",level:"Principiant"});setShowAddLibEx(false);}}>Afegir</button>
