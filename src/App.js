@@ -844,7 +844,7 @@ export default function App() {
   const seedRocConcernau = async (currentData) => {
     const roc = currentData.clients.find(c=>c.id===ROC_CONCERNAU_ID);
     if(!roc) return null;
-    const alreadySeeded = roc.exerciseLibrary?.length>0 || roc.templates?.length>0;
+    const alreadySeeded = roc.templates?.some(t => t.id === 'tpl_roc_1');
     if(alreadySeeded) return null;
     const updatedClients = currentData.clients.map(c=>
       c.id===ROC_CONCERNAU_ID ? {
