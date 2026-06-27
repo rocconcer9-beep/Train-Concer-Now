@@ -1476,7 +1476,6 @@ export default function App() {
         {clientViewTab==="entrenament"&&(()=>{
           const schedule=getClientSchedule(selClient);
           const templates=getClientTemplates(selClient);
-          const dayTplIds=schedule[selDay]||[];
           const sessionKey=`${selClient}-${selDay}`;
           const currentSession=sessionExercises[sessionKey]||null;
           const calHistory=clientHistories[normalizeClientId(selClient)]||[];
