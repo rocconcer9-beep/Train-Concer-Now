@@ -749,6 +749,124 @@ export default function App() {
     return nd;
   };
 
+  const ROC_CONCERNAU_ID = 1;
+  const ROC_CONCERNAU_LIBRARY = [
+    {id:"roc_ex_1",name:"Press Banca",category:"Força",muscleGroup:"Pectoral",movementPattern:"Push horitzontal",material:"Barra",defaultSets:3,defaultReps:"7",defaultLoad:"65 kg",defaultRest:"3'",instructions:"",observations:"",level:"Avançat"},
+    {id:"roc_ex_2",name:"Rem cintura unilateral mancuerna",category:"Força",muscleGroup:"Esquena",movementPattern:"Pull horitzontal",material:"Mancuerna",defaultSets:3,defaultReps:"16",defaultLoad:"32 kg",defaultRest:"3'",instructions:"",observations:"",level:"Avançat"},
+    {id:"roc_ex_3",name:"Pes Mort Romanès",category:"Força",muscleGroup:"Isquiotibials / Glutis",movementPattern:"Hip hinge",material:"Barra",defaultSets:3,defaultReps:"11",defaultLoad:"50 kg",defaultRest:"3'",instructions:"",observations:"",level:"Avançat"},
+    {id:"roc_ex_4",name:"Landmine Core Rotation",category:"Core",muscleGroup:"Core rotacional",movementPattern:"Rotació",material:"Barra landmine",defaultSets:3,defaultReps:"14",defaultLoad:"30 kg",defaultRest:"3'",instructions:"",observations:"",level:"Avançat"},
+    {id:"roc_ex_5",name:"Apertures Gluti Mig",category:"Força",muscleGroup:"Gluti mig",movementPattern:"Abducció",material:"Màquina",defaultSets:3,defaultReps:"10",defaultLoad:"40 kg",defaultRest:"3'",instructions:"Monster Walk",observations:"",level:"Avançat"},
+    {id:"roc_ex_6",name:"Extensió tríceps politja alta",category:"Força",muscleGroup:"Tríceps",movementPattern:"Push vertical",material:"Politja",defaultSets:3,defaultReps:"14",defaultLoad:"28 kg",defaultRest:"3'",instructions:"",observations:"",level:"Avançat"},
+    {id:"roc_ex_7",name:"Medball Overhead Slam",category:"Potència",muscleGroup:"Cos complet",movementPattern:"Potència",material:"Medball",defaultSets:3,defaultReps:"6",defaultLoad:"4 kg",defaultRest:"3'",instructions:"",observations:"",level:"Avançat"},
+    {id:"roc_ex_8",name:"Press Militar",category:"Força",muscleGroup:"Deltoides",movementPattern:"Push vertical",material:"Barra",defaultSets:3,defaultReps:"8",defaultLoad:"40 kg",defaultRest:"3'",instructions:"",observations:"",level:"Avançat"},
+    {id:"roc_ex_9",name:"Dominades Lastrades",category:"Força",muscleGroup:"Esquena / Bíceps",movementPattern:"Pull vertical",material:"Barra dominades + disc",defaultSets:3,defaultReps:"6",defaultLoad:"80 kg",defaultRest:"3'",instructions:"Disc 10 kg. Pes total 80 kg: 70 kg pes corporal + 10 kg disc",observations:"",level:"Avançat"},
+    {id:"roc_ex_10",name:"Med Ball Chest Throw",category:"Potència",muscleGroup:"Pectoral",movementPattern:"Potència push",material:"Medball",defaultSets:3,defaultReps:"8",defaultLoad:"8 kg",defaultRest:"3'",instructions:"4 reps per costat",observations:"",level:"Avançat"},
+    {id:"roc_ex_11",name:"Spanish Squat",category:"Prevenció",muscleGroup:"Quàdriceps",movementPattern:"Squat isomètric",material:"Goma",defaultSets:3,defaultReps:"30''",defaultLoad:"Pes corporal",defaultRest:"3'",instructions:"Pes corporal",observations:"",level:"Avançat"},
+    {id:"roc_ex_12",name:"Dominades Potència",category:"Potència",muscleGroup:"Esquena",movementPattern:"Pull vertical",material:"Barra dominades",defaultSets:3,defaultReps:"10",defaultLoad:"70 kg",defaultRest:"3'",instructions:"Màxima velocitat. Pes corporal ~70 kg",observations:"",level:"Avançat"},
+    {id:"roc_ex_13",name:"Squat amb barra",category:"Força",muscleGroup:"Quàdriceps / Glutis",movementPattern:"Squat",material:"Barra",defaultSets:3,defaultReps:"10",defaultLoad:"65 kg",defaultRest:"3'",instructions:"",observations:"",level:"Avançat"},
+    {id:"roc_ex_14",name:"Press Inclinat",category:"Força",muscleGroup:"Pectoral superior",movementPattern:"Push inclinat",material:"Barra",defaultSets:3,defaultReps:"8",defaultLoad:"48 kg",defaultRest:"3'",instructions:"",observations:"",level:"Avançat"},
+    {id:"roc_ex_15",name:"Hip Thrust",category:"Força",muscleGroup:"Glutis",movementPattern:"Hip hinge",material:"Barra",defaultSets:3,defaultReps:"10",defaultLoad:"40 kg",defaultRest:"3'",instructions:"",observations:"",level:"Avançat"},
+    {id:"roc_ex_16",name:"Curl bíceps barra",category:"Força",muscleGroup:"Bíceps",movementPattern:"Pull",material:"Barra",defaultSets:3,defaultReps:"9",defaultLoad:"30 kg",defaultRest:"3'",instructions:"",observations:"",level:"Avançat"},
+    {id:"roc_ex_17",name:"Press Pallof",category:"Core",muscleGroup:"Core antirotació",movementPattern:"Antirotació",material:"Politja",defaultSets:3,defaultReps:"24",defaultLoad:"7,5 kg",defaultRest:"3'",instructions:"",observations:"",level:"Avançat"},
+    {id:"roc_ex_18",name:"Split step + sortida curta",category:"Específic pàdel",muscleGroup:"Tren inferior",movementPattern:"Específic",material:"Goma resistència",defaultSets:3,defaultReps:"8",defaultLoad:"10 kg",defaultRest:"1'",instructions:"4 reps per costat. Goma resistència 10 kg",observations:"",level:"Avançat"},
+    {id:"roc_ex_19",name:"Frenada lateral curta",category:"Específic pàdel",muscleGroup:"Tren inferior",movementPattern:"Específic",material:"Goma resistència",defaultSets:3,defaultReps:"8",defaultLoad:"10 kg",defaultRest:"3'",instructions:"",observations:"",level:"Avançat"},
+    {id:"roc_ex_20",name:"Aperturas + Elev Lateral",category:"Força",muscleGroup:"Pectoral / Deltoides",movementPattern:"Combinat",material:"Màquina + Mancuernes",defaultSets:3,defaultReps:"12+15",defaultLoad:"30+20 kg",defaultRest:"3'",instructions:"Exercici combinat. Part A: Aperturas 12 reps 30 kg. Part B: Elevació Lateral 15 reps 20 kg",observations:"",level:"Avançat"},
+    {id:"roc_ex_21",name:"Face Pull + External Rot.",category:"Prevenció",muscleGroup:"Espatlla posterior",movementPattern:"Pull",material:"Politja",defaultSets:3,defaultReps:"20",defaultLoad:"5 kg",defaultRest:"3'",instructions:"10 reps per costat",observations:"",level:"Avançat"},
+    {id:"roc_ex_22",name:"Bíceps unilateral polea",category:"Força",muscleGroup:"Bíceps",movementPattern:"Pull",material:"Politja",defaultSets:3,defaultReps:"20",defaultLoad:"10 kg",defaultRest:"3'",instructions:"10 reps per costat",observations:"",level:"Avançat"},
+    {id:"roc_ex_23",name:"Hang Power Clean (mov. olímpic)",category:"Potència",muscleGroup:"Cos complet",movementPattern:"Olímpic",material:"Barra",defaultSets:3,defaultReps:"6",defaultLoad:"30 kg",defaultRest:"3'",instructions:"",observations:"",level:"Avançat"},
+    {id:"roc_ex_24",name:"Landmine Press Split Stance",category:"Força",muscleGroup:"Pectoral / Deltoides",movementPattern:"Push",material:"Barra landmine",defaultSets:3,defaultReps:"14",defaultLoad:"30 kg",defaultRest:"3'",instructions:"",observations:"",level:"Avançat"},
+    {id:"roc_ex_25",name:"Rem cintura bilateral politja",category:"Força",muscleGroup:"Esquena",movementPattern:"Pull horitzontal",material:"Politja",defaultSets:3,defaultReps:"10",defaultLoad:"65 kg",defaultRest:"3'",instructions:"",observations:"",level:"Avançat"},
+    {id:"roc_ex_26",name:"Tríceps politja baixa",category:"Força",muscleGroup:"Tríceps",movementPattern:"Push",material:"Politja",defaultSets:3,defaultReps:"20",defaultLoad:"5 kg",defaultRest:"3'",instructions:"10 reps per costat",observations:"",level:"Avançat"},
+    {id:"roc_ex_27",name:"Copenh. plank",category:"Prevenció",muscleGroup:"Adductors / Core",movementPattern:"Isomètric",material:"Banc",defaultSets:3,defaultReps:"20''/costat",defaultLoad:"Pes corporal",defaultRest:"3'",instructions:"Curt, amb genoll recolzat al banc",observations:"",level:"Avançat"},
+    {id:"roc_ex_28",name:"Abantbraç (preventiu)",category:"Prevenció",muscleGroup:"Avantbraç",movementPattern:"Prevenció",material:"Mancuerna",defaultSets:3,defaultReps:"24",defaultLoad:"6 kg",defaultRest:"3'",instructions:"Treball preventiu d'avantbraç",observations:"",level:"Avançat"},
+  ];
+  const ROC_CONCERNAU_TEMPLATES = [
+    {
+      id:"tpl_roc_1",name:"Força Base + Rot.",description:"Força global + core rotacional",type:"Força",
+      objective:"Força global + core rotacional",estimatedDuration:"~70 min",
+      exercises:[
+        {id:"tex_roc_1_1",exerciseId:"roc_ex_1",name:"Press Banca",plannedSets:3,plannedReps:"5/7/7",plannedLoad:"70/65/65 kg",plannedRest:"3'",observations:"S1: 5 reps 70 kg · S2-S3: 7 reps 65 kg",order:1},
+        {id:"tex_roc_1_2",exerciseId:"roc_ex_2",name:"Rem cintura unilateral mancuerna",plannedSets:3,plannedReps:"16",plannedLoad:"32 kg",plannedRest:"3'",observations:"",order:2},
+        {id:"tex_roc_1_3",exerciseId:"roc_ex_3",name:"Pes Mort Romanès",plannedSets:3,plannedReps:"11",plannedLoad:"50 kg",plannedRest:"3'",observations:"",order:3},
+        {id:"tex_roc_1_4",exerciseId:"roc_ex_4",name:"Landmine Core Rotation",plannedSets:3,plannedReps:"14",plannedLoad:"30 kg",plannedRest:"3'",observations:"",order:4},
+        {id:"tex_roc_1_5",exerciseId:"roc_ex_5",name:"Apertures Gluti Mig",plannedSets:3,plannedReps:"10",plannedLoad:"40 kg",plannedRest:"3'",observations:"Monster Walk",order:5},
+        {id:"tex_roc_1_6",exerciseId:"roc_ex_6",name:"Extensió tríceps politja alta",plannedSets:3,plannedReps:"14",plannedLoad:"28 kg",plannedRest:"3'",observations:"",order:6},
+      ],
+    },
+    {
+      id:"tpl_roc_2",name:"Pot. Upper + Pàdel",description:"Potència tren superior",type:"Potència",
+      objective:"Potència tren superior",estimatedDuration:"~50 min",
+      exercises:[
+        {id:"tex_roc_2_1",exerciseId:"roc_ex_7",name:"Medball Overhead Slam",plannedSets:3,plannedReps:"6",plannedLoad:"4 kg",plannedRest:"3'",observations:"",order:1},
+        {id:"tex_roc_2_2",exerciseId:"roc_ex_8",name:"Press Militar",plannedSets:3,plannedReps:"8",plannedLoad:"40 kg",plannedRest:"3'",observations:"",order:2},
+        {id:"tex_roc_2_3",exerciseId:"roc_ex_9",name:"Dominades Lastrades",plannedSets:3,plannedReps:"6",plannedLoad:"80 kg",plannedRest:"3'",observations:"Disc 10 kg. Pes total 80 kg: 70 kg pes corporal + 10 kg disc",order:3},
+        {id:"tex_roc_2_4",exerciseId:"roc_ex_10",name:"Med Ball Chest Throw",plannedSets:3,plannedReps:"8",plannedLoad:"8 kg",plannedRest:"3'",observations:"4 reps per costat",order:4},
+        {id:"tex_roc_2_5",exerciseId:"roc_ex_11",name:"Spanish Squat",plannedSets:3,plannedReps:"30''",plannedLoad:"Pes corporal",plannedRest:"3'",observations:"Pes corporal",order:5},
+      ],
+    },
+    {
+      id:"tpl_roc_3",name:"Cama + Upper / Força Global",description:"Força global tren inferior i superior",type:"Força",
+      objective:"Força global tren inferior i superior",estimatedDuration:"~65 min",
+      exercises:[
+        {id:"tex_roc_3_1",exerciseId:"roc_ex_12",name:"Dominades Potència",plannedSets:3,plannedReps:"10",plannedLoad:"70 kg",plannedRest:"3'",observations:"Màxima velocitat. Pes corporal ~70 kg",order:1},
+        {id:"tex_roc_3_2",exerciseId:"roc_ex_13",name:"Squat amb barra",plannedSets:3,plannedReps:"10/8/8",plannedLoad:"65/67,5/67,5 kg",plannedRest:"3'",observations:"S1: 10 reps 65 kg · S2-S3: 8 reps 67,5 kg",order:2},
+        {id:"tex_roc_3_3",exerciseId:"roc_ex_14",name:"Press Inclinat",plannedSets:3,plannedReps:"8",plannedLoad:"48 kg",plannedRest:"3'",observations:"",order:3},
+        {id:"tex_roc_3_4",exerciseId:"roc_ex_15",name:"Hip Thrust",plannedSets:3,plannedReps:"10",plannedLoad:"40 kg",plannedRest:"3'",observations:"",order:4},
+        {id:"tex_roc_3_5",exerciseId:"roc_ex_16",name:"Curl bíceps barra",plannedSets:3,plannedReps:"9",plannedLoad:"30 kg",plannedRest:"3'",observations:"",order:5},
+        {id:"tex_roc_3_6",exerciseId:"roc_ex_17",name:"Press Pallof",plannedSets:3,plannedReps:"24",plannedLoad:"7,5 kg",plannedRest:"3'",observations:"",order:6},
+      ],
+    },
+    {
+      id:"tpl_roc_4",name:"Pàdel Esp. + Prev.",description:"Específic pàdel + prevenció",type:"Específic pàdel",
+      objective:"Específic pàdel + prevenció",estimatedDuration:"~55 min",
+      exercises:[
+        {id:"tex_roc_4_1",exerciseId:"roc_ex_18",name:"Split step + sortida curta",plannedSets:3,plannedReps:"8",plannedLoad:"10 kg",plannedRest:"1'",observations:"4 reps per costat. Goma resistència 10 kg",order:1},
+        {id:"tex_roc_4_2",exerciseId:"roc_ex_19",name:"Frenada lateral curta",plannedSets:3,plannedReps:"8",plannedLoad:"10 kg",plannedRest:"3'",observations:"",order:2},
+        {id:"tex_roc_4_3",exerciseId:"roc_ex_20",name:"Aperturas + Elev Lateral",plannedSets:3,plannedReps:"12+15",plannedLoad:"30+20 kg",plannedRest:"3'",observations:"Exercici combinat. Part A: Aperturas 12 reps 30 kg. Part B: Elevació Lateral 15 reps 20 kg",order:3},
+        {id:"tex_roc_4_4",exerciseId:"roc_ex_21",name:"Face Pull + External Rot.",plannedSets:3,plannedReps:"20",plannedLoad:"5 kg",plannedRest:"3'",observations:"10 reps per costat",order:4},
+        {id:"tex_roc_4_5",exerciseId:"roc_ex_22",name:"Bíceps unilateral polea",plannedSets:3,plannedReps:"20",plannedLoad:"10 kg",plannedRest:"3'",observations:"10 reps per costat",order:5},
+      ],
+    },
+    {
+      id:"tpl_roc_5",name:"Pot + Prev / Funcional",description:"Potència + prevenció funcional",type:"Potència",
+      objective:"Potència + prevenció funcional",estimatedDuration:"~60 min",
+      exercises:[
+        {id:"tex_roc_5_1",exerciseId:"roc_ex_23",name:"Hang Power Clean (mov. olímpic)",plannedSets:3,plannedReps:"6",plannedLoad:"30 kg",plannedRest:"3'",observations:"",order:1},
+        {id:"tex_roc_5_2",exerciseId:"roc_ex_24",name:"Landmine Press Split Stance",plannedSets:3,plannedReps:"14/14/20",plannedLoad:"30/32,5/32,5 kg",plannedRest:"3'",observations:"S1: 14 reps 30 kg · S2: 14 reps 32,5 kg · S3: 20 reps 32,5 kg",order:2},
+        {id:"tex_roc_5_3",exerciseId:"roc_ex_25",name:"Rem cintura bilateral politja",plannedSets:3,plannedReps:"10",plannedLoad:"65 kg",plannedRest:"3'",observations:"",order:3},
+        {id:"tex_roc_5_4",exerciseId:"roc_ex_26",name:"Tríceps politja baixa",plannedSets:3,plannedReps:"20",plannedLoad:"5 kg",plannedRest:"3'",observations:"10 reps per costat",order:4},
+        {id:"tex_roc_5_5",exerciseId:"roc_ex_27",name:"Copenh. plank",plannedSets:3,plannedReps:"20''/costat",plannedLoad:"Pes corporal",plannedRest:"3'",observations:"Curt, amb genoll recolzat al banc",order:5},
+        {id:"tex_roc_5_6",exerciseId:"roc_ex_28",name:"Abantbraç (preventiu)",plannedSets:3,plannedReps:"24/24/20",plannedLoad:"6/10/10 kg",plannedRest:"3'",observations:"S1: 24 reps 6 kg · S2: 24 reps 10 kg · S3: 20 reps 10 kg",order:6},
+      ],
+    },
+  ];
+
+  const seedRocConcernau = async (currentData) => {
+    const roc = currentData.clients.find(c=>c.id===ROC_CONCERNAU_ID);
+    if(!roc) return null;
+    const alreadySeeded = roc.exerciseLibrary?.length>0 || roc.templates?.length>0;
+    if(alreadySeeded) return null;
+    const updatedClients = currentData.clients.map(c=>
+      c.id===ROC_CONCERNAU_ID ? {
+        ...c,
+        exerciseLibrary: ROC_CONCERNAU_LIBRARY,
+        templates: ROC_CONCERNAU_TEMPLATES,
+        schedule: {
+          Dilluns: ["tpl_roc_1"],
+          Dimarts: ["tpl_roc_2"],
+          Dimecres: ["tpl_roc_3"],
+          Dijous:   ["tpl_roc_4"],
+          Divendres:["tpl_roc_5"],
+          Dissabte: [],
+          Diumenge: [],
+        }
+      } : c
+    );
+    const nd = {...currentData, clients:updatedClients};
+    try { await set(ref(db,"fitcoach-data2"),nd); } catch {}
+    return nd;
+  };
+
   const loadData = async () => {
     setLoading(true);
     try {
@@ -759,7 +877,8 @@ export default function App() {
       ]);
       const loadedData = dr.exists() ? dr.val() : DEFAULT_DATA;
       const seeded = await seedIgnasiNou(loadedData);
-      const finalData = seeded || loadedData;
+      const seeded2 = await seedRocConcernau(seeded || loadedData);
+      const finalData = seeded2 || seeded || loadedData;
 
       // Migrar clients sense accessToken
       let dataUpdated = false;
