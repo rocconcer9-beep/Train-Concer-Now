@@ -3,7 +3,6 @@ import { db } from "./firebase";
 import { ref, set, get, remove } from "firebase/database";
 
 const DAYS = ["Dilluns","Dimarts","Dimecres","Dijous","Divendres","Dissabte","Diumenge"];
-// eslint-disable-next-line no-unused-vars
 const DAYS_SHORT = ["L","M","X","J","V","S","D"];
 const TODAY_IDX = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
 const TODAY = DAYS[TODAY_IDX];
@@ -181,6 +180,172 @@ const getFeelingTagStyle = (feeling, fontSize=11) => {
 const getSessionInternalLoad = (sess) =>
   sess.internalLoad ?? calculateInternalLoad(sess.durationReal, sess.rpe);
 
+// ── Calendar ───────────────────────────────────────────────────────────────────
+const CAT_MONTHS_FULL = ["Gener","Febrer","Març","Abril","Maig","Juny","Juliol","Agost","Setembre","Octubre","Novembre","Desembre"];
+const CAT_MONTHS_SHORT_ARR = ["gen","feb","mar","abr","mai","jun","jul","ago","set","oct","nov","des"];
+const calGetMonday = (d) => { const r=new Date(d); r.setHours(0,0,0,0); const w=r.getDay(); r.setDate(r.getDate()-(w===0?6:w-1)); return r; };
+const calGetISOWeek = (d) => { const r=new Date(d); r.setHours(0,0,0,0); r.setDate(r.getDate()+4-(r.getDay()||7)); const y1=new Date(r.getFullYear(),0,1); return Math.ceil((((r-y1)/86400000)+1)/7); };
+const calDayName = (d) => { const w=d.getDay(); return DAYS[w===0?6:w-1]; };
+const calSameDate = (a,b) => a.toISOString().slice(0,10)===b.toISOString().slice(0,10);
+
+const CalendarComp = ({clientIdx,schedule,templates,history,calView,setCalView,calBase,setCalBase,calDetail,setCalDetail,onStartSession,isAdmin}) => {
+  const today=new Date(); today.setHours(0,0,0,0);
+  const cc=CLIENT_COLORS[Math.max(0,clientIdx)%CLIENT_COLORS.length].text;
+  const getDayTpls=(date)=>{ const n=calDayName(date); return (schedule[n]||[]).map(id=>templates.find(t=>t.id===id)).filter(Boolean); };
+  const isDone=(date)=>{ const iso=date.toISOString().slice(0,10); return history.some(s=>s.createdAt&&s.createdAt.slice(0,10)===iso); };
+  const getDot=(date,other=false)=>isDone(date)?(other?null:cc):(getDayTpls(date).length>0?(other?"rgba(202,138,4,0.32)":"#e8d800"):null);
+  const prev=()=>{ const d=new Date(calBase); if(calView==="weekly") d.setDate(d.getDate()-7); else{d.setDate(1);d.setMonth(d.getMonth()-1);} setCalBase(d); };
+  const next=()=>{ const d=new Date(calBase); if(calView==="weekly") d.setDate(d.getDate()+7); else{d.setDate(1);d.setMonth(d.getMonth()+1);} setCalBase(d); };
+  const goToday=()=>{ setCalBase(new Date()); setCalView("weekly"); setCalDetail(null); };
+  const calTitle=()=>{
+    if(calView==="weekly"){
+      const mon=calGetMonday(calBase), sun=new Date(mon); sun.setDate(mon.getDate()+6);
+      const wk=calGetISOWeek(mon);
+      if(mon.getMonth()===sun.getMonth()) return `${mon.getDate()} – ${sun.getDate()} ${CAT_MONTHS_FULL[sun.getMonth()].toLowerCase()} ${sun.getFullYear()} · Setmana ${wk}`;
+      return `${mon.getDate()} ${CAT_MONTHS_SHORT_ARR[mon.getMonth()]} – ${sun.getDate()} ${CAT_MONTHS_SHORT_ARR[sun.getMonth()]} ${sun.getFullYear()} · Setmana ${wk}`;
+    }
+    return `${CAT_MONTHS_FULL[calBase.getMonth()]} ${calBase.getFullYear()}`;
+  };
+  const nb={background:"rgba(255,255,255,0.15)",border:"1.5px solid rgba(255,255,255,0.3)",color:"#ffffff",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontSize:18,fontWeight:700,lineHeight:1};
+  const vb=(a)=>a?{background:"#ffffff",color:"#1a3a6b",border:"1.5px solid #ffffff",borderRadius:8,padding:"6px 16px",fontSize:12,fontWeight:"600",cursor:"pointer"}:{background:"transparent",color:"#ffffff",border:"1.5px solid rgba(255,255,255,0.5)",borderRadius:8,padding:"6px 16px",fontSize:12,fontWeight:"500",cursor:"pointer"};
+
+  // ── Pantalla de detall ──────────────────────────────────────────────────────
+  if(calDetail) {
+    const dayTpls=getDayTpls(calDetail);
+    const done=isDone(calDetail);
+    const CAT_DAYS=["Diumenge","Dilluns","Dimarts","Dimecres","Dijous","Divendres","Dissabte"];
+    const dayFull=CAT_DAYS[calDetail.getDay()];
+    const dateLabel=`${calDetail.getDate()} ${CAT_MONTHS_SHORT_ARR[calDetail.getMonth()]}`;
+    return (
+      <div>
+        <div style={{background:"#1a3a6b",padding:"12px 16px",display:"flex",alignItems:"center",gap:12}}>
+          <button style={{...nb,fontSize:13,padding:"6px 12px"}} onClick={()=>setCalDetail(null)}>← Tornar al calendari</button>
+          <div style={{color:"#ffffff",fontWeight:600,fontSize:15}}>{dayFull}, {dateLabel}</div>
+        </div>
+        <div style={{padding:"1rem 1.25rem"}}>
+          {dayTpls.length===0?(
+            <div style={{textAlign:"center",padding:"2.5rem 0",color:"#9ca3af"}}>
+              <div style={{fontSize:36,marginBottom:10}}>🏖️</div>
+              <div style={{fontWeight:600,fontSize:15,color:"#64748b",marginBottom:4}}>Dia de descans</div>
+              <div style={{fontSize:13}}>No hi ha rutina assignada per a {dayFull.toLowerCase()}.</div>
+            </div>
+          ):dayTpls.map(tpl=>(
+            <div key={tpl.id} style={{background:"#ffffff",border:"1.5px solid #e2e8f0",borderRadius:12,padding:"1rem",marginBottom:12,boxShadow:"0 1px 4px rgba(26,58,107,0.06)"}}>
+              <div style={{fontWeight:700,fontSize:17,color:"#1a3a6b",marginBottom:4}}>{tpl.name}</div>
+              {tpl.objective&&<div style={{fontSize:13,color:"#374151",marginBottom:8}}>{tpl.objective}</div>}
+              <div style={{display:"flex",gap:12,marginBottom:12,fontSize:12,color:"#64748b"}}>
+                {(tpl.exercises||[]).length>0&&<span>📋 {(tpl.exercises||[]).length} exercicis</span>}
+                {tpl.estimatedDuration&&<span>⏱ {tpl.estimatedDuration}</span>}
+              </div>
+              {(tpl.exercises||[]).map((ex,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"5px 0",borderBottom:"1px solid #f1f5f9"}}>
+                  <span style={{fontSize:11,color:"#94a3b8",width:20,flexShrink:0}}>{i+1}.</span>
+                  <span style={{fontSize:13,color:"#0f172a",flex:1}}>{ex.name}</span>
+                  <span style={{fontSize:11,color:"#64748b",flexShrink:0}}>{ex.plannedSets}×{ex.plannedReps}</span>
+                </div>
+              ))}
+            </div>
+          ))}
+          {dayTpls.length>0&&(done?(
+            <div>
+              <div style={{background:"#f0fdf4",border:"1.5px solid #86efac",borderRadius:10,padding:"10px 14px",marginBottom:10,display:"flex",alignItems:"center",gap:8}}>
+                <span style={{fontSize:20,lineHeight:1,color:"#4ade80"}}>✓</span>
+                <span style={{color:"#16a34a",fontWeight:600,fontSize:14}}>Sessió ja completada</span>
+              </div>
+              {!isAdmin&&<button style={{background:"#f8fafc",color:"#1a3a6b",border:"1.5px solid #c7d2fe",borderRadius:10,padding:"10px 16px",width:"100%",cursor:"pointer",fontWeight:500,fontSize:13}}>Veure detalls de la sessió</button>}
+            </div>
+          ):!isAdmin?(
+            <button style={{background:"#e8d800",color:"#1a3a6b",border:"none",borderRadius:10,fontWeight:700,fontSize:15,padding:"13px 16px",cursor:"pointer",width:"100%",marginTop:4}} onClick={()=>onStartSession&&onStartSession(dayTpls[0])}>
+              Començar entrenament →
+            </button>
+          ):null)}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Capçalera compartida ────────────────────────────────────────────────────
+  const calHdr=(
+    <div style={{background:"#1a3a6b",padding:"12px 16px",display:"flex",flexDirection:"column",gap:10}}>
+      <div style={{display:"flex",alignItems:"center",gap:8}}>
+        <button style={nb} onClick={prev}>‹</button>
+        <div style={{flex:1,textAlign:"center",color:"#ffffff",fontSize:12,fontWeight:600,lineHeight:1.4}}>{calTitle()}</div>
+        <button style={nb} onClick={next}>›</button>
+      </div>
+      <div style={{display:"flex",gap:6,justifyContent:"center"}}>
+        <button style={vb(calView==="weekly")} onClick={()=>setCalView("weekly")}>Setmana</button>
+        <button style={vb(calView==="monthly")} onClick={()=>setCalView("monthly")}>Mes</button>
+        <button style={vb(false)} onClick={goToday}>Avui</button>
+      </div>
+    </div>
+  );
+
+  // ── Vista setmanal ──────────────────────────────────────────────────────────
+  if(calView==="weekly") {
+    const mon=calGetMonday(calBase);
+    const wDays=Array.from({length:7},(_,i)=>{ const d=new Date(mon); d.setDate(mon.getDate()+i); return d; });
+    return (
+      <div>
+        {calHdr}
+        <div style={{background:"#f1f5f9",padding:"6px 8px"}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:3}}>
+            {wDays.map((date,i)=>{
+              const tpls=getDayTpls(date); const d=getDot(date); const isT=calSameDate(date,today); const first=tpls[0];
+              return (
+                <div key={i} onClick={()=>tpls.length>0&&setCalDetail(date)} style={{padding:"8px 3px",textAlign:"center",cursor:tpls.length>0?"pointer":"default",border:isT?"1.5px solid #e8d800":"1.5px solid transparent",background:isT?"rgba(232,216,0,0.12)":"transparent",borderRadius:10,display:"flex",flexDirection:"column",alignItems:"center",gap:2,minHeight:92}}>
+                  <div style={{fontSize:10,color:"#64748b",fontWeight:600}}>{DAYS_SHORT[i]}</div>
+                  <div style={{fontSize:21,fontWeight:700,color:isT?"#1a3a6b":"#0f172a",lineHeight:1}}>{date.getDate()}</div>
+                  <div style={{fontSize:9,color:"#94a3b8"}}>{CAT_MONTHS_SHORT_ARR[date.getMonth()]}</div>
+                  {d?<div style={{width:6,height:6,borderRadius:"50%",background:d,marginTop:1}}/>:<div style={{width:6,height:6,marginTop:1}}/>}
+                  <div style={{fontSize:9,color:tpls.length>0?"#374151":"#9ca3af",lineHeight:1.2,maxWidth:"100%",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",padding:"0 2px",marginTop:1}}>
+                    {tpls.length>0?`${first.name}${first.estimatedDuration?` / ${first.estimatedDuration}`:""}`:"Descans"}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Vista mensual ───────────────────────────────────────────────────────────
+  const mY=calBase.getFullYear(), mM=calBase.getMonth();
+  const mFirst=new Date(mY,mM,1), mLast=new Date(mY,mM+1,0);
+  const startDow=mFirst.getDay()===0?6:mFirst.getDay()-1;
+  const cells=[];
+  for(let i=startDow;i>=1;i--) cells.push({date:new Date(mY,mM,1-i),other:true});
+  for(let i=1;i<=mLast.getDate();i++) cells.push({date:new Date(mY,mM,i),other:false});
+  const rem=(7-cells.length%7)%7; for(let i=1;i<=rem;i++) cells.push({date:new Date(mY,mM+1,i),other:true});
+  return (
+    <div>
+      {calHdr}
+      <div style={{padding:"8px 12px 12px"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",marginBottom:4}}>
+          {DAYS_SHORT.map(dl=><div key={dl} style={{textAlign:"center",fontSize:11,color:"#64748b",fontWeight:500,padding:"4px 0"}}>{dl}</div>)}
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2}}>
+          {cells.map(({date,other},i)=>{
+            const isT=!other&&calSameDate(date,today); const tpls=getDayTpls(date); const d=getDot(date,other);
+            return (
+              <div key={i} onClick={()=>!other&&tpls.length>0&&setCalDetail(date)} style={{textAlign:"center",padding:"3px 0",cursor:!other&&tpls.length>0?"pointer":"default",borderRadius:8}}>
+                <div style={{width:28,height:28,borderRadius:"50%",background:isT?"#1a3a6b":"transparent",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto"}}>
+                  <span style={{fontSize:13,fontWeight:isT?700:400,color:isT?"#ffffff":other?"#9ca3af":"#0f172a"}}>{date.getDate()}</span>
+                </div>
+                {d?<div style={{width:5,height:5,borderRadius:"50%",background:d,margin:"2px auto 0"}}/>:<div style={{height:7}}/>}
+              </div>
+            );
+          })}
+        </div>
+        <div style={{display:"flex",gap:16,justifyContent:"center",marginTop:12,paddingTop:10,borderTop:"1px solid #e2e8f0"}}>
+          <div style={{display:"flex",alignItems:"center",gap:5,fontSize:11,color:"#64748b"}}><div style={{width:7,height:7,borderRadius:"50%",background:cc}}/> Completada</div>
+          <div style={{display:"flex",alignItems:"center",gap:5,fontSize:11,color:"#64748b"}}><div style={{width:7,height:7,borderRadius:"50%",background:"#e8d800"}}/> Assignada</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const getClientAlerts = (stats) => {
   const alerts = [];
   const lastSession = stats.lastSession;
@@ -341,6 +506,12 @@ export default function App() {
   const [expandedHistory, setExpandedHistory] = useState({});
   const [expandedClientCards, setExpandedClientCards] = useState({});
   const [clientSearch, setClientSearch] = useState("");
+  const [calView, setCalView] = useState("weekly");
+  const [calBase, setCalBase] = useState(new Date());
+  const [calDetail, setCalDetail] = useState(null);
+  const [adminCalView, setAdminCalView] = useState("weekly");
+  const [adminCalBase, setAdminCalBase] = useState(new Date());
+  const [adminCalDetail, setAdminCalDetail] = useState(null);
 
   // Client
   const [clientViewTab, setClientViewTab] = useState("entrenament");
@@ -1309,6 +1480,8 @@ export default function App() {
           const dayTemplates=dayTplIds.map(id=>templates.find(t=>t.id===id)).filter(Boolean);
           const sessionKey=`${selClient}-${selDay}`;
           const currentSession=sessionExercises[sessionKey]||null;
+          const calHistory=clientHistories[normalizeClientId(selClient)]||[];
+          const calClientIdx=data.clients.findIndex(c=>c.id===selClient);
 
           const startSession=(tpl)=>{
             if(sessionExercises[sessionKey]) return;
@@ -1340,17 +1513,6 @@ export default function App() {
               };
               return (
                 <>
-                  <div style={{display:"flex",gap:6,padding:"0.85rem 1.25rem 0.5rem",overflowX:"auto"}}>
-                    {DAYS.map((d,i)=>{
-                      const active=selDay===d;
-                      return (
-                        <div key={d} style={{textAlign:"center",flexShrink:0}}>
-                          <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1.5px solid ${active?T.accent:T.border}`,background:active?T.accent:T.card,color:active?T.bg:T.textMuted,cursor:"pointer",fontSize:12}}>{["L","M","X","J","V","S","D"][i]}</button>
-                          {d===TODAY&&<div style={{fontSize:9,color:T.accent,marginTop:2}}>avui</div>}
-                        </div>
-                      );
-                    })}
-                  </div>
                   <div style={S.sec}>
                     <div style={{fontWeight:500,fontSize:18,color:T.textPrimary,marginBottom:4}}>Com arribes avui?</div>
                     <div style={{fontSize:13,color:T.textSecondary,marginBottom:20}}>Respon ràpid abans de començar l'entrenament.</div>
@@ -1578,67 +1740,20 @@ export default function App() {
           }
 
           return (
-            <>
-              <div style={{display:"flex",gap:6,padding:"0.85rem 1.25rem 0.5rem",overflowX:"auto"}}>
-                {DAYS.map((d,i)=>{
-                  const active=selDay===d;
-                  return (
-                    <div key={d} style={{textAlign:"center",flexShrink:0}}>
-                      <button onClick={()=>setSelDay(d)} style={{width:34,height:34,borderRadius:"50%",border:`1.5px solid ${active?T.accent:T.border}`,background:active?T.accent:T.card,color:active?T.bg:T.textMuted,cursor:"pointer",fontSize:12,fontWeight:active?500:400}}>{["L","M","X","J","V","S","D"][i]}</button>
-                      {d===TODAY&&<div style={{fontSize:9,color:T.accent,marginTop:2}}>avui</div>}
-                    </div>
-                  );
-                })}
-              </div>
-              <div style={S.sec}>
-                <div style={{fontWeight:500,fontSize:16,color:T.textPrimary,marginBottom:4}}>{selDay}</div>
-                {selDay===TODAY&&<div style={{fontSize:12,color:T.accent,fontWeight:500,marginBottom:12}}>Avui</div>}
-                {dayTemplates.length===0?(
-                  <div style={{textAlign:"center",padding:"2rem 0",color:T.textSecondary}}>
-                    <div style={{fontSize:40,marginBottom:12}}>🛋️</div>
-                    <div style={{fontWeight:500,color:T.textPrimary,marginBottom:4}}>Dia de descans</div>
-                    <div style={{fontSize:13,marginBottom:16}}>Descansa i recupera energia</div>
-                    <div style={{textAlign:"left"}}>
-                      <div style={{fontSize:13,color:T.textSecondary,marginBottom:8}}>O afegeix un entrenament:</div>
-                      {templates.map(tpl=>(
-                        <div key={tpl.id} style={{...S.card,cursor:"pointer"}} onClick={()=>startSession(tpl)}>
-                          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                            <div>
-                              <div style={{fontWeight:500,fontSize:14,color:T.textPrimary}}>{tpl.name}</div>
-                              <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{tpl.objective} · {tpl.estimatedDuration}</div>
-                            </div>
-                            <span style={S.tag("purple")}>{tpl.exercises?.length||0} ex</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ):(
-                  <>
-                    <div style={{fontSize:13,color:T.textSecondary,marginBottom:12}}>Tria l'entrenament d'avui:</div>
-                    {dayTemplates.map(tpl=>(
-                      <div key={tpl.id} style={{...S.card,cursor:"pointer",borderColor:T.purple}} onClick={()=>startSession(tpl)}>
-                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                          <div>
-                            <div style={{fontWeight:500,fontSize:15,color:T.textPrimary}}>{tpl.name}</div>
-                            <div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{tpl.objective} · {tpl.estimatedDuration}</div>
-                          </div>
-                          <span style={S.tag("purple")}>{tpl.exercises.length} ex</span>
-                        </div>
-                        {tpl.exercises.map((ex,i)=>(
-                          <div key={ex.id} style={{display:"flex",alignItems:"center",gap:8,padding:"3px 0",borderBottom:`1.5px solid ${T.border}`}}>
-                            <span style={{fontSize:11,color:T.textMuted,width:16}}>{i+1}.</span>
-                            <span style={{fontSize:12,flex:1,color:T.textSecondary}}>{ex.name}</span>
-                            <span style={{fontSize:11,color:T.textMuted}}>{ex.plannedSets}×{ex.plannedReps}</span>
-                          </div>
-                        ))}
-                        <button style={{...S.btnPrimary,marginTop:12,padding:"10px",fontSize:13}}>Començar entrenament →</button>
-                      </div>
-                    ))}
-                  </>
-                )}
-              </div>
-            </>
+            <CalendarComp
+              clientIdx={calClientIdx}
+              schedule={schedule}
+              templates={templates}
+              history={calHistory}
+              calView={calView}
+              setCalView={setCalView}
+              calBase={calBase}
+              setCalBase={setCalBase}
+              calDetail={calDetail}
+              setCalDetail={(date)=>{ if(date) setSelDay(calDayName(date)); setCalDetail(date); }}
+              onStartSession={(tpl)=>{ startSession(tpl); setCalDetail(null); }}
+              isAdmin={false}
+            />
           );
         })()}
 
@@ -2376,38 +2491,58 @@ export default function App() {
             {adminRoutineTab==="rutina"&&(()=>{
               const schedule=getClientSchedule(adminClient);
               const templates=getClientTemplates(adminClient);
+              const adminHistory=clientHistories[normalizeClientId(adminClient)]||[];
+              const adminClientIdx=data.clients.findIndex(c=>c.id===adminClient);
               const updateSchedule=(day,tplIds)=>updateClientSchedule(adminClient,{...schedule,[day]:tplIds});
               return (
                 <div>
-                  <div style={{fontSize:12,color:T.textSecondary,marginBottom:16}}>Assigna plantilles d'entrenament a cada dia · {data.clients.find(c=>c.id===adminClient)?.name}</div>
-                  {DAYS.map(day=>{
-                    const dayTpls=schedule[day]||[];
-                    return (
-                      <div key={day} style={{...S.card,marginBottom:8}}>
-                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:dayTpls.length>0?10:0}}>
-                          <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{day}</div>
-                          {dayTpls.length===0&&<span style={{fontSize:11,color:T.textMuted}}>Descans</span>}
-                        </div>
-                        {dayTpls.length>0&&(
-                          <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:8}}>
-                            {dayTpls.map(tplId=>{
-                              const tpl=templates.find(t=>t.id===tplId);
-                              return tpl?(
-                                <div key={tplId} style={{display:"flex",alignItems:"center",gap:4,background:"#eef2ff",border:`1.5px solid #c7d2fe`,borderRadius:20,padding:"3px 10px"}}>
-                                  <span style={{fontSize:12,color:"#1a3a6b"}}>{tpl.name}</span>
-                                  <button onClick={()=>updateSchedule(day,dayTpls.filter(id=>id!==tplId))} style={{background:"none",border:"none",color:T.textMuted,cursor:"pointer",fontSize:14,lineHeight:1,padding:"0 2px"}}>×</button>
-                                </div>
-                              ):null;
-                            })}
+                  <CalendarComp
+                    clientIdx={adminClientIdx}
+                    schedule={schedule}
+                    templates={templates}
+                    history={adminHistory}
+                    calView={adminCalView}
+                    setCalView={setAdminCalView}
+                    calBase={adminCalBase}
+                    setCalBase={setAdminCalBase}
+                    calDetail={adminCalDetail}
+                    setCalDetail={setAdminCalDetail}
+                    onStartSession={null}
+                    isAdmin={true}
+                  />
+                  {!adminCalDetail&&(
+                    <div style={{padding:"0 1.25rem"}}>
+                      <div style={{fontSize:12,color:T.textSecondary,marginTop:16,marginBottom:12}}>Assigna plantilles a cada dia · {data.clients.find(c=>c.id===adminClient)?.name}</div>
+                      {DAYS.map(day=>{
+                        const dayTpls=schedule[day]||[];
+                        return (
+                          <div key={day} style={{...S.card,marginBottom:8}}>
+                            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:dayTpls.length>0?10:0}}>
+                              <div style={{fontWeight:500,fontSize:13,color:T.textPrimary}}>{day}</div>
+                              {dayTpls.length===0&&<span style={{fontSize:11,color:T.textMuted}}>Descans</span>}
+                            </div>
+                            {dayTpls.length>0&&(
+                              <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:8}}>
+                                {dayTpls.map(tplId=>{
+                                  const tpl=templates.find(t=>t.id===tplId);
+                                  return tpl?(
+                                    <div key={tplId} style={{display:"flex",alignItems:"center",gap:4,background:"#eef2ff",border:`1.5px solid #c7d2fe`,borderRadius:20,padding:"3px 10px"}}>
+                                      <span style={{fontSize:12,color:"#1a3a6b"}}>{tpl.name}</span>
+                                      <button onClick={()=>updateSchedule(day,dayTpls.filter(id=>id!==tplId))} style={{background:"none",border:"none",color:T.textMuted,cursor:"pointer",fontSize:14,lineHeight:1,padding:"0 2px"}}>×</button>
+                                    </div>
+                                  ):null;
+                                })}
+                              </div>
+                            )}
+                            <select style={{...S.inp,fontSize:12}} value="" onChange={e=>{if(e.target.value&&!dayTpls.includes(e.target.value)) updateSchedule(day,[...dayTpls,e.target.value]);}}>
+                              <option value="">+ Afegir plantilla...</option>
+                              {templates.filter(t=>!dayTpls.includes(t.id)).map(t=><option key={t.id} value={t.id}>{t.name} — {t.objective}</option>)}
+                            </select>
                           </div>
-                        )}
-                        <select style={{...S.inp,fontSize:12}} value="" onChange={e=>{if(e.target.value&&!dayTpls.includes(e.target.value)) updateSchedule(day,[...dayTpls,e.target.value]);}}>
-                          <option value="">+ Afegir plantilla...</option>
-                          {templates.filter(t=>!dayTpls.includes(t.id)).map(t=><option key={t.id} value={t.id}>{t.name} — {t.objective}</option>)}
-                        </select>
-                      </div>
-                    );
-                  })}
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               );
             })()}
