@@ -186,20 +186,22 @@ const CAT_MONTHS_SHORT_ARR = ["gen","feb","mar","abr","mai","jun","jul","ago","s
 const calGetMonday = (d) => { const r=new Date(d); r.setHours(0,0,0,0); const w=r.getDay(); r.setDate(r.getDate()-(w===0?6:w-1)); return r; };
 const calGetISOWeek = (d) => { const r=new Date(d); r.setHours(0,0,0,0); r.setDate(r.getDate()+4-(r.getDay()||7)); const y1=new Date(r.getFullYear(),0,1); return Math.ceil((((r-y1)/86400000)+1)/7); };
 const calDayName = (d) => { const w=d.getDay(); return DAYS[w===0?6:w-1]; };
-const calSameDate = (a,b) => a.toISOString().slice(0,10)===b.toISOString().slice(0,10);
+const isoLocal = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const calSameDate = (a,b) => isoLocal(a)===isoLocal(b);
 const calGetOvEntry = (ov,iso) => { const e=ov[iso]; if(!e) return {ids:[],edits:{}}; if(Array.isArray(e)) return {ids:e,edits:{}}; return {ids:e.ids||[],edits:e.edits||{}}; };
 
-const CalendarComp = ({clientIdx,schedule,scheduleOverrides,templates,history,calView,setCalView,calBase,setCalBase,calDetail,setCalDetail,onStartSession,isAdmin,onAddTemplate,onRemoveTemplate,onAddTemplateOverride,onRemoveTemplateOverride,onEditTemplateOverride}) => {
+const CalendarComp = ({clientIdx,schedule,scheduleOverrides,templates,history,calView,setCalView,calBase,setCalBase,calDetail,setCalDetail,onStartSession,isAdmin,onAddTemplate,onRemoveTemplate,onAddTemplateOverride,onRemoveTemplateOverride,onEditTemplateOverride,onSetDateIds}) => {
   const [showAddModal,setShowAddModal] = useState(false);
   const [selectedTpl,setSelectedTpl] = useState(null);
   const [editModalTpl,setEditModalTpl] = useState(null);
   const [editExercises,setEditExercises] = useState([]);
+  const [removeModalTpl,setRemoveModalTpl] = useState(null);
   const today=new Date(); today.setHours(0,0,0,0);
   const cc=CLIENT_COLORS[Math.max(0,clientIdx)%CLIENT_COLORS.length].text;
   const ov=scheduleOverrides||{};
   const getDayTpls=(date)=>{
     const n=calDayName(date);
-    const iso=date.toISOString().slice(0,10);
+    const iso=isoLocal(date);
     const recurring=schedule[n]||[];
     const ovEntry=calGetOvEntry(ov,iso);
     const allIds=[...new Set([...recurring,...ovEntry.ids])];
@@ -210,7 +212,7 @@ const CalendarComp = ({clientIdx,schedule,scheduleOverrides,templates,history,ca
       return tpl;
     }).filter(Boolean);
   };
-  const isDone=(date)=>{ const iso=date.toISOString().slice(0,10); return history.some(s=>s.createdAt&&s.createdAt.slice(0,10)===iso); };
+  const isDone=(date)=>{ const iso=isoLocal(date); return history.some(s=>s.createdAt&&s.createdAt.slice(0,10)===iso); };
   const getDot=(date,other=false)=>isDone(date)?(other?null:cc):(getDayTpls(date).length>0?(other?"rgba(202,138,4,0.32)":"#e8d800"):null);
   const prev=()=>{ const d=new Date(calBase); if(calView==="weekly") d.setDate(d.getDate()-7); else{d.setDate(1);d.setMonth(d.getMonth()-1);} setCalBase(d); };
   const next=()=>{ const d=new Date(calBase); if(calView==="weekly") d.setDate(d.getDate()+7); else{d.setDate(1);d.setMonth(d.getMonth()+1);} setCalBase(d); };
@@ -233,7 +235,7 @@ const CalendarComp = ({clientIdx,schedule,scheduleOverrides,templates,history,ca
   // ── Pantalla de detall ──────────────────────────────────────────────────────
   if(calDetail) {
     const dayName=calDayName(calDetail);
-    const iso=calDetail.toISOString().slice(0,10);
+    const iso=isoLocal(calDetail);
     const dayTpls=getDayTpls(calDetail);
     const done=isDone(calDetail);
     const CAT_DAYS=["Diumenge","Dilluns","Dimarts","Dimecres","Dijous","Divendres","Dissabte"];
@@ -244,11 +246,7 @@ const CalendarComp = ({clientIdx,schedule,scheduleOverrides,templates,history,ca
     const overrideIdsDay=ovEntryDay.ids;
     const assignedIds=[...new Set([...recurringIds,...overrideIdsDay])];
     const availableTpls=templates.filter(t=>!assignedIds.includes(t.id));
-    const handleRemove=(tpl)=>{
-      if(!window.confirm(`Eliminar "${tpl.name}" de ${dayFull}?`)) return;
-      if(overrideIdsDay.includes(tpl.id)) { onRemoveTemplateOverride&&onRemoveTemplateOverride(iso,tpl.id); }
-      else { onRemoveTemplate&&onRemoveTemplate(dayName,tpl.id); }
-    };
+    const handleRemove=(tpl)=>setRemoveModalTpl(tpl);
     const openEditModal=(tpl)=>{ setEditExercises(JSON.parse(JSON.stringify(tpl.exercises||[]))); setEditModalTpl(tpl); };
 
     return (
@@ -361,6 +359,36 @@ const CalendarComp = ({clientIdx,schedule,scheduleOverrides,templates,history,ca
                   <button style={{background:"#f1f5f9",color:"#374151",border:"none",borderRadius:10,padding:"10px 16px",width:"100%",cursor:"pointer",fontWeight:500,fontSize:13,marginTop:4}} onClick={closeModal}>Cancel·lar</button>
                 </>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Modal d'eliminació: tots els dies o només aquest */}
+        {removeModalTpl&&(
+          <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:120,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 16px"}} onClick={e=>{if(e.target===e.currentTarget)setRemoveModalTpl(null);}}>
+            <div style={{background:"#ffffff",borderRadius:16,padding:"1.5rem 1.25rem",maxWidth:380,width:"100%"}}>
+              <div style={{fontWeight:700,fontSize:16,color:"#1a3a6b",marginBottom:4}}>Eliminar "{removeModalTpl.name}"</div>
+              <div style={{fontSize:13,color:"#64748b",marginBottom:20}}>{dayFull}, {dateLabel}</div>
+              <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                <button style={{background:"#fef2f2",color:"#dc2626",border:"1.5px solid #fca5a5",borderRadius:12,padding:"14px 16px",cursor:"pointer",textAlign:"left"}} onClick={()=>{
+                  if(overrideIdsDay.includes(removeModalTpl.id)){onRemoveTemplateOverride&&onRemoveTemplateOverride(iso,removeModalTpl.id);}
+                  else{onRemoveTemplate&&onRemoveTemplate(dayName,removeModalTpl.id);}
+                  setRemoveModalTpl(null);
+                }}>
+                  <div style={{fontWeight:700,fontSize:14,marginBottom:3}}>🔁 Eliminar de tots els {dayFull}s</div>
+                  <div style={{fontSize:12,opacity:0.8}}>Elimina la plantilla del calendari recurrent</div>
+                </button>
+                <button style={{background:"#f0f4ff",color:"#1a3a6b",border:"1.5px solid #c7d2fe",borderRadius:12,padding:"14px 16px",cursor:"pointer",textAlign:"left"}} onClick={()=>{
+                  const currentIds=[...new Set([...recurringIds,...overrideIdsDay])];
+                  const newIds=currentIds.filter(id=>id!==removeModalTpl.id);
+                  onSetDateIds&&onSetDateIds(iso,newIds);
+                  setRemoveModalTpl(null);
+                }}>
+                  <div style={{fontWeight:700,fontSize:14,marginBottom:3}}>📅 Eliminar només el {dateLabel}</div>
+                  <div style={{fontSize:12,color:"#64748b"}}>Manté la plantilla els altres {dayFull}s</div>
+                </button>
+              </div>
+              <button style={{background:"#f1f5f9",color:"#374151",border:"none",borderRadius:10,padding:"10px 16px",width:"100%",cursor:"pointer",fontWeight:500,fontSize:13,marginTop:14}} onClick={()=>setRemoveModalTpl(null)}>Cancel·lar</button>
             </div>
           </div>
         )}
@@ -2034,6 +2062,7 @@ export default function App() {
               onAddTemplateOverride={(dateIso,tplId)=>{const e=calGetOvEntry(clientOv,dateIso);if(!e.ids.includes(tplId))updateClientScheduleOverrides(selClient,{...clientOv,[dateIso]:{...e,ids:[...e.ids,tplId]}});}}
               onRemoveTemplateOverride={(dateIso,tplId)=>{const e=calGetOvEntry(clientOv,dateIso);const nd={...e,ids:e.ids.filter(id=>id!==tplId),edits:{...e.edits}};delete nd.edits[tplId];updateClientScheduleOverrides(selClient,{...clientOv,[dateIso]:nd});}}
               onEditTemplateOverride={(dateIso,tplId,exercises)=>{const e=calGetOvEntry(clientOv,dateIso);updateClientScheduleOverrides(selClient,{...clientOv,[dateIso]:{...e,edits:{...e.edits,[tplId]:{exercises}}}});}}
+              onSetDateIds={(dateIso,ids)=>{const e=calGetOvEntry(clientOv,dateIso);updateClientScheduleOverrides(selClient,{...clientOv,[dateIso]:{...e,ids}});}}
             />
           );
         })()}
@@ -2796,6 +2825,7 @@ export default function App() {
                   onAddTemplateOverride={(dateIso,tplId)=>{const e=calGetOvEntry(adminOv,dateIso);if(!e.ids.includes(tplId))updateClientScheduleOverrides(adminClient,{...adminOv,[dateIso]:{...e,ids:[...e.ids,tplId]}});}}
                   onRemoveTemplateOverride={(dateIso,tplId)=>{const e=calGetOvEntry(adminOv,dateIso);const nd={...e,ids:e.ids.filter(id=>id!==tplId),edits:{...e.edits}};delete nd.edits[tplId];updateClientScheduleOverrides(adminClient,{...adminOv,[dateIso]:nd});}}
                   onEditTemplateOverride={(dateIso,tplId,exercises)=>{const e=calGetOvEntry(adminOv,dateIso);updateClientScheduleOverrides(adminClient,{...adminOv,[dateIso]:{...e,edits:{...e.edits,[tplId]:{exercises}}}});}}
+                  onSetDateIds={(dateIso,ids)=>{const e=calGetOvEntry(adminOv,dateIso);updateClientScheduleOverrides(adminClient,{...adminOv,[dateIso]:{...e,ids}});}}
                 />
               );
             })()}
