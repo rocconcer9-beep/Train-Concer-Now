@@ -1477,7 +1477,6 @@ export default function App() {
           const schedule=getClientSchedule(selClient);
           const templates=getClientTemplates(selClient);
           const dayTplIds=schedule[selDay]||[];
-          const dayTemplates=dayTplIds.map(id=>templates.find(t=>t.id===id)).filter(Boolean);
           const sessionKey=`${selClient}-${selDay}`;
           const currentSession=sessionExercises[sessionKey]||null;
           const calHistory=clientHistories[normalizeClientId(selClient)]||[];
