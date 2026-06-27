@@ -371,7 +371,7 @@ const CalendarComp = ({clientIdx,schedule,templates,history,calView,setCalView,c
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2}}>
           {cells.map(({date,other},i)=>{
-            const isT=!other&&calSameDate(date,today); const tpls=getDayTpls(date); const d=getDot(date,other);
+            const isT=!other&&calSameDate(date,today); const d=getDot(date,other);
             return (
               <div key={i} onClick={()=>!other&&setCalDetail(date)} style={{textAlign:"center",padding:"3px 0",cursor:!other?"pointer":"default",borderRadius:8}}>
                 <div style={{width:28,height:28,borderRadius:"50%",background:isT?"#1a3a6b":"transparent",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto"}}>
