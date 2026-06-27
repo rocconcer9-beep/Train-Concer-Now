@@ -188,16 +188,26 @@ const calGetISOWeek = (d) => { const r=new Date(d); r.setHours(0,0,0,0); r.setDa
 const calDayName = (d) => { const w=d.getDay(); return DAYS[w===0?6:w-1]; };
 const calSameDate = (a,b) => a.toISOString().slice(0,10)===b.toISOString().slice(0,10);
 
-const CalendarComp = ({clientIdx,schedule,templates,history,calView,setCalView,calBase,setCalBase,calDetail,setCalDetail,onStartSession,isAdmin,onAddTemplate,onRemoveTemplate}) => {
+const CalendarComp = ({clientIdx,schedule,scheduleOverrides,templates,history,calView,setCalView,calBase,setCalBase,calDetail,setCalDetail,onStartSession,isAdmin,onAddTemplate,onRemoveTemplate,onAddTemplateOverride,onRemoveTemplateOverride}) => {
   const [showAddModal,setShowAddModal] = useState(false);
+  const [selectedTpl,setSelectedTpl] = useState(null);
   const today=new Date(); today.setHours(0,0,0,0);
   const cc=CLIENT_COLORS[Math.max(0,clientIdx)%CLIENT_COLORS.length].text;
-  const getDayTpls=(date)=>{ const n=calDayName(date); return (schedule[n]||[]).map(id=>templates.find(t=>t.id===id)).filter(Boolean); };
+  const ov=scheduleOverrides||{};
+  const getDayTpls=(date)=>{
+    const n=calDayName(date);
+    const iso=date.toISOString().slice(0,10);
+    const recurring=schedule[n]||[];
+    const overrideIds=ov[iso]||[];
+    const allIds=[...new Set([...recurring,...overrideIds])];
+    return allIds.map(id=>templates.find(t=>t.id===id)).filter(Boolean);
+  };
   const isDone=(date)=>{ const iso=date.toISOString().slice(0,10); return history.some(s=>s.createdAt&&s.createdAt.slice(0,10)===iso); };
   const getDot=(date,other=false)=>isDone(date)?(other?null:cc):(getDayTpls(date).length>0?(other?"rgba(202,138,4,0.32)":"#e8d800"):null);
   const prev=()=>{ const d=new Date(calBase); if(calView==="weekly") d.setDate(d.getDate()-7); else{d.setDate(1);d.setMonth(d.getMonth()-1);} setCalBase(d); };
   const next=()=>{ const d=new Date(calBase); if(calView==="weekly") d.setDate(d.getDate()+7); else{d.setDate(1);d.setMonth(d.getMonth()+1);} setCalBase(d); };
-  const goToday=()=>{ setCalBase(new Date()); setCalView("weekly"); setCalDetail(null); setShowAddModal(false); };
+  const closeModal=()=>{ setShowAddModal(false); setSelectedTpl(null); };
+  const goToday=()=>{ setCalBase(new Date()); setCalView("weekly"); setCalDetail(null); closeModal(); };
   const calTitle=()=>{
     if(calView==="weekly"){
       const mon=calGetMonday(calBase), sun=new Date(mon); sun.setDate(mon.getDate()+6);
@@ -209,25 +219,34 @@ const CalendarComp = ({clientIdx,schedule,templates,history,calView,setCalView,c
   };
   const nb={background:"rgba(255,255,255,0.15)",border:"1.5px solid rgba(255,255,255,0.3)",color:"#ffffff",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontSize:18,fontWeight:700,lineHeight:1};
   const vb=(a)=>a?{background:"#ffffff",color:"#1a3a6b",border:"1.5px solid #ffffff",borderRadius:8,padding:"6px 16px",fontSize:12,fontWeight:"600",cursor:"pointer"}:{background:"transparent",color:"#ffffff",border:"1.5px solid rgba(255,255,255,0.5)",borderRadius:8,padding:"6px 16px",fontSize:12,fontWeight:"500",cursor:"pointer"};
+  const canEdit=!!(onAddTemplate||onRemoveTemplate);
 
   // ── Pantalla de detall ──────────────────────────────────────────────────────
   if(calDetail) {
     const dayName=calDayName(calDetail);
+    const iso=calDetail.toISOString().slice(0,10);
     const dayTpls=getDayTpls(calDetail);
     const done=isDone(calDetail);
     const CAT_DAYS=["Diumenge","Dilluns","Dimarts","Dimecres","Dijous","Divendres","Dissabte"];
     const dayFull=CAT_DAYS[calDetail.getDay()];
     const dateLabel=`${calDetail.getDate()} ${CAT_MONTHS_SHORT_ARR[calDetail.getMonth()]}`;
-    const assignedIds=schedule[dayName]||[];
+    const recurringIds=schedule[dayName]||[];
+    const overrideIdsDay=ov[iso]||[];
+    const assignedIds=[...new Set([...recurringIds,...overrideIdsDay])];
     const availableTpls=templates.filter(t=>!assignedIds.includes(t.id));
+    const handleRemove=(tpl)=>{
+      if(!window.confirm(`Eliminar "${tpl.name}" de ${dayFull}?`)) return;
+      if(overrideIdsDay.includes(tpl.id)) { onRemoveTemplateOverride&&onRemoveTemplateOverride(iso,tpl.id); }
+      else { onRemoveTemplate&&onRemoveTemplate(dayName,tpl.id); }
+    };
 
     return (
       <div>
         {/* Capçalera de detall */}
         <div style={{background:"#1a3a6b",padding:"12px 16px",display:"flex",alignItems:"center",gap:12}}>
-          <button style={{...nb,fontSize:13,padding:"6px 12px"}} onClick={()=>{setCalDetail(null);setShowAddModal(false);}}>← Tornar al calendari</button>
+          <button style={{...nb,fontSize:13,padding:"6px 12px"}} onClick={()=>{setCalDetail(null);closeModal();}}>← Tornar al calendari</button>
           <div style={{color:"#ffffff",fontWeight:600,fontSize:15,flex:1}}>{dayFull}, {dateLabel}</div>
-          {isAdmin&&availableTpls.length>0&&(
+          {canEdit&&availableTpls.length>0&&(
             <button style={{background:"#e8d800",color:"#1a3a6b",border:"none",borderRadius:8,padding:"6px 14px",cursor:"pointer",fontWeight:700,fontSize:13}} onClick={()=>setShowAddModal(true)}>+ Afegir</button>
           )}
         </div>
@@ -239,16 +258,19 @@ const CalendarComp = ({clientIdx,schedule,templates,history,calView,setCalView,c
               <div style={{fontSize:36,marginBottom:10}}>🏖️</div>
               <div style={{fontWeight:600,fontSize:15,color:"#64748b",marginBottom:4}}>Dia de descans</div>
               <div style={{fontSize:13,marginBottom:20}}>No hi ha rutina assignada per a {dayFull.toLowerCase()}.</div>
-              {isAdmin&&availableTpls.length>0&&(
+              {canEdit&&availableTpls.length>0&&(
                 <button style={{background:"#e8d800",color:"#1a3a6b",border:"none",borderRadius:10,fontWeight:700,fontSize:15,padding:"13px 20px",cursor:"pointer"}} onClick={()=>setShowAddModal(true)}>+ Afegir entrenament</button>
               )}
             </div>
           ):dayTpls.map(tpl=>(
             <div key={tpl.id} style={{background:"#ffffff",border:"1.5px solid #e2e8f0",borderRadius:12,padding:"1rem",marginBottom:12,boxShadow:"0 1px 4px rgba(26,58,107,0.06)"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
-                <div style={{fontWeight:700,fontSize:17,color:"#1a3a6b"}}>{tpl.name}</div>
-                {isAdmin&&(
-                  <button style={{background:"#fef2f2",color:"#dc2626",border:"1.5px solid #fca5a5",borderRadius:8,padding:"4px 10px",cursor:"pointer",fontSize:12,fontWeight:500,flexShrink:0,marginLeft:8}} onClick={()=>{ if(window.confirm(`Eliminar "${tpl.name}" de ${dayFull}?`)) onRemoveTemplate&&onRemoveTemplate(dayName,tpl.id); }}>Eliminar</button>
+                <div>
+                  <div style={{fontWeight:700,fontSize:17,color:"#1a3a6b"}}>{tpl.name}</div>
+                  {overrideIdsDay.includes(tpl.id)&&<div style={{fontSize:10,color:"#7c3aed",marginTop:2}}>📅 Només {dateLabel}</div>}
+                </div>
+                {canEdit&&(
+                  <button style={{background:"#fef2f2",color:"#dc2626",border:"1.5px solid #fca5a5",borderRadius:8,padding:"4px 10px",cursor:"pointer",fontSize:12,fontWeight:500,flexShrink:0,marginLeft:8}} onClick={()=>handleRemove(tpl)}>Eliminar</button>
                 )}
               </div>
               {tpl.objective&&<div style={{fontSize:13,color:"#374151",marginBottom:8}}>{tpl.objective}</div>}
@@ -266,12 +288,12 @@ const CalendarComp = ({clientIdx,schedule,templates,history,calView,setCalView,c
             </div>
           ))}
 
-          {/* Botó afegir altra plantilla (admin, quan ja n'hi ha alguna) */}
-          {isAdmin&&dayTpls.length>0&&availableTpls.length>0&&(
+          {/* Botó afegir altra plantilla */}
+          {canEdit&&dayTpls.length>0&&availableTpls.length>0&&(
             <button style={{background:"#f8fafc",color:"#1a3a6b",border:"1.5px solid #c7d2fe",borderRadius:10,padding:"10px 16px",width:"100%",cursor:"pointer",fontWeight:500,fontSize:13,marginBottom:12}} onClick={()=>setShowAddModal(true)}>+ Afegir altra plantilla a {dayFull}</button>
           )}
 
-          {/* Botons client */}
+          {/* Botons sessió (client) */}
           {!isAdmin&&dayTpls.length>0&&(done?(
             <div>
               <div style={{background:"#f0fdf4",border:"1.5px solid #86efac",borderRadius:10,padding:"10px 14px",marginBottom:10,display:"flex",alignItems:"center",gap:8}}>
@@ -289,19 +311,41 @@ const CalendarComp = ({clientIdx,schedule,templates,history,calView,setCalView,c
 
         {/* Modal d'addició de plantilla */}
         {showAddModal&&(
-          <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={(e)=>{if(e.target===e.currentTarget)setShowAddModal(false);}}>
+          <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={(e)=>{if(e.target===e.currentTarget)closeModal();}}>
             <div style={{background:"#ffffff",borderRadius:"20px 20px 0 0",padding:"1.5rem 1.25rem",maxWidth:520,width:"100%",maxHeight:"70vh",overflowY:"auto"}}>
-              <div style={{fontWeight:700,fontSize:16,color:"#1a3a6b",marginBottom:16}}>Afegir plantilla a {dayFull}</div>
-              {availableTpls.length===0?(
-                <div style={{textAlign:"center",color:"#9ca3af",padding:"1rem 0",fontSize:13}}>No hi ha plantilles disponibles.</div>
-              ):availableTpls.map(tpl=>(
-                <div key={tpl.id} style={{background:"#f8fafc",border:"1.5px solid #e2e8f0",borderRadius:12,padding:"0.85rem 1rem",marginBottom:10,cursor:"pointer"}} onClick={()=>{onAddTemplate&&onAddTemplate(dayName,tpl.id);setShowAddModal(false);}}>
-                  <div style={{fontWeight:600,fontSize:14,color:"#1a3a6b",marginBottom:2}}>{tpl.name}</div>
-                  {tpl.objective&&<div style={{fontSize:12,color:"#374151",marginBottom:4}}>{tpl.objective}</div>}
-                  {tpl.estimatedDuration&&<div style={{fontSize:11,color:"#64748b"}}>⏱ {tpl.estimatedDuration}</div>}
-                </div>
-              ))}
-              <button style={{background:"#f1f5f9",color:"#374151",border:"none",borderRadius:10,padding:"10px 16px",width:"100%",cursor:"pointer",fontWeight:500,fontSize:13,marginTop:4}} onClick={()=>setShowAddModal(false)}>Cancel·lar</button>
+              {selectedTpl ? (
+                /* Pas 2: triar recurrent o data concreta */
+                <>
+                  <div style={{fontWeight:700,fontSize:16,color:"#1a3a6b",marginBottom:4}}>Com vols afegir-la?</div>
+                  <div style={{fontSize:13,color:"#64748b",marginBottom:20}}>Plantilla: <strong>{selectedTpl.name}</strong></div>
+                  <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                    <button style={{background:"#e8d800",color:"#1a3a6b",border:"none",borderRadius:12,padding:"14px 16px",cursor:"pointer",textAlign:"left"}} onClick={()=>{ onAddTemplate&&onAddTemplate(dayName,selectedTpl.id); closeModal(); }}>
+                      <div style={{fontWeight:700,fontSize:14,marginBottom:3}}>🔁 Tots els {dayFull}s</div>
+                      <div style={{fontSize:12,opacity:0.8}}>S'assignarà de manera recurrent cada {dayFull.toLowerCase()}</div>
+                    </button>
+                    <button style={{background:"#f0f4ff",color:"#1a3a6b",border:"1.5px solid #c7d2fe",borderRadius:12,padding:"14px 16px",cursor:"pointer",textAlign:"left"}} onClick={()=>{ onAddTemplateOverride&&onAddTemplateOverride(iso,selectedTpl.id); closeModal(); }}>
+                      <div style={{fontWeight:700,fontSize:14,marginBottom:3}}>📅 Només el {dateLabel}</div>
+                      <div style={{fontSize:12,color:"#64748b"}}>S'afegirà únicament per a aquesta data concreta</div>
+                    </button>
+                  </div>
+                  <button style={{background:"#f1f5f9",color:"#374151",border:"none",borderRadius:10,padding:"10px 16px",width:"100%",cursor:"pointer",fontWeight:500,fontSize:13,marginTop:14}} onClick={()=>setSelectedTpl(null)}>← Tornar a la llista</button>
+                </>
+              ) : (
+                /* Pas 1: triar plantilla */
+                <>
+                  <div style={{fontWeight:700,fontSize:16,color:"#1a3a6b",marginBottom:16}}>Afegir plantilla a {dayFull}</div>
+                  {availableTpls.length===0?(
+                    <div style={{textAlign:"center",color:"#9ca3af",padding:"1rem 0",fontSize:13}}>No hi ha plantilles disponibles.</div>
+                  ):availableTpls.map(tpl=>(
+                    <div key={tpl.id} style={{background:"#f8fafc",border:"1.5px solid #e2e8f0",borderRadius:12,padding:"0.85rem 1rem",marginBottom:10,cursor:"pointer"}} onClick={()=>setSelectedTpl(tpl)}>
+                      <div style={{fontWeight:600,fontSize:14,color:"#1a3a6b",marginBottom:2}}>{tpl.name}</div>
+                      {tpl.objective&&<div style={{fontSize:12,color:"#374151",marginBottom:4}}>{tpl.objective}</div>}
+                      {tpl.estimatedDuration&&<div style={{fontSize:11,color:"#64748b"}}>⏱ {tpl.estimatedDuration}</div>}
+                    </div>
+                  ))}
+                  <button style={{background:"#f1f5f9",color:"#374151",border:"none",borderRadius:10,padding:"10px 16px",width:"100%",cursor:"pointer",fontWeight:500,fontSize:13,marginTop:4}} onClick={closeModal}>Cancel·lar</button>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -332,17 +376,17 @@ const CalendarComp = ({clientIdx,schedule,templates,history,calView,setCalView,c
     return (
       <div>
         {calHdr}
-        <div style={{background:"#f1f5f9",padding:"6px 8px"}}>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:3}}>
+        <div style={{background:"#f1f5f9",overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
+          <div style={{display:"flex",gap:3,padding:"6px 8px",minWidth:"max-content"}}>
             {wDays.map((date,i)=>{
               const tpls=getDayTpls(date); const d=getDot(date); const isT=calSameDate(date,today); const first=tpls[0];
               return (
-                <div key={i} onClick={()=>setCalDetail(date)} style={{padding:"8px 3px",textAlign:"center",cursor:"pointer",border:isT?"1.5px solid #e8d800":"1.5px solid transparent",background:isT?"rgba(232,216,0,0.12)":"transparent",borderRadius:10,display:"flex",flexDirection:"column",alignItems:"center",gap:2,minHeight:92}}>
+                <div key={i} onClick={()=>setCalDetail(date)} style={{width:50,flexShrink:0,padding:"8px 3px",textAlign:"center",cursor:"pointer",border:isT?"1.5px solid #e8d800":"1.5px solid transparent",background:isT?"rgba(232,216,0,0.12)":"transparent",borderRadius:10,display:"flex",flexDirection:"column",alignItems:"center",gap:2,minHeight:92}}>
                   <div style={{fontSize:10,color:"#64748b",fontWeight:600}}>{DAYS_SHORT[i]}</div>
                   <div style={{fontSize:21,fontWeight:700,color:isT?"#1a3a6b":"#0f172a",lineHeight:1}}>{date.getDate()}</div>
                   <div style={{fontSize:9,color:"#94a3b8"}}>{CAT_MONTHS_SHORT_ARR[date.getMonth()]}</div>
                   {d?<div style={{width:6,height:6,borderRadius:"50%",background:d,marginTop:1}}/>:<div style={{width:6,height:6,marginTop:1}}/>}
-                  <div style={{fontSize:9,color:tpls.length>0?"#374151":"#9ca3af",lineHeight:1.2,maxWidth:"100%",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",padding:"0 2px",marginTop:1}}>
+                  <div style={{fontSize:9,color:tpls.length>0?"#374151":"#9ca3af",lineHeight:1.2,width:46,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",padding:"0 2px",marginTop:1}}>
                     {tpls.length>0?`${first.name}${first.estimatedDuration?` / ${first.estimatedDuration}`:""}`:"Descans"}
                   </div>
                 </div>
@@ -850,6 +894,8 @@ export default function App() {
   const updateClientTemplates = (clientId, tpls) => setData(prev => { const nd={...prev,clients:prev.clients.map(c=>c.id===clientId?{...c,templates:tpls}:c)}; persist(nd); return nd; });
   const updateClientLibrary   = (clientId, lib)  => setData(prev => { const nd={...prev,clients:prev.clients.map(c=>c.id===clientId?{...c,exerciseLibrary:lib}:c)}; persist(nd); return nd; });
   const updateClientSchedule  = (clientId, sch)  => setData(prev => { const nd={...prev,clients:prev.clients.map(c=>c.id===clientId?{...c,schedule:sch}:c)}; persist(nd); return nd; });
+  const getClientScheduleOverrides = (clientId) => data.clients.find(c=>c.id===clientId)?.scheduleOverrides||{};
+  const updateClientScheduleOverrides = (clientId, ov) => setData(prev => { const nd={...prev,clients:prev.clients.map(c=>c.id===clientId?{...c,scheduleOverrides:ov}:c)}; persist(nd); return nd; });
 
   const selectAdminClient = (id) => {
     const sid = normalizeClientId(id);
@@ -1782,10 +1828,13 @@ export default function App() {
             );
           }
 
+          const clientSch=schedule;
+          const clientOv=getClientScheduleOverrides(selClient);
           return (
             <CalendarComp
               clientIdx={calClientIdx}
-              schedule={schedule}
+              schedule={clientSch}
+              scheduleOverrides={clientOv}
               templates={templates}
               history={calHistory}
               calView={calView}
@@ -1796,6 +1845,10 @@ export default function App() {
               setCalDetail={(date)=>{ if(date) setSelDay(calDayName(date)); setCalDetail(date); }}
               onStartSession={(tpl)=>{ startSession(tpl); setCalDetail(null); }}
               isAdmin={false}
+              onAddTemplate={(day,tplId)=>updateClientSchedule(selClient,{...clientSch,[day]:[...(clientSch[day]||[]),tplId]})}
+              onRemoveTemplate={(day,tplId)=>updateClientSchedule(selClient,{...clientSch,[day]:(clientSch[day]||[]).filter(id=>id!==tplId)})}
+              onAddTemplateOverride={(dateIso,tplId)=>updateClientScheduleOverrides(selClient,{...clientOv,[dateIso]:[...(clientOv[dateIso]||[]),tplId]})}
+              onRemoveTemplateOverride={(dateIso,tplId)=>updateClientScheduleOverrides(selClient,{...clientOv,[dateIso]:(clientOv[dateIso]||[]).filter(id=>id!==tplId)})}
             />
           );
         })()}
@@ -2536,11 +2589,13 @@ export default function App() {
               const templates=getClientTemplates(adminClient);
               const adminHistory=clientHistories[normalizeClientId(adminClient)]||[];
               const adminClientIdx=data.clients.findIndex(c=>c.id===adminClient);
+              const adminOv=getClientScheduleOverrides(adminClient);
               const updateSchedule=(day,tplIds)=>updateClientSchedule(adminClient,{...schedule,[day]:tplIds});
               return (
                 <CalendarComp
                   clientIdx={adminClientIdx}
                   schedule={schedule}
+                  scheduleOverrides={adminOv}
                   templates={templates}
                   history={adminHistory}
                   calView={adminCalView}
@@ -2553,6 +2608,8 @@ export default function App() {
                   isAdmin={true}
                   onAddTemplate={(day,tplId)=>updateSchedule(day,[...(schedule[day]||[]),tplId])}
                   onRemoveTemplate={(day,tplId)=>updateSchedule(day,(schedule[day]||[]).filter(id=>id!==tplId))}
+                  onAddTemplateOverride={(dateIso,tplId)=>updateClientScheduleOverrides(adminClient,{...adminOv,[dateIso]:[...(adminOv[dateIso]||[]),tplId]})}
+                  onRemoveTemplateOverride={(dateIso,tplId)=>updateClientScheduleOverrides(adminClient,{...adminOv,[dateIso]:(adminOv[dateIso]||[]).filter(id=>id!==tplId)})}
                 />
               );
             })()}
