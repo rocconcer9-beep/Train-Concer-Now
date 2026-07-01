@@ -190,7 +190,7 @@ const isoLocal = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0
 const calSameDate = (a,b) => isoLocal(a)===isoLocal(b);
 const calGetOvEntry = (ov,iso) => { const e=ov[iso]; if(!e) return {ids:[],edits:{}}; if(Array.isArray(e)) return {ids:e,edits:{}}; return {ids:e.ids||[],edits:e.edits||{}}; };
 
-const CalendarComp = ({clientIdx,schedule,scheduleOverrides,templates,history,calView,setCalView,calBase,setCalBase,calDetail,setCalDetail,onStartSession,isAdmin,onAddTemplate,onRemoveTemplate,onAddTemplateOverride,onRemoveTemplateOverride,onEditTemplateOverride,onSetDateIds}) => {
+const CalendarComp = ({clientIdx,schedule,scheduleOverrides,templates,history,calView,setCalView,calBase,setCalBase,calDetail,setCalDetail,onStartSession,isAdmin,onAddTemplate,onRemoveTemplate,onAddTemplateOverride,onRemoveTemplateOverride,onEditTemplateOverride,onSetDateIds,onDeleteHistoryForDate}) => {
   const [showAddModal,setShowAddModal] = useState(false);
   const [selectedTpl,setSelectedTpl] = useState(null);
   const [editModalTpl,setEditModalTpl] = useState(null);
@@ -373,15 +373,15 @@ const CalendarComp = ({clientIdx,schedule,scheduleOverrides,templates,history,ca
                 <button style={{background:"#fef2f2",color:"#dc2626",border:"1.5px solid #fca5a5",borderRadius:12,padding:"14px 16px",cursor:"pointer",textAlign:"left"}} onClick={()=>{
                   if(overrideIdsDay.includes(removeModalTpl.id)){onRemoveTemplateOverride&&onRemoveTemplateOverride(iso,removeModalTpl.id);}
                   else{onRemoveTemplate&&onRemoveTemplate(dayName,removeModalTpl.id);}
+                  onDeleteHistoryForDate&&onDeleteHistoryForDate(iso,dayName,true);
                   setRemoveModalTpl(null);
                 }}>
                   <div style={{fontWeight:700,fontSize:14,marginBottom:3}}>🔁 Eliminar de tots els {dayFull}s</div>
                   <div style={{fontSize:12,opacity:0.8}}>Elimina la plantilla del calendari recurrent</div>
                 </button>
                 <button style={{background:"#f0f4ff",color:"#1a3a6b",border:"1.5px solid #c7d2fe",borderRadius:12,padding:"14px 16px",cursor:"pointer",textAlign:"left"}} onClick={()=>{
-                  const currentIds=[...new Set([...recurringIds,...overrideIdsDay])];
-                  const newIds=currentIds.filter(id=>id!==removeModalTpl.id);
-                  onSetDateIds&&onSetDateIds(iso,newIds);
+                  onSetDateIds&&onSetDateIds(iso,[]);
+                  onDeleteHistoryForDate&&onDeleteHistoryForDate(iso,dayName,false);
                   setRemoveModalTpl(null);
                 }}>
                   <div style={{fontWeight:700,fontSize:14,marginBottom:3}}>📅 Eliminar només el {dateLabel}</div>
@@ -2065,6 +2065,7 @@ export default function App() {
               onRemoveTemplateOverride={(dateIso,tplId)=>{const e=calGetOvEntry(clientOv,dateIso);const nd={...e,ids:e.ids.filter(id=>id!==tplId),edits:{...e.edits}};delete nd.edits[tplId];updateClientScheduleOverrides(selClient,{...clientOv,[dateIso]:nd});}}
               onEditTemplateOverride={(dateIso,tplId,exercises)=>{const e=calGetOvEntry(clientOv,dateIso);updateClientScheduleOverrides(selClient,{...clientOv,[dateIso]:{...e,edits:{...e.edits,[tplId]:{exercises}}}});}}
               onSetDateIds={(dateIso,ids)=>{const e=calGetOvEntry(clientOv,dateIso);updateClientScheduleOverrides(selClient,{...clientOv,[dateIso]:{...e,ids}});}}
+              onDeleteHistoryForDate={(iso,dayName,allWeekday)=>{const id=normalizeClientId(selClient);const current=clientHistories[id]||[];const updated=allWeekday?current.filter(s=>s.day!==dayName):current.filter(s=>!s.createdAt||s.createdAt.slice(0,10)!==iso);setClientHistories(p=>({...p,[id]:updated}));persistClientHistory(id,updated);}}
             />
           );
         })()}
@@ -2828,6 +2829,7 @@ export default function App() {
                   onRemoveTemplateOverride={(dateIso,tplId)=>{const e=calGetOvEntry(adminOv,dateIso);const nd={...e,ids:e.ids.filter(id=>id!==tplId),edits:{...e.edits}};delete nd.edits[tplId];updateClientScheduleOverrides(adminClient,{...adminOv,[dateIso]:nd});}}
                   onEditTemplateOverride={(dateIso,tplId,exercises)=>{const e=calGetOvEntry(adminOv,dateIso);updateClientScheduleOverrides(adminClient,{...adminOv,[dateIso]:{...e,edits:{...e.edits,[tplId]:{exercises}}}});}}
                   onSetDateIds={(dateIso,ids)=>{const e=calGetOvEntry(adminOv,dateIso);updateClientScheduleOverrides(adminClient,{...adminOv,[dateIso]:{...e,ids}});}}
+                  onDeleteHistoryForDate={(iso,dayName,allWeekday)=>{const id=normalizeClientId(adminClient);const current=clientHistories[id]||[];const updated=allWeekday?current.filter(s=>s.day!==dayName):current.filter(s=>!s.createdAt||s.createdAt.slice(0,10)!==iso);setClientHistories(p=>({...p,[id]:updated}));persistClientHistory(id,updated);}}
                 />
               );
             })()}
