@@ -1147,10 +1147,12 @@ export default function App() {
     return {history,totalSessions:history.length,sessionsThisWeek:sessionsThisWeek.length,lastSession,lastFeeling,avgRpeRecent,lastCompletion,totalDurationThisWeek,weeklyInternalLoad,avgInternalLoadRecent,lastInternalLoad,templatesCount:client.templates?.length||0,libraryCount:client.exerciseLibrary?.length||0,trainingDaysCount:Object.values(client.schedule||{}).filter(d=>Array.isArray(d)&&d.length>0).length,status};
   };
 
-  const saveStdSession = async (clientId, day, exercises, formData) => {
+  const saveStdSession = async (clientId, day, exercises, formData, dateIso) => {
     const id = normalizeClientId(clientId);
     const now = new Date();
-    const dateStr = now.toLocaleDateString("ca-ES");
+    const sessionDate = dateIso ? new Date(dateIso + 'T12:00:00') : now;
+    const dateStr = sessionDate.toLocaleDateString("ca-ES");
+    const createdAtISO = dateIso ? (dateIso + 'T12:00:00.000Z') : now.toISOString();
     const sessionId = `completed_${id}_${now.getTime()}`;
     const existing = clientHistories[id]||[];
     if(existing.find(s=>s.id===sessionId)) return;
@@ -1173,7 +1175,7 @@ export default function App() {
       internalLoad:calculateInternalLoad(formData.duration, formData.rpe),
       feeling:formData.feeling||null, clientNotes:formData.notes||"",
       checkIn:formData.checkIn||null,
-      createdAt:now.toISOString(), updatedAt:now.toISOString(),
+      createdAt:createdAtISO, updatedAt:now.toISOString(),
     };
     const updated = [record,...existing].slice(0,100);
     setClientHistories(p=>({...p,[id]:updated}));
@@ -1751,7 +1753,7 @@ export default function App() {
                       ...finishForm,
                       checkIn:sess?.checkIn||null,
                       templateName:sess?.templateName||"",
-                    });
+                    },sess?.date);
                     await deleteActiveSession(selClient,selDay);
                     setShowFinishModal(false);
                     setFinishForm({rpe:"",duration:"",feeling:"",notes:""});
