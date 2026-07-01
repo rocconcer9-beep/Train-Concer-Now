@@ -1790,7 +1790,7 @@ export default function App() {
             const exsSource=editedExs||tpl.exercises;
             const exs=exsSource.map(ex=>({...ex,sets:Array.from({length:ex.plannedSets},()=>({reps:ex.plannedReps||"",load:ex.plannedLoad||"",rest:ex.plannedRest||"",completed:false}))}));
             const now=new Date().toISOString();
-            const newSession={id:`active_${selClient}_${new Date().toISOString().slice(0,10)}_${selDay}`,clientId:selClient,date:new Date().toISOString().slice(0,10),day:selDay,templateId:tpl.id,templateName:tpl.name,exercises:exs,status:"in_progress",checkIn:{energy:"",sleep:"",stress:"",fatigue:"",pain:"",painZone:"",notes:"",completedAt:""},createdAt:now,updatedAt:now};
+            const newSession={id:`active_${selClient}_${new Date().toISOString().slice(0,10)}_${selDay}`,clientId:selClient,date:dateIso||new Date().toISOString().slice(0,10),day:selDay,templateId:tpl.id,templateName:tpl.name,exercises:exs,status:"in_progress",checkIn:{energy:"",sleep:"",stress:"",fatigue:"",pain:"",painZone:"",notes:"",completedAt:""},createdAt:now,updatedAt:now};
             setCheckInForm({energy:"",sleep:"",stress:"",fatigue:"",pain:"",painZone:"",notes:""});
             setSessionExercises(p=>({...p,[sessionKey]:newSession}));
             saveActiveSession(selClient,selDay,newSession);
