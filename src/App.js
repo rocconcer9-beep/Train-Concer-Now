@@ -633,6 +633,22 @@ const getClientTrackingStats = (history) => {
   };
 };
 
+const extractSimpleKg = (val) => {
+  if(!val) return null;
+  const s = String(val);
+  if(s.includes('/') || s.includes('+') || s.includes('-')) return null;
+  const n = parseFloat(s);
+  return (!isNaN(n) && n > 0) ? n : null;
+};
+
+const extractSimpleReps = (val) => {
+  if(!val) return null;
+  const s = String(val);
+  if(s.includes('/') || s.includes("'") || s.includes('"')) return null;
+  const n = parseInt(s);
+  return (!isNaN(n) && n > 0) ? n : null;
+};
+
 // ══════════════════════════════════════════════════════════════════════════════
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -1954,9 +1970,9 @@ export default function App() {
                                   <button onClick={()=>setSessionExercises(p=>{const s={...p[sessionKey]};s.exercises=s.exercises.map((e,ei)=>ei===i?{...e,sets:e.sets.filter((_,si)=>si!==j)}:e);saveActiveSession(selClient,selDay,s);return {...p,[sessionKey]:s};})} style={{marginLeft:"auto",width:20,height:20,borderRadius:"50%",border:"none",background:T.dangerBg,color:T.danger,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,lineHeight:1}}>×</button>
                                 </div>
                                 <div style={{display:"flex",gap:6}}>
-                                  <div style={{flex:1}}><label style={S.lbl}>Reps fetes</label><input style={S.inp} value={st.reps} onChange={e=>updateSet(i,j,"reps",e.target.value)} placeholder={ex.plannedReps||"reps"}/></div>
-                                  <div style={{flex:1}}><label style={S.lbl}>Kg / càrrega</label><input style={S.inp} value={st.load||""} onChange={e=>updateSet(i,j,"load",e.target.value)} placeholder={ex.plannedLoad||"kg"}/></div>
-                                  <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={st.rest} onChange={e=>updateSet(i,j,"rest",e.target.value)} placeholder="90s"/></div>
+                                  <div style={{flex:1}}><label style={S.lbl}>Reps fetes</label>{(()=>{const baseR=extractSimpleReps(ex.plannedReps);if(baseR){const opts=[];for(let r=1;r<=baseR+10;r++)opts.push(r);const curR=st.reps&&!isNaN(parseInt(st.reps))?String(parseInt(st.reps)):"";return(<select style={{...S.inp,appearance:"auto"}} value={curR} onChange={e=>updateSet(i,j,"reps",e.target.value)}><option value="">--</option>{opts.map(r=><option key={r} value={String(r)}>{r}</option>)}</select>);}return<input style={S.inp} value={st.reps} onChange={e=>updateSet(i,j,"reps",e.target.value)} placeholder={ex.plannedReps||"reps"}/>;})()}</div>
+                                  <div style={{flex:1}}><label style={S.lbl}>Kg / càrrega</label>{(()=>{const baseK=extractSimpleKg(ex.plannedLoad);if(baseK){const opts=[];for(let k=Math.max(1,Math.round(baseK)-20);k<=Math.round(baseK)+20;k++)opts.push(k);const rawLoad=st.load||"";const curK=rawLoad?String(parseFloat(rawLoad)||""):"";const selVal=opts.includes(Number(curK))?curK:"";return(<select style={{...S.inp,appearance:"auto"}} value={selVal} onChange={e=>updateSet(i,j,"load",e.target.value?e.target.value+" kg":"")}><option value="">--</option>{opts.map(k=><option key={k} value={String(k)}>{k}</option>)}</select>);}return<input style={S.inp} value={st.load||""} onChange={e=>updateSet(i,j,"load",e.target.value)} placeholder={ex.plannedLoad||"kg"}/>;})()}</div>
+                                  <div style={{flex:1}}><label style={S.lbl}>Descans</label><select style={{...S.inp,appearance:"auto"}} value={st.rest||""} onChange={e=>updateSet(i,j,"rest",e.target.value)}><option value="">--</option>{["15s","30s","45s","60s","90s","2'","3'","4'","5'"].map(o=><option key={o} value={o}>{o}</option>)}</select></div>
                                 </div>
                               </div>
                             ))}
