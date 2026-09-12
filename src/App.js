@@ -911,6 +911,107 @@ export default function App() {
     return nd;
   };
 
+  const ALBA_SERRANO_LIBRARY = [
+    {id:"alba_ex_1",name:"Sentadilla goblet a cadira",category:"Força",muscleGroup:"Quàdriceps / Glutis",movementPattern:"Squat",material:"Manuella, cadira",defaultSets:2,defaultReps:"8 a 10",defaultLoad:"15 kg",defaultRest:"45''",instructions:"Pes davant del pit i proper al cos. Seure suaument i tornar a pujar mantenint la columna neutra i els genolls alineats amb els peus. Començar amb 4-6 kg si resulta còmode.",observations:"",level:"Principiant"},
+    {id:"alba_ex_2",name:"Rem unilateral amb suport",category:"Força",muscleGroup:"Esquena",movementPattern:"Pull horitzontal",material:"Manuella 15kg, cadira o taula estable",defaultSets:2,defaultReps:"10/c",defaultLoad:"10 kg",defaultRest:"45''",instructions:"Recolzar fermament una mà i mantenir l'esquena neutra. Activar el core i portar el colze cap al maluc sense girar el tronc ni elevar l'espatlla.",observations:"",level:"Principiant"},
+    {id:"alba_ex_3",name:"Pont de glutis amb manuella",category:"Força",muscleGroup:"Glutis / Isquiotibials",movementPattern:"Hip hinge",material:"Estora, manuella",defaultSets:2,defaultReps:"10 a 12",defaultLoad:"10 kg",defaultRest:"45''",instructions:"Col·locar la manuella sobre la pelvis. Activar el core i pujar contraient els glutis. Aturar-se quan espatlles, malucs i genolls quedin alineats, sense arquejar la zona lumbar.",observations:"",level:"Principiant"},
+    {id:"alba_ex_4",name:"Press de pit al terra amb manuelles",category:"Força",muscleGroup:"Pectoral",movementPattern:"Push horitzontal",material:"Estora, manuelles",defaultSets:2,defaultReps:"8 a 12",defaultLoad:"6 kg",defaultRest:"45''",instructions:"Mantenir els genolls flexionats, el core actiu i les costelles controlades. Colzes a uns 30-45 graus del cos. Evitar accentuar l'arc lumbar durant l'empenta.",observations:"",level:"Principiant"},
+    {id:"alba_ex_5",name:"Estocada enrere assistida",category:"Força",muscleGroup:"Quàdriceps / Glutis",movementPattern:"Lunge",material:"Cadira estable, manuelles opcionals",defaultSets:2,defaultReps:"8/c",defaultLoad:"Pes corporal",defaultRest:"45''",instructions:"Subjectar-se a la cadira i fer un pas controlat enrere. Mantenir la pelvis estable, el tronc ferm i la columna neutra. Començar sense pes i utilitzar un recorregut còmode.",observations:"",level:"Principiant"},
+    {id:"alba_ex_6",name:"Dead bug altern",category:"Core",muscleGroup:"Core estabilitzador",movementPattern:"Antiextensió",material:"Estora",defaultSets:2,defaultReps:"6 a 8/c",defaultLoad:"Pes corporal",defaultRest:"40''",instructions:"Estendre braç i cama contraris sense buscar altura. Mantenir la pelvis paral·lela al terra i la columna neutra. Evitar girar el tronc o arquejar la zona lumbar. No contenir la respiració.",observations:"",level:"Principiant"},
+    {id:"alba_ex_7",name:"Split squat assistit",category:"Força",muscleGroup:"Quàdriceps / Glutis",movementPattern:"Lunge",material:"Cadira estable, manuella opcional",defaultSets:2,defaultReps:"10/c",defaultLoad:"Pes corporal",defaultRest:"45''",instructions:"Col·locar els peus en una posició separada i fixa. Subjectar-se lleugerament a la cadira i baixar verticalment. Mantenir el core actiu, la pelvis estable i la columna neutra. Començar sense pes.",observations:"",level:"Principiant"},
+    {id:"alba_ex_8",name:"Flexions inclinades",category:"Força",muscleGroup:"Pectoral / Deltoides",movementPattern:"Push horitzontal",material:"Taulell o taula molt estable",defaultSets:2,defaultReps:"8 a 12",defaultLoad:"Pes corporal",defaultRest:"45''",instructions:"Mantenir el cos alineat des del cap fins als talons. Activar abdomen i glutis abans de baixar. Evitar que la pelvis caigui o que la zona lumbar s'arquegi.",observations:"",level:"Principiant"},
+    {id:"alba_ex_9",name:"Hip thrust amb espatlles al fitball",category:"Força",muscleGroup:"Glutis",movementPattern:"Hip hinge",material:"Fitball, paret, manuella opcional",defaultSets:2,defaultReps:"10 a 12",defaultLoad:"Pes corporal",defaultRest:"45''",instructions:"Immobilitzar el fitball contra una paret. Activar el core i elevar la pelvis contraient els glutis. Aturar-se abans d'arquejar la zona lumbar.",observations:"",level:"Principiant"},
+    {id:"alba_ex_10",name:"Rem ALT unilateral amb suport",category:"Força",muscleGroup:"Esquena",movementPattern:"Pull horitzontal",material:"Manuella, cadira o taula estable",defaultSets:2,defaultReps:"10/c",defaultLoad:"8 kg",defaultRest:"45''",instructions:"Mateixa posició que el rem de Rutina A. Recolzar fermament una mà i mantenir l'esquena neutra. Colze a 90 graus respecte el cos.",observations:"",level:"Principiant"},
+    {id:"alba_ex_11",name:"Passos laterals amb banda",category:"Força",muscleGroup:"Gluti mig",movementPattern:"Abducció",material:"Banda medium",defaultSets:2,defaultReps:"10/c",defaultLoad:"Pes corporal",defaultRest:"40''",instructions:"Col·locar la banda per sobre dels genolls. Mantenir els genolls lleugerament flexionats, els peus paral·lels i la pelvis estable. Fer passos curts sense balancejar el tronc.",observations:"",level:"Principiant"},
+    {id:"alba_ex_12",name:"Bird-dog altern",category:"Core",muscleGroup:"Core / Glutis",movementPattern:"Antiextensió",material:"Estora",defaultSets:2,defaultReps:"6 a 8/c",defaultLoad:"Pes corporal",defaultRest:"40''",instructions:"Des de quadrupèdia, allargar una cama sense aixecar-la gaire. Mantenir la pelvis paral·lela al terra i evitar arquejar o girar la zona lumbar.",observations:"",level:"Principiant"},
+    {id:"alba_ex_13",name:"Caminada progressiva",category:"Activació",muscleGroup:"Activació general, cames",movementPattern:"Cardio",material:"Cinta de caminar",defaultSets:1,defaultReps:"3 minuts",defaultLoad:"Pes corporal",defaultRest:"—",instructions:"Començar a ritme tranquil i augmentar-lo lleugerament de manera progressiva. Mantenir una inclinació baixa i caminar sense impacte.",observations:"",level:"Principiant"},
+    {id:"alba_ex_14",name:"Basculació de pelvis en decúbit supí",category:"Activació",muscleGroup:"Core lumbopèlvic",movementPattern:"Mobilitat",material:"Estora",defaultSets:1,defaultReps:"8",defaultLoad:"Pes corporal",defaultRest:"15''",instructions:"Fer un moviment petit i controlat de la pelvis. No pressionar amb força la zona lumbar contra el terra ni buscar un recorregut ampli.",observations:"",level:"Principiant"},
+    {id:"alba_ex_15",name:"Pont de glutis sense pes",category:"Activació",muscleGroup:"Glutis / Core",movementPattern:"Hip hinge",material:"Estora",defaultSets:1,defaultReps:"10",defaultLoad:"Pes corporal",defaultRest:"20''",instructions:"Activar l'abdomen abans de pujar. Elevar la pelvis contraient els glutis i aturar-se sense arquejar la zona lumbar.",observations:"",level:"Principiant"},
+    {id:"alba_ex_16",name:"Dead bug preparatori amb taló a terra",category:"Activació",muscleGroup:"Core estabilitzador",movementPattern:"Antiextensió",material:"Estora",defaultSets:1,defaultReps:"6/c",defaultLoad:"Pes corporal",defaultRest:"20''",instructions:"Moure una cama cada vegada i tocar el terra amb el taló. Reduir el recorregut si la zona lumbar s'arqueja o es perd l'estabilitat.",observations:"",level:"Principiant"},
+    {id:"alba_ex_17",name:"Sentadilla a cadira sense pes",category:"Activació",muscleGroup:"Quàdriceps / Glutis",movementPattern:"Squat",material:"Cadira estable",defaultSets:1,defaultReps:"8",defaultLoad:"Pes corporal",defaultRest:"30''",instructions:"Portar els malucs enrere, tocar la cadira suaument i tornar a pujar. Mantenir els genolls alineats amb els peus, el core actiu i la columna neutra.",observations:"",level:"Principiant"},
+    {id:"alba_ex_18",name:"Mobilitat de turmell davant la paret",category:"Activació",muscleGroup:"Turmell / Bessons",movementPattern:"Mobilitat",material:"Paret",defaultSets:1,defaultReps:"8/c",defaultLoad:"Pes corporal",defaultRest:"10''",instructions:"Mantenir el taló completament recolzat i portar el genoll cap endavant en direcció al segon dit del peu. No deixar que el peu perdi el contacte amb el terra.",observations:"",level:"Principiant"},
+    {id:"alba_ex_19",name:"Passos laterals amb banda activació",category:"Activació",muscleGroup:"Gluti mig",movementPattern:"Abducció",material:"Banda light/medium",defaultSets:1,defaultReps:"8 passos/direcció",defaultLoad:"Pes corporal",defaultRest:"20''",instructions:"Col·locar la banda per sobre dels genolls. Fer passos curts mantenint els peus paral·lels, la pelvis estable i el tronc vertical.",observations:"",level:"Principiant"},
+    {id:"alba_ex_20",name:"Bird-dog preparatori només amb cama",category:"Activació",muscleGroup:"Core / Glutis",movementPattern:"Antiextensió",material:"Estora",defaultSets:1,defaultReps:"6/c",defaultLoad:"Pes corporal",defaultRest:"20''",instructions:"Des de quadrupèdia, allargar una cama sense aixecar-la gaire. Mantenir la pelvis paral·lela al terra i evitar arquejar o girar la zona lumbar.",observations:"",level:"Principiant"},
+    {id:"alba_ex_21",name:"Estocada enrere curta sense pes",category:"Activació",muscleGroup:"Quàdriceps / Glutis",movementPattern:"Lunge",material:"Cadira estable",defaultSets:1,defaultReps:"6/c",defaultLoad:"Pes corporal",defaultRest:"30''",instructions:"Subjectar-se lleugerament a la cadira i fer un pas curt enrere. Mantenir el core actiu, la pelvis estable i la columna neutra.",observations:"",level:"Principiant"},
+    {id:"alba_ex_22",name:"Flexor de maluc en mig genoll",category:"Estiraments",muscleGroup:"Flexors del maluc / Quàdriceps",movementPattern:"Estirament",material:"Estora",defaultSets:1,defaultReps:"30''/c",defaultLoad:"Pes corporal",defaultRest:"10''",instructions:"Contreure lleugerament el gluti de la cama posterior i desplaçar la pelvis endavant. Mantenir el tronc vertical i evitar arquejar la zona lumbar.",observations:"",level:"Principiant"},
+    {id:"alba_ex_23",name:"Gluti en figura 4",category:"Estiraments",muscleGroup:"Glutis / Rotadors del maluc",movementPattern:"Estirament",material:"Estora",defaultSets:1,defaultReps:"30''/c",defaultLoad:"Pes corporal",defaultRest:"10''",instructions:"Estirada boca amunt, col·locar un turmell sobre el genoll contrari i apropar la cama amb suavitat. Mantenir la pelvis estable i aturar-se si apareixen símptomes irradiats.",observations:"",level:"Principiant"},
+    {id:"alba_ex_24",name:"Pectoral a la paret",category:"Estiraments",muscleGroup:"Pectoral / Espatlla anterior",movementPattern:"Estirament",material:"Paret",defaultSets:1,defaultReps:"30''/c",defaultLoad:"Pes corporal",defaultRest:"10''",instructions:"Recolzar l'avantbraç o la mà a la paret i girar suaument tot el cos. Evitar compensar girant o arquejant la zona lumbar.",observations:"",level:"Principiant"},
+    {id:"alba_ex_25",name:"Respiració diafragmàtica",category:"Estiraments",muscleGroup:"Diafragma / Relaxació del tronc",movementPattern:"Respiració",material:"Estora",defaultSets:1,defaultReps:"5 respiracions lentes",defaultLoad:"Pes corporal",defaultRest:"—",instructions:"Inspirar pel nas expandint suaument l'abdomen i expirar lentament sense forçar la columna contra el terra.",observations:"",level:"Principiant"},
+    {id:"alba_ex_26",name:"Isquiotibials estirada amb banda",category:"Estiraments",muscleGroup:"Isquiotibials",movementPattern:"Estirament",material:"Estora, banda plana",defaultSets:1,defaultReps:"30''/c",defaultLoad:"Pes corporal",defaultRest:"10''",instructions:"Estirada boca amunt, elevar una cama amb el genoll lleugerament flexionat. Mantenir la pelvis recolzada i evitar aixecar el tronc o arrodonir la zona lumbar.",observations:"",level:"Principiant"},
+    {id:"alba_ex_27",name:"Quàdriceps dempeus amb suport",category:"Estiraments",muscleGroup:"Quàdriceps / Flexors del maluc",movementPattern:"Estirament",material:"Cadira estable",defaultSets:1,defaultReps:"30''/c",defaultLoad:"Pes corporal",defaultRest:"10''",instructions:"Subjectar-se a la cadira i apropar el taló al gluti. Mantenir els genolls propers, el core actiu i la pelvis neutra, sense arquejar l'esquena.",observations:"",level:"Principiant"},
+    {id:"alba_ex_28",name:"Dorsal amb mans a la paret",category:"Estiraments",muscleGroup:"Dorsal / Espatlles",movementPattern:"Estirament",material:"Paret",defaultSets:1,defaultReps:"30''",defaultLoad:"Pes corporal",defaultRest:"10''",instructions:"Recolzar les mans a la paret i portar els malucs enrere mantenint l'esquena llarga. No enfonsar el pit excessivament ni forçar la zona lumbar.",observations:"",level:"Principiant"},
+  ];
+  const ALBA_SERRANO_TEMPLATES = [
+    {
+      id:"tpl_alba_A",name:"Rutina A — Força + Activació + Estiraments",description:"Activació + Força tren inferior i superior + Estiraments",type:"Força",
+      objective:"Força tren inferior i superior",estimatedDuration:"50-60 min",
+      exercises:[
+        {id:"tex_alba_A_1",exerciseId:"alba_ex_13",name:"Caminada progressiva",plannedSets:1,plannedReps:"3 minuts",plannedLoad:"Pes corporal",plannedRest:"—",observations:"",order:1},
+        {id:"tex_alba_A_2",exerciseId:"alba_ex_14",name:"Basculació de pelvis en decúbit supí",plannedSets:1,plannedReps:"8",plannedLoad:"Pes corporal",plannedRest:"15''",observations:"",order:2},
+        {id:"tex_alba_A_3",exerciseId:"alba_ex_15",name:"Pont de glutis sense pes",plannedSets:1,plannedReps:"10",plannedLoad:"Pes corporal",plannedRest:"20''",observations:"",order:3},
+        {id:"tex_alba_A_4",exerciseId:"alba_ex_16",name:"Dead bug preparatori amb taló a terra",plannedSets:1,plannedReps:"6/c",plannedLoad:"Pes corporal",plannedRest:"20''",observations:"",order:4},
+        {id:"tex_alba_A_5",exerciseId:"alba_ex_17",name:"Sentadilla a cadira sense pes",plannedSets:1,plannedReps:"8",plannedLoad:"Pes corporal",plannedRest:"30''",observations:"",order:5},
+        {id:"tex_alba_A_6",exerciseId:"alba_ex_1",name:"Sentadilla goblet a cadira",plannedSets:2,plannedReps:"8 a 10",plannedLoad:"15 kg",plannedRest:"45''",observations:"",order:6},
+        {id:"tex_alba_A_7",exerciseId:"alba_ex_2",name:"Rem unilateral amb suport",plannedSets:2,plannedReps:"10/c",plannedLoad:"10 kg",plannedRest:"45''",observations:"",order:7},
+        {id:"tex_alba_A_8",exerciseId:"alba_ex_3",name:"Pont de glutis amb manuella",plannedSets:2,plannedReps:"10 a 12",plannedLoad:"10 kg",plannedRest:"45''",observations:"",order:8},
+        {id:"tex_alba_A_9",exerciseId:"alba_ex_4",name:"Press de pit al terra amb manuelles",plannedSets:2,plannedReps:"8 a 12",plannedLoad:"6 kg",plannedRest:"45''",observations:"",order:9},
+        {id:"tex_alba_A_10",exerciseId:"alba_ex_5",name:"Estocada enrere assistida",plannedSets:2,plannedReps:"8/c",plannedLoad:"Pes corporal",plannedRest:"45''",observations:"",order:10},
+        {id:"tex_alba_A_11",exerciseId:"alba_ex_6",name:"Dead bug altern",plannedSets:2,plannedReps:"6 a 8/c",plannedLoad:"Pes corporal",plannedRest:"40''",observations:"",order:11},
+        {id:"tex_alba_A_12",exerciseId:"alba_ex_22",name:"Flexor de maluc en mig genoll",plannedSets:1,plannedReps:"30''/c",plannedLoad:"Pes corporal",plannedRest:"10''",observations:"",order:12},
+        {id:"tex_alba_A_13",exerciseId:"alba_ex_23",name:"Gluti en figura 4",plannedSets:1,plannedReps:"30''/c",plannedLoad:"Pes corporal",plannedRest:"10''",observations:"",order:13},
+        {id:"tex_alba_A_14",exerciseId:"alba_ex_24",name:"Pectoral a la paret",plannedSets:1,plannedReps:"30''/c",plannedLoad:"Pes corporal",plannedRest:"10''",observations:"",order:14},
+        {id:"tex_alba_A_15",exerciseId:"alba_ex_25",name:"Respiració diafragmàtica",plannedSets:1,plannedReps:"5 respiracions lentes",plannedLoad:"Pes corporal",plannedRest:"—",observations:"",order:15},
+      ],
+    },
+    {
+      id:"tpl_alba_B",name:"Rutina B — Força + Activació + Estiraments",description:"Activació + Força tren inferior i superior variant + Estiraments",type:"Força",
+      objective:"Força tren inferior i superior variant",estimatedDuration:"50-60 min",
+      exercises:[
+        {id:"tex_alba_B_1",exerciseId:"alba_ex_13",name:"Caminada progressiva",plannedSets:1,plannedReps:"3 minuts",plannedLoad:"Pes corporal",plannedRest:"—",observations:"",order:1},
+        {id:"tex_alba_B_2",exerciseId:"alba_ex_18",name:"Mobilitat de turmell davant la paret",plannedSets:1,plannedReps:"8/c",plannedLoad:"Pes corporal",plannedRest:"10''",observations:"",order:2},
+        {id:"tex_alba_B_3",exerciseId:"alba_ex_19",name:"Passos laterals amb banda activació",plannedSets:1,plannedReps:"8 passos/direcció",plannedLoad:"Pes corporal",plannedRest:"20''",observations:"",order:3},
+        {id:"tex_alba_B_4",exerciseId:"alba_ex_20",name:"Bird-dog preparatori només amb cama",plannedSets:1,plannedReps:"6/c",plannedLoad:"Pes corporal",plannedRest:"20''",observations:"",order:4},
+        {id:"tex_alba_B_5",exerciseId:"alba_ex_21",name:"Estocada enrere curta sense pes",plannedSets:1,plannedReps:"6/c",plannedLoad:"Pes corporal",plannedRest:"30''",observations:"",order:5},
+        {id:"tex_alba_B_6",exerciseId:"alba_ex_7",name:"Split squat assistit",plannedSets:2,plannedReps:"10/c",plannedLoad:"Pes corporal",plannedRest:"45''",observations:"",order:6},
+        {id:"tex_alba_B_7",exerciseId:"alba_ex_8",name:"Flexions inclinades",plannedSets:2,plannedReps:"8 a 12",plannedLoad:"Pes corporal",plannedRest:"45''",observations:"",order:7},
+        {id:"tex_alba_B_8",exerciseId:"alba_ex_9",name:"Hip thrust amb espatlles al fitball",plannedSets:2,plannedReps:"10 a 12",plannedLoad:"Pes corporal",plannedRest:"45''",observations:"",order:8},
+        {id:"tex_alba_B_9",exerciseId:"alba_ex_10",name:"Rem ALT unilateral amb suport",plannedSets:2,plannedReps:"10/c",plannedLoad:"8 kg",plannedRest:"45''",observations:"",order:9},
+        {id:"tex_alba_B_10",exerciseId:"alba_ex_11",name:"Passos laterals amb banda",plannedSets:2,plannedReps:"10/c",plannedLoad:"Pes corporal",plannedRest:"40''",observations:"",order:10},
+        {id:"tex_alba_B_11",exerciseId:"alba_ex_12",name:"Bird-dog altern",plannedSets:2,plannedReps:"6 a 8/c",plannedLoad:"Pes corporal",plannedRest:"40''",observations:"",order:11},
+        {id:"tex_alba_B_12",exerciseId:"alba_ex_26",name:"Isquiotibials estirada amb banda",plannedSets:1,plannedReps:"30''/c",plannedLoad:"Pes corporal",plannedRest:"10''",observations:"",order:12},
+        {id:"tex_alba_B_13",exerciseId:"alba_ex_27",name:"Quàdriceps dempeus amb suport",plannedSets:1,plannedReps:"30''/c",plannedLoad:"Pes corporal",plannedRest:"10''",observations:"",order:13},
+        {id:"tex_alba_B_14",exerciseId:"alba_ex_28",name:"Dorsal amb mans a la paret",plannedSets:1,plannedReps:"30''",plannedLoad:"Pes corporal",plannedRest:"10''",observations:"",order:14},
+        {id:"tex_alba_B_15",exerciseId:"alba_ex_25",name:"Respiració diafragmàtica",plannedSets:1,plannedReps:"5 respiracions lentes",plannedLoad:"Pes corporal",plannedRest:"—",observations:"",order:15},
+      ],
+    },
+  ];
+
+  const seedAlbaSerrano = async (currentData) => {
+    const alba = currentData.clients.find(c => c.name === "Alba Serrano Liarte");
+    if(!alba) return null;
+    const alreadySeeded = alba.templates?.some(t => t.id === 'tpl_alba_A');
+    if(alreadySeeded) return null;
+    const updatedClients = currentData.clients.map(c =>
+      c.name === "Alba Serrano Liarte" ? {
+        ...c,
+        exerciseLibrary: ALBA_SERRANO_LIBRARY,
+        templates: ALBA_SERRANO_TEMPLATES,
+        schedule: {
+          Dilluns:   ["tpl_alba_A"],
+          Dimarts:   [],
+          Dimecres:  ["tpl_alba_B"],
+          Dijous:    [],
+          Divendres: ["tpl_alba_A"],
+          Dissabte:  [],
+          Diumenge:  [],
+        }
+      } : c
+    );
+    const nd = {...currentData, clients:updatedClients};
+    try { await set(ref(db,"fitcoach-data2"),nd); } catch {}
+    return nd;
+  };
+
   const loadData = async () => {
     setLoading(true);
     try {
@@ -922,7 +1023,8 @@ export default function App() {
       const loadedData = dr.exists() ? dr.val() : DEFAULT_DATA;
       const seeded = await seedIgnasiNou(loadedData);
       const seeded2 = await seedRocConcernau(seeded || loadedData);
-      const finalData = seeded2 || seeded || loadedData;
+      const seeded3 = await seedAlbaSerrano(seeded2 || seeded || loadedData);
+      const finalData = seeded3 || seeded2 || seeded || loadedData;
 
       // Migrar clients sense accessToken
       let dataUpdated = false;
