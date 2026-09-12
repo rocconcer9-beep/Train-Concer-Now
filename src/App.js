@@ -986,6 +986,23 @@ export default function App() {
     },
   ];
 
+  const ALBA_PERSONAL_DATA = {
+    age: "37",
+    goal: "Salut general i pèrdua de greix",
+    secondaryGoal: "Complementar funcional amb força a casa",
+    sport: "Entrenament funcional (1-2x/setmana)",
+    availability: "2-3 dies/setmana",
+    preferredSchedule: "Tarda",
+    level: "principiant",
+    place: "casa",
+    material: "Manuelles ajustables 20kg · Kettlebell 9,5kg · Barra 1m · Bandes elàstiques fins 13,6kg · Fitball · Cinta de caminar · Estora",
+    injuries: "Hèrnia discal lumbar L4-L5/L5-S1. Diagnosticada fa 8 anys. Reinflamació greu 2025 (6 mesos). Infiltrada PRP des. 2025. Recuperada. Màxima precaució.",
+    currentPain: "Sense dolor actiu. Màxima precaució zona lumbar.",
+    healthNotes: "SOP (Síndrome ovàric poliquístic). Suplementació: berberina + creatina.",
+    trainingPreferences: "Full body. Força progressiva core, glutis i quàdriceps. Classes dirigides prèvies. 26 anys de bàsquet.",
+    coachNotes: "Pes: 62 kg · Alçada: 161 cm · Pàdel 1-2x/setmana · Dansa aeròbica 1x/setmana (pròximament) · Horari preferent: tarda.",
+  };
+
   const seedAlbaSerrano = async (currentData) => {
     const alba = currentData.clients.find(c => c.name === "Alba Serrano Liarte");
     if(!alba) return null;
@@ -994,6 +1011,7 @@ export default function App() {
     const updatedClients = currentData.clients.map(c =>
       c.name === "Alba Serrano Liarte" ? {
         ...c,
+        ...ALBA_PERSONAL_DATA,
         exerciseLibrary: ALBA_SERRANO_LIBRARY,
         templates: ALBA_SERRANO_TEMPLATES,
         schedule: {
@@ -1012,6 +1030,19 @@ export default function App() {
     return nd;
   };
 
+  const updateAlbaSerranoData = async (currentData) => {
+    const alba = currentData.clients.find(c => c.name === "Alba Serrano Liarte");
+    if(!alba) return null;
+    const needsUpdate = Object.keys(ALBA_PERSONAL_DATA).some(k => alba[k] !== ALBA_PERSONAL_DATA[k]);
+    if(!needsUpdate) return null;
+    const updatedClients = currentData.clients.map(c =>
+      c.name === "Alba Serrano Liarte" ? {...c, ...ALBA_PERSONAL_DATA} : c
+    );
+    const nd = {...currentData, clients:updatedClients};
+    try { await set(ref(db,"fitcoach-data2"),nd); } catch {}
+    return nd;
+  };
+
   const loadData = async () => {
     setLoading(true);
     try {
@@ -1024,7 +1055,8 @@ export default function App() {
       const seeded = await seedIgnasiNou(loadedData);
       const seeded2 = await seedRocConcernau(seeded || loadedData);
       const seeded3 = await seedAlbaSerrano(seeded2 || seeded || loadedData);
-      const finalData = seeded3 || seeded2 || seeded || loadedData;
+      const updatedAlba = await updateAlbaSerranoData(seeded3 || seeded2 || seeded || loadedData);
+      const finalData = updatedAlba || seeded3 || seeded2 || seeded || loadedData;
 
       // Migrar clients sense accessToken
       let dataUpdated = false;
