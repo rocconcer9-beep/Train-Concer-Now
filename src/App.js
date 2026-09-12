@@ -298,6 +298,7 @@ const CalendarComp = ({clientIdx,schedule,scheduleOverrides,templates,history,ca
                   <span style={{fontSize:11,color:"#94a3b8",width:20,flexShrink:0}}>{i+1}.</span>
                   <span style={{fontSize:13,color:"#0f172a",flex:1}}>{ex.name}</span>
                   <span style={{fontSize:11,color:"#64748b",flexShrink:0}}>{ex.plannedSets}×{ex.plannedReps}{ex.plannedLoad?` · ${ex.plannedLoad}`:""}</span>
+                  {ex.videoUrl&&<button style={{background:"#eef2ff",color:"#1d4ed8",border:"1.5px solid #c7d2fe",borderRadius:8,padding:"4px 10px",fontSize:11,cursor:"pointer",flexShrink:0}} onClick={()=>window.open(ex.videoUrl,'_blank')}>▶</button>}
                 </div>
               ))}
             </div>
@@ -696,7 +697,7 @@ export default function App() {
   const [showAddTemplate, setShowAddTemplate] = useState(false);
   const [showAddLibEx, setShowAddLibEx] = useState(false);
   const [newTemplate, setNewTemplate] = useState({name:"",description:"",type:"Força",objective:"",estimatedDuration:"",exercises:[]});
-  const [newLibEx, setNewLibEx] = useState({name:"",category:"Força",muscleGroup:"",movementPattern:"",material:"",defaultSets:3,defaultReps:"10",defaultLoad:"",defaultRest:"60s",instructions:"",observations:"",level:"Principiant"});
+  const [newLibEx, setNewLibEx] = useState({name:"",category:"Força",muscleGroup:"",movementPattern:"",material:"",defaultSets:3,defaultReps:"10",defaultLoad:"",defaultRest:"60s",instructions:"",observations:"",level:"Principiant",videoUrl:""});
   const [expandedHistory, setExpandedHistory] = useState({});
   const [expandedClientCards, setExpandedClientCards] = useState({});
   const [clientSearch, setClientSearch] = useState("");
@@ -2093,6 +2094,7 @@ export default function App() {
                         </div>
                         {isExpanded&&(
                           <div style={{paddingLeft:36}}>
+                            {ex.videoUrl&&<button style={{background:"#eef2ff",color:"#1d4ed8",border:"1.5px solid #c7d2fe",borderRadius:8,padding:"4px 10px",fontSize:11,cursor:"pointer",marginBottom:8}} onClick={()=>window.open(ex.videoUrl,'_blank')}>▶ Vídeo</button>}
                             {ex.observations&&<div style={{fontSize:12,color:T.textSecondary,marginBottom:8}}>💬 {ex.observations}</div>}
                             {(ex.sets||[]).map((st,j)=>(
                               <div key={j} style={{background:T.card2,borderRadius:10,padding:"10px 12px",marginBottom:6,border:`1.5px solid ${st.completed?T.accent:T.border}`}}>
@@ -3021,9 +3023,10 @@ export default function App() {
                               <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Descans</label><input style={S.formInp} value={ex.plannedRest} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedRest:e.target.value}:ex2)}))}/></div>
                             </div>
                             <div style={{marginTop:6}}><label style={S.lbl}>Observacions</label><textarea style={{...S.formInp,minHeight:70,resize:"vertical"}} value={ex.observations||""} placeholder="Indicacions específiques..." onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,observations:e.target.value}:ex2)}))}></textarea></div>
+                            <div style={{marginTop:6}}><label style={S.lbl}>URL del vídeo</label><input style={S.formInp} value={ex.videoUrl||""} placeholder="https://www.youtube.com/..." onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,videoUrl:e.target.value}:ex2)}))}/></div>
                           </div>
                         ))}
-                        <select style={{...S.formInp,fontSize:12,marginBottom:12}} value="" onChange={e=>{const libEx=getClientLibrary(adminClient).find(l=>l.id===e.target.value);if(libEx) setEditingTemplate(p=>({...p,exercises:[...p.exercises,{id:`tex_${Date.now()}`,exerciseId:libEx.id,name:libEx.name,plannedSets:libEx.defaultSets,plannedReps:libEx.defaultReps,plannedLoad:libEx.defaultLoad||"",plannedRest:libEx.defaultRest||"",observations:"",order:p.exercises.length+1}]}));}}>
+                        <select style={{...S.formInp,fontSize:12,marginBottom:12}} value="" onChange={e=>{const libEx=getClientLibrary(adminClient).find(l=>l.id===e.target.value);if(libEx) setEditingTemplate(p=>({...p,exercises:[...p.exercises,{id:`tex_${Date.now()}`,exerciseId:libEx.id,name:libEx.name,plannedSets:libEx.defaultSets,plannedReps:libEx.defaultReps,plannedLoad:libEx.defaultLoad||"",plannedRest:libEx.defaultRest||"",observations:"",videoUrl:libEx.videoUrl||"",order:p.exercises.length+1}]}));}}>
                           <option value="">+ Afegir exercici de la biblioteca...</option>
                           {getClientLibrary(adminClient).map(l=><option key={l.id} value={l.id}>{l.name}</option>)}
                         </select>
@@ -3078,7 +3081,7 @@ export default function App() {
                           ))}
                         </div>
                       )}
-                      <select style={{...S.formInp,fontSize:12,marginBottom:12}} value="" onChange={e=>{const libEx=getClientLibrary(adminClient).find(l=>l.id===e.target.value);if(libEx) setNewTemplate(p=>({...p,exercises:[...(p.exercises||[]),{id:`tex_${Date.now()}`,exerciseId:libEx.id,name:libEx.name,plannedSets:libEx.defaultSets,plannedReps:libEx.defaultReps,plannedLoad:libEx.defaultLoad||"",plannedRest:libEx.defaultRest||"",observations:"",order:(p.exercises||[]).length+1}]}));}}>
+                      <select style={{...S.formInp,fontSize:12,marginBottom:12}} value="" onChange={e=>{const libEx=getClientLibrary(adminClient).find(l=>l.id===e.target.value);if(libEx) setNewTemplate(p=>({...p,exercises:[...(p.exercises||[]),{id:`tex_${Date.now()}`,exerciseId:libEx.id,name:libEx.name,plannedSets:libEx.defaultSets,plannedReps:libEx.defaultReps,plannedLoad:libEx.defaultLoad||"",plannedRest:libEx.defaultRest||"",observations:"",videoUrl:libEx.videoUrl||"",order:(p.exercises||[]).length+1}]}));}}>
                         <option value="">+ Afegir exercici de la biblioteca...</option>
                         {getClientLibrary(adminClient).map(l=><option key={l.id} value={l.id}>{l.name}</option>)}
                       </select>
@@ -3114,7 +3117,8 @@ export default function App() {
                         </div>
                         <div style={{marginBottom:8}}><label style={S.lbl}>Material</label><input style={S.formInp} value={editingLibEx.material} onChange={e=>setEditingLibEx(p=>({...p,material:e.target.value}))}/></div>
                         <div style={{marginBottom:8}}><label style={S.lbl}>Indicacions</label><textarea style={{...S.formInp,minHeight:60,resize:"vertical"}} value={editingLibEx.instructions} onChange={e=>setEditingLibEx(p=>({...p,instructions:e.target.value}))}/></div>
-                        <div style={{marginBottom:12}}><label style={S.lbl}>Nivell</label><select style={S.formInp} value={editingLibEx.level} onChange={e=>setEditingLibEx(p=>({...p,level:e.target.value}))}>{["Principiant","Intermedi","Avançat"].map(l=><option key={l} value={l}>{l}</option>)}</select></div>
+                        <div style={{marginBottom:8}}><label style={S.lbl}>Nivell</label><select style={S.formInp} value={editingLibEx.level} onChange={e=>setEditingLibEx(p=>({...p,level:e.target.value}))}>{["Principiant","Intermedi","Avançat"].map(l=><option key={l} value={l}>{l}</option>)}</select></div>
+                        <div style={{marginBottom:12}}><label style={S.lbl}>URL del vídeo (YouTube)</label><input style={S.formInp} value={editingLibEx.videoUrl||""} onChange={e=>setEditingLibEx(p=>({...p,videoUrl:e.target.value}))} placeholder="https://www.youtube.com/..."/></div>
                         <div style={{...S.row,justifyContent:"flex-end"}}>
                           <button style={S.btnSecondary} onClick={()=>setEditingLibEx(null)}>Cancel·lar</button>
                           <button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={()=>{updateLib(lib.map(e=>e.id===editingLibEx.id?editingLibEx:e));setEditingLibEx(null);}}>Guardar</button>
@@ -3151,10 +3155,11 @@ export default function App() {
                       </div>
                       <div style={{marginBottom:8}}><label style={S.lbl}>Material</label><input style={S.formInp} value={newLibEx.material} onChange={e=>setNewLibEx(p=>({...p,material:e.target.value}))}/></div>
                       <div style={{marginBottom:8}}><label style={S.lbl}>Indicacions</label><textarea style={{...S.formInp,minHeight:60,resize:"vertical"}} value={newLibEx.instructions} onChange={e=>setNewLibEx(p=>({...p,instructions:e.target.value}))}/></div>
-                      <div style={{marginBottom:12}}><label style={S.lbl}>Nivell</label><select style={S.formInp} value={newLibEx.level} onChange={e=>setNewLibEx(p=>({...p,level:e.target.value}))}>{["Principiant","Intermedi","Avançat"].map(l=><option key={l} value={l}>{l}</option>)}</select></div>
+                      <div style={{marginBottom:8}}><label style={S.lbl}>Nivell</label><select style={S.formInp} value={newLibEx.level} onChange={e=>setNewLibEx(p=>({...p,level:e.target.value}))}>{["Principiant","Intermedi","Avançat"].map(l=><option key={l} value={l}>{l}</option>)}</select></div>
+                      <div style={{marginBottom:12}}><label style={S.lbl}>URL del vídeo (YouTube)</label><input style={S.formInp} value={newLibEx.videoUrl||""} onChange={e=>setNewLibEx(p=>({...p,videoUrl:e.target.value}))} placeholder="https://www.youtube.com/..."/></div>
                       <div style={{...S.row,justifyContent:"flex-end"}}>
                         <button style={S.btnSecondary} onClick={()=>setShowAddLibEx(false)}>Cancel·lar</button>
-                        <button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={()=>{if(!newLibEx.name)return;updateLib([...lib,{...newLibEx,id:`ex_${Date.now()}`}]);setNewLibEx({name:"",category:"Força",muscleGroup:"",movementPattern:"",material:"",defaultSets:3,defaultReps:"10",defaultLoad:"",defaultRest:"60s",instructions:"",observations:"",level:"Principiant"});setShowAddLibEx(false);}}>Afegir</button>
+                        <button style={{...S.btnPrimary,width:"auto",padding:"7px 16px",fontSize:13,marginLeft:8}} onClick={()=>{if(!newLibEx.name)return;updateLib([...lib,{...newLibEx,id:`ex_${Date.now()}`}]);setNewLibEx({name:"",category:"Força",muscleGroup:"",movementPattern:"",material:"",defaultSets:3,defaultReps:"10",defaultLoad:"",defaultRest:"60s",instructions:"",observations:"",level:"Principiant",videoUrl:""});setShowAddLibEx(false);}}>Afegir</button>
                       </div>
                     </FormCard>
                   ):(
