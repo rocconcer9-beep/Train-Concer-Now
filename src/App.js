@@ -1621,7 +1621,7 @@ export default function App() {
           </div>
           <div style={{marginBottom:16}}><label style={S.lbl}>Notes finals</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={sess.clientNotes||""} onChange={e=>updateSess("clientNotes",e.target.value)}/></div>
           <div style={{fontSize:12,fontWeight:500,color:T.textSecondary,textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:10}}>Check-in inicial</div>
-          {[{key:"energy",label:"Energia",max:5},{key:"sleep",label:"Son",max:5},{key:"stress",label:"Estrès",max:5},{key:"fatigue",label:"Fatiga muscular",max:5}].map(({key,label,max})=>(
+          {[{key:"energy",label:"Energia",max:5},{key:"sleep",label:"Descans",max:5},{key:"stress",label:"Estrès",max:5},{key:"fatigue",label:"Fatiga muscular",max:5}].map(({key,label,max})=>(
             <div key={key} style={{marginBottom:10}}>
               <label style={S.lbl}>{label} {(sess.checkIn||{})[key]?`${(sess.checkIn||{})[key]}/${max}`:""}</label>
               <div style={{display:"flex",gap:5}}>
@@ -1972,7 +1972,7 @@ export default function App() {
                     <div style={{fontSize:13,color:T.textSecondary,marginBottom:20}}>Respon ràpid abans de començar l'entrenament.</div>
                     {showPainAlert&&<div style={{background:T.dangerBg,border:`1.5px solid ${T.danger}40`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:12,color:T.danger}}>⚠️ Dolor elevat reportat. Ajusta la intensitat o consulta amb l'entrenador.</div>}
                     {showRecoveryAlert&&<div style={{background:T.orangeBg,border:`1.5px solid #7C2D12`,borderRadius:10,padding:"8px 12px",marginBottom:12,fontSize:12,color:T.orange}}>⚠️ Recuperació baixa. Considera baixar la intensitat.</div>}
-                    {[{key:"energy",label:"Energia",max:5},{key:"sleep",label:"Son",max:5},{key:"stress",label:"Estrès",max:5},{key:"fatigue",label:"Fatiga muscular",max:5}].map(({key,label,max})=>(
+                    {[{key:"energy",label:"Energia",max:5},{key:"sleep",label:"Descans",max:5},{key:"stress",label:"Estrès",max:5},{key:"fatigue",label:"Fatiga muscular",max:5}].map(({key,label,max})=>(
                       <div key={key} style={{marginBottom:14}}>
                         <label style={S.lbl}>{label} {checkInForm[key]?`${checkInForm[key]}/${max}`:""}</label>
                         <div style={{display:"flex",gap:6}}>
@@ -2346,7 +2346,7 @@ export default function App() {
                                 <div style={{fontWeight:500,fontSize:11,color:'#1a3a6b',marginBottom:6,textTransform:"uppercase",letterSpacing:"0.5px"}}>Check-in inicial</div>
                                 <div style={{display:"flex",flexWrap:"wrap",gap:8,fontSize:12,color:'#374151'}}>
                                   {sess.checkIn.energy&&<span>⚡ Energia {sess.checkIn.energy}/5</span>}
-                                  {sess.checkIn.sleep&&<span>😴 Son {sess.checkIn.sleep}/5</span>}
+                                  {sess.checkIn.sleep&&<span>😴 Descans {sess.checkIn.sleep}/5</span>}
                                   {sess.checkIn.stress&&<span>🧠 Estrès {sess.checkIn.stress}/5</span>}
                                   {sess.checkIn.fatigue&&<span>💪 Fatiga {sess.checkIn.fatigue}/5</span>}
                                   {sess.checkIn.pain!==""&&sess.checkIn.pain!=null&&<span style={{color:Number(sess.checkIn.pain)>=5?T.danger:'#374151'}}>🩹 Dolor {sess.checkIn.pain}/10{sess.checkIn.painZone?` · ${sess.checkIn.painZone}`:""}</span>}
@@ -2744,7 +2744,7 @@ export default function App() {
                               <div style={{fontWeight:500,fontSize:11,color:'#1a3a6b',marginBottom:6,textTransform:"uppercase",letterSpacing:"0.5px"}}>Check-in inicial</div>
                               <div style={{display:"flex",flexWrap:"wrap",gap:8,fontSize:12,color:T.textSecondary}}>
                                 {sess.checkIn.energy&&<span>⚡ Energia {sess.checkIn.energy}/5</span>}
-                                {sess.checkIn.sleep&&<span>😴 Son {sess.checkIn.sleep}/5</span>}
+                                {sess.checkIn.sleep&&<span>😴 Descans {sess.checkIn.sleep}/5</span>}
                                 {sess.checkIn.stress&&<span>🧠 Estrès {sess.checkIn.stress}/5</span>}
                                 {sess.checkIn.fatigue&&<span>💪 Fatiga {sess.checkIn.fatigue}/5</span>}
                                 {sess.checkIn.pain!==""&&sess.checkIn.pain!=null&&<span style={{color:Number(sess.checkIn.pain)>=5?T.danger:T.textSecondary}}>🩹 Dolor {sess.checkIn.pain}/10{sess.checkIn.painZone?` · ${sess.checkIn.painZone}`:""}</span>}
@@ -2885,7 +2885,7 @@ export default function App() {
                 <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:10}}>
                   {[
                     {label:"Energia",value:ts.avgEnergyRecent!=null?`${ts.avgEnergyRecent}/5`:"-",color:ts.avgEnergyRecent!=null&&ts.avgEnergyRecent<=2?T.danger:T.green},
-                    {label:"Son",value:ts.avgSleepRecent!=null?`${ts.avgSleepRecent}/5`:"-",color:ts.avgSleepRecent!=null&&ts.avgSleepRecent<=2?T.danger:T.green},
+                    {label:"Descans",value:ts.avgSleepRecent!=null?`${ts.avgSleepRecent}/5`:"-",color:ts.avgSleepRecent!=null&&ts.avgSleepRecent<=2?T.danger:T.green},
                     {label:"Estrès",value:ts.avgStressRecent!=null?`${ts.avgStressRecent}/5`:"-",color:ts.avgStressRecent!=null&&ts.avgStressRecent>=4?T.orange:T.textPrimary},
                     {label:"Fatiga",value:ts.avgFatigueRecent!=null?`${ts.avgFatigueRecent}/5`:"-",color:ts.avgFatigueRecent!=null&&ts.avgFatigueRecent>=4?T.orange:T.textPrimary},
                     {label:"Dolor mitjà",value:ts.avgPainRecent!=null?`${ts.avgPainRecent}/10`:"-",color:ts.avgPainRecent!=null&&ts.avgPainRecent>=5?T.danger:T.textPrimary},
