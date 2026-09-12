@@ -1014,7 +1014,7 @@ export default function App() {
         ...c,
         ...ALBA_PERSONAL_DATA,
         exerciseLibrary: ALBA_SERRANO_LIBRARY,
-        templates: ALBA_SERRANO_TEMPLATES,
+        templates: ALBA_SERRANO_TEMPLATES.map(tpl=>({...tpl,exercises:(tpl.exercises||[]).map(ex=>({...ex,observations:ex.observations||ALBA_SERRANO_LIBRARY.find(lib=>lib.id===ex.exerciseId)?.instructions||""}))})),
         schedule: {
           Dilluns:   ["tpl_alba_A"],
           Dimarts:   [],
@@ -1044,6 +1044,31 @@ export default function App() {
     return nd;
   };
 
+  const fixAlbaPlantillesObservations = async (currentData) => {
+    const alba = currentData.clients.find(c => c.name === "Alba Serrano Liarte");
+    if(!alba) return null;
+    const lib = alba.exerciseLibrary?.length ? alba.exerciseLibrary : ALBA_SERRANO_LIBRARY;
+    let changed = false;
+    const updatedTemplates = (alba.templates || []).map(tpl => {
+      if(tpl.id !== 'tpl_alba_A' && tpl.id !== 'tpl_alba_B') return tpl;
+      const updatedExercises = (tpl.exercises || []).map(ex => {
+        if(ex.observations) return ex;
+        const libEx = lib.find(l => l.id === ex.exerciseId);
+        if(!libEx?.instructions) return ex;
+        changed = true;
+        return {...ex, observations: libEx.instructions};
+      });
+      return {...tpl, exercises: updatedExercises};
+    });
+    if(!changed) return null;
+    const updatedClients = currentData.clients.map(c =>
+      c.name === "Alba Serrano Liarte" ? {...c, templates: updatedTemplates} : c
+    );
+    const nd = {...currentData, clients: updatedClients};
+    try { await set(ref(db,"fitcoach-data2"),nd); } catch {}
+    return nd;
+  };
+
   const loadData = async () => {
     setLoading(true);
     try {
@@ -1057,7 +1082,8 @@ export default function App() {
       const seeded2 = await seedRocConcernau(seeded || loadedData);
       const seeded3 = await seedAlbaSerrano(seeded2 || seeded || loadedData);
       const updatedAlba = await updateAlbaSerranoData(seeded3 || seeded2 || seeded || loadedData);
-      const finalData = updatedAlba || seeded3 || seeded2 || seeded || loadedData;
+      const fixedAlbaObs = await fixAlbaPlantillesObservations(updatedAlba || seeded3 || seeded2 || seeded || loadedData);
+      const finalData = fixedAlbaObs || updatedAlba || seeded3 || seeded2 || seeded || loadedData;
 
       // Migrar clients sense accessToken
       let dataUpdated = false;
@@ -2095,7 +2121,7 @@ export default function App() {
                         {isExpanded&&(
                           <div style={{paddingLeft:36}}>
                             {ex.videoUrl&&<button style={{background:"#eef2ff",color:"#1d4ed8",border:"1.5px solid #c7d2fe",borderRadius:8,padding:"4px 10px",fontSize:11,cursor:"pointer",marginBottom:8}} onClick={()=>window.open(ex.videoUrl,'_blank')}>▶ Vídeo</button>}
-                            {ex.observations&&<div style={{fontSize:12,color:T.textSecondary,marginBottom:8}}>💬 {ex.observations}</div>}
+                            {ex.observations&&<div style={{background:"#eef2ff",border:"1.5px solid #c7d2fe",borderRadius:8,padding:"8px 12px",marginBottom:8,display:"flex",alignItems:"flex-start",gap:8,fontSize:12,lineHeight:1.5}}><span style={{color:"#4338ca",fontSize:15,flexShrink:0}}>ℹ</span><span style={{color:"#1e1b4b"}}>{ex.observations}</span></div>}
                             {(ex.sets||[]).map((st,j)=>(
                               <div key={j} style={{background:T.card2,borderRadius:10,padding:"10px 12px",marginBottom:6,border:`1.5px solid ${st.completed?T.accent:T.border}`}}>
                                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
@@ -2363,7 +2389,7 @@ export default function App() {
                                   {e.isExtra&&!e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:'#f1f5f9',color:'#6b7280',border:'1.5px solid #e2e8f0'}}>Extra</span>}
                                 </div>
                                 <div style={{fontSize:11,color:'#374151',marginBottom:4}}>{e.plannedSets||0} sèries · {e.plannedReps||"?"} reps{e.plannedLoad?` · ${e.plannedLoad}`:""}{e.plannedRest?` · ${e.plannedRest}`:""}</div>
-                                {e.observations&&<div style={{fontSize:11,color:'#6b7280',marginBottom:4,fontStyle:"italic"}}>💬 {e.observations}</div>}
+                                {e.observations&&<div style={{background:"#eef2ff",border:"1.5px solid #c7d2fe",borderRadius:8,padding:"8px 12px",marginBottom:8,display:"flex",alignItems:"flex-start",gap:8,fontSize:12,lineHeight:1.5}}><span style={{color:"#4338ca",fontSize:15,flexShrink:0}}>ℹ</span><span style={{color:"#1e1b4b"}}>{e.observations}</span></div>}
                                 {Object.values(e.sets||{}).map((st,j)=>{
                                   const parts=[];
                                   if(st.reps) parts.push(`${st.reps} reps`);
@@ -2761,7 +2787,7 @@ export default function App() {
                                 {e.isExtra&&!e.isCustom&&<span style={{fontSize:10,padding:"1px 7px",borderRadius:20,background:T.card2,color:T.textSecondary,border:`1.5px solid ${T.border}`}}>Extra</span>}
                               </div>
                               <div style={{fontSize:11,color:'#374151',marginBottom:4}}>{e.plannedSets||0} sèries · {e.plannedReps||"?"} reps{e.plannedLoad?` · ${e.plannedLoad}`:""}{e.plannedRest?` · ${e.plannedRest}`:""}</div>
-                              {e.observations&&<div style={{fontSize:11,color:'#6b7280',marginBottom:4,fontStyle:"italic"}}>💬 {e.observations}</div>}
+                              {e.observations&&<div style={{background:"#eef2ff",border:"1.5px solid #c7d2fe",borderRadius:8,padding:"8px 12px",marginBottom:8,display:"flex",alignItems:"flex-start",gap:8,fontSize:12,lineHeight:1.5}}><span style={{color:"#4338ca",fontSize:15,flexShrink:0}}>ℹ</span><span style={{color:"#1e1b4b"}}>{e.observations}</span></div>}
                               {Object.values(e.sets||{}).map((st,j)=>{
                                 const parts=[];
                                 if(st.reps) parts.push(`${st.reps} reps`);
