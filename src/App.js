@@ -2171,7 +2171,7 @@ export default function App() {
                             {getClientLibrary(selClient).length===0&&<div style={{textAlign:"center",padding:"2rem 0",color:T.textSecondary,fontSize:13}}>La biblioteca està buida</div>}
                             {getClientLibrary(selClient).map(ex=>(
                               <div key={ex.id} style={{...S.card,cursor:"pointer"}} onClick={()=>{
-                                const newEx={id:`extra_${Date.now()}`,exerciseId:ex.id,name:ex.name,plannedSets:ex.defaultSets,plannedReps:ex.defaultReps,plannedLoad:ex.defaultLoad||"",plannedRest:ex.defaultRest||"",observations:ex.instructions||"",isExtra:true,sets:Array.from({length:ex.defaultSets},()=>({reps:ex.defaultReps||"",load:ex.defaultLoad||"",rest:ex.defaultRest||"",completed:false}))};
+                                const newEx={id:`extra_${Date.now()}`,exerciseId:ex.id,name:ex.name,plannedSets:ex.defaultSets,plannedReps:ex.defaultReps,plannedLoad:ex.defaultLoad||"",plannedRest:ex.defaultRest||"",observations:ex.instructions||"",isExtra:true,videoUrl:ex.videoUrl||"",sets:Array.from({length:ex.defaultSets},()=>({reps:ex.defaultReps||"",load:ex.defaultLoad||"",rest:ex.defaultRest||"",completed:false}))};
                                 setSessionExercises(p=>{const s={...p[sessionKey]};s.exercises=[...s.exercises,newEx];saveActiveSession(selClient,selDay,s);return {...p,[sessionKey]:s};});
                                 setShowAddExModal(false);setAddExTab("biblioteca");
                               }}>
@@ -2197,7 +2197,7 @@ export default function App() {
                             <button style={{...S.btnPrimary,padding:"12px"}} onClick={()=>{
                               if(!customExForm.name.trim()) return;
                               const numSets=Number(customExForm.sets)||1;
-                              const newEx={id:`custom_${Date.now()}`,exerciseId:null,name:customExForm.name.trim(),plannedSets:numSets,plannedReps:customExForm.reps||"",plannedLoad:customExForm.load||"",plannedRest:customExForm.rest||"",observations:customExForm.notes||"",isExtra:true,isCustom:true,sets:Array.from({length:numSets},()=>({reps:customExForm.reps||"",load:customExForm.load||"",rest:customExForm.rest||"",completed:false}))};
+                              const newEx={id:`custom_${Date.now()}`,exerciseId:null,name:customExForm.name.trim(),plannedSets:numSets,plannedReps:customExForm.reps||"",plannedLoad:customExForm.load||"",plannedRest:customExForm.rest||"",observations:customExForm.notes||"",isExtra:true,isCustom:true,videoUrl:"",sets:Array.from({length:numSets},()=>({reps:customExForm.reps||"",load:customExForm.load||"",rest:customExForm.rest||"",completed:false}))};
                               setSessionExercises(p=>{const s={...p[sessionKey]};s.exercises=[...s.exercises,newEx];saveActiveSession(selClient,selDay,s);return {...p,[sessionKey]:s};});
                               const libEx={id:`ex_${Date.now()}`,name:customExForm.name.trim(),category:"Força",muscleGroup:"",movementPattern:"",material:"",defaultSets:numSets,defaultReps:customExForm.reps||"10",defaultLoad:customExForm.load||"",defaultRest:customExForm.rest||"60s",instructions:customExForm.notes||"",observations:"",level:"Principiant"};
                               updateClientLibrary(selClient,[...getClientLibrary(selClient),libEx]);
@@ -3160,6 +3160,7 @@ export default function App() {
                           </div>
                           <div style={{display:"flex",gap:4}}>
                             <button style={S.btnEdit} onClick={()=>setEditingLibEx({...ex})}>Editar</button>
+                            {ex.videoUrl&&<button style={{background:"#eef2ff",color:"#1d4ed8",border:"1.5px solid #c7d2fe",borderRadius:8,padding:"4px 10px",fontSize:11,cursor:"pointer"}} onClick={()=>window.open(ex.videoUrl,'_blank')}>▶ Vídeo</button>}
                             <button style={S.btnDanger} onClick={()=>updateLib(lib.filter(e=>e.id!==ex.id))}>Eliminar</button>
                           </div>
                         </div>
