@@ -2058,6 +2058,11 @@ export default function App() {
               });
             };
 
+            const _cHist=[...(clientHistories[normalizeClientId(selClient)]||[])].sort((a,b)=>(b.createdAt||"")>(a.createdAt||"")?1:-1);
+            const _prevSameTpl=_cHist.find(s=>currentSession.templateId?s.templateId===currentSession.templateId:s.sessionTitle===currentSession.templateName)||null;
+            const _last3=_cHist.slice(0,3);
+            const showHighRpeAlert=_last3.length===3&&_last3.every(s=>Number(s.rpe)>=8);
+
             return (
               <>
                 <div style={{display:"flex",gap:6,padding:"0.85rem 1.25rem 0.5rem",overflowX:"auto"}}>
@@ -2096,9 +2101,24 @@ export default function App() {
                       <ProgressBar value={dc} total={exs.length}/>
                     </div>
                   </div>
+                  {showHighRpeAlert&&(
+                    <div style={{background:"#fff7ed",border:"1.5px solid #fdba74",borderRadius:8,padding:"8px 12px",marginBottom:8,display:"flex",alignItems:"flex-start",gap:8}}>
+                      <span style={{color:"#ea580c",fontSize:18,lineHeight:1,flexShrink:0}}>⚠</span>
+                      <div>
+                        <div style={{fontWeight:500,fontSize:12,color:"#ea580c",marginBottom:2}}>3 sessions seguides amb RPE alt</div>
+                        <div style={{fontSize:11,color:"#9a3412"}}>Considera reduir la intensitat o fer un dia de recuperació activa.</div>
+                      </div>
+                    </div>
+                  )}
                   {exs.map((ex,i)=>{
                     const allSetsCompleted=ex.sets&&ex.sets.length>0&&ex.sets.every(s=>s.completed);
                     const isExpanded=expandedExercises[`${sessionKey}-${i}`]!==false;
+                    const _prevEx=_prevSameTpl?.exercises?.find(e=>e.name===ex.name||(ex.exerciseId&&e.exerciseId===ex.exerciseId))||null;
+                    const _prevDateStr=(()=>{if(!_prevSameTpl)return "";const d=new Date(_prevSameTpl.createdAt||"");if(isNaN(d))return "";return `${DAYS[d.getDay()===0?6:d.getDay()-1].slice(0,3)} ${d.getDate()}/${d.getMonth()+1}`;})();
+                    const _prevSetsStr=_prevEx?.sets?.length?_prevEx.sets.map((s,idx)=>`S${idx+1}: ${s.reps||'?'}r${s.load?` ${s.load}`:''}`).join(' · '):"";
+                    const _prevRpe=(_prevSameTpl&&_prevSameTpl.rpe!=null&&_prevSameTpl.rpe!=="")?Number(_prevSameTpl.rpe):null;
+                    const _prevLoadVal=(()=>{const ls=_prevEx?.sets?.map(s=>parseFloat(String(s.load||""))).filter(v=>!isNaN(v)&&v>0);return ls?.length?ls.reduce((a,b)=>a+b,0)/ls.length:null;})();
+                    const _loadSug=(()=>{if(_prevRpe==null||_prevLoadVal==null)return null;if(_prevRpe<=6)return{type:'up',kg:Math.round(_prevLoadVal*1.05*2)/2};if(_prevRpe>=9)return{type:'down',kg:Math.round(_prevLoadVal*0.95*2)/2};return null;})();
                     return (
                       <div key={i} style={{...S.card,opacity:allSetsCompleted?0.6:1}}>
                         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:isExpanded?10:0}}>
@@ -2122,6 +2142,8 @@ export default function App() {
                           <div style={{paddingLeft:36}}>
                             {ex.videoUrl&&<button style={{background:"#eef2ff",color:"#1d4ed8",border:"1.5px solid #c7d2fe",borderRadius:8,padding:"4px 10px",fontSize:11,cursor:"pointer",marginBottom:8}} onClick={()=>window.open(ex.videoUrl,'_blank')}>▶ Vídeo</button>}
                             {ex.observations&&<div style={{background:"#eef2ff",border:"1.5px solid #c7d2fe",borderRadius:8,padding:"8px 12px",marginBottom:8,display:"flex",alignItems:"flex-start",gap:8,fontSize:12,lineHeight:1.5}}><span style={{color:"#4338ca",fontSize:15,flexShrink:0}}>ℹ</span><span style={{color:"#1e1b4b"}}>{ex.observations}</span></div>}
+                            {_prevSameTpl&&_prevEx&&_prevSetsStr&&<div style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:6,padding:"5px 8px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><div style={{fontSize:11,color:"#475569"}}>{_prevDateStr} · {_prevSetsStr}</div><span style={{fontSize:10,color:"#94a3b8"}}>▼</span></div>}
+                            {_loadSug&&<div style={{background:"#f0fdf4",border:"1.5px solid #86efac",borderRadius:6,padding:"6px 8px",marginBottom:8,display:"flex",alignItems:"center",justifyContent:"space-between"}}><div style={{fontSize:11,color:"#166534"}}>{_loadSug.type==='up'?`Progressió suggerida: prova amb ${_loadSug.kg} kg`:`Considera baixar a ${_loadSug.kg} kg`}</div><button style={{background:"#4ade80",color:"#166534",border:"none",borderRadius:6,padding:"3px 8px",fontSize:10,fontWeight:600,cursor:"pointer"}} onClick={()=>{setSessionExercises(p=>{const s={...p[sessionKey]};s.exercises=s.exercises.map((e,ei)=>ei===i?{...e,sets:e.sets.map(st=>({...st,load:`${_loadSug.kg} kg`}))}:e);saveActiveSession(selClient,selDay,s);return{...p,[sessionKey]:s};});}}>Aplicar</button></div>}
                             {(ex.sets||[]).map((st,j)=>(
                               <div key={j} style={{background:T.card2,borderRadius:10,padding:"10px 12px",marginBottom:6,border:`1.5px solid ${st.completed?T.accent:T.border}`}}>
                                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
