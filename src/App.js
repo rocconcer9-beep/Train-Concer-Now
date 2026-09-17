@@ -1337,6 +1337,7 @@ export default function App() {
     const total = exercises.length||1;
     const record = {
       id:sessionId, date:dateStr, day, clientId:id,
+      templateId:formData.templateId||null,
       sessionTitle:formData.templateName||`Entrenament ${day}`,
       completedExercises:completedExs.length, totalExercises:exercises.length,
       completionPercentage:Math.round((completedExs.length/total)*100),
@@ -1930,6 +1931,7 @@ export default function App() {
                       ...finishForm,
                       checkIn:sess?.checkIn||null,
                       templateName:sess?.templateName||"",
+                      templateId:sess?.templateId||null,
                     },sess?.date);
                     await deleteActiveSession(selClient,selDay);
                     setShowFinishModal(false);
