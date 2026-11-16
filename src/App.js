@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { db } from "./firebase";
 import { ref, set, get, remove } from "firebase/database";
 
@@ -414,7 +414,7 @@ const CalendarComp = ({clientIdx,schedule,scheduleOverrides,templates,history,ca
                     </div>
                     <div style={{flex:1,minWidth:55}}>
                       <div style={{fontSize:11,color:"#64748b",marginBottom:3}}>Càrrega</div>
-                      <input style={modalInp} value={ex.plannedLoad||""} onChange={e=>{const n=[...editExercises];n[i]={...n[i],plannedLoad:e.target.value};setEditExercises(n);}}/>
+                      <WeightPicker style={modalInp} value={ex.plannedLoad||""} onChange={v=>{const n=[...editExercises];n[i]={...n[i],plannedLoad:v};setEditExercises(n);}}/>
                     </div>
                     <div style={{flex:1,minWidth:55}}>
                       <div style={{fontSize:11,color:"#64748b",marginBottom:3}}>Descans</div>
@@ -634,13 +634,6 @@ const getClientTrackingStats = (history) => {
   };
 };
 
-const extractSimpleKg = (val) => {
-  if(!val) return null;
-  const s = String(val);
-  if(s.includes('/') || s.includes('+') || s.includes('-')) return null;
-  const n = parseFloat(s);
-  return (!isNaN(n) && n > 0) ? n : null;
-};
 
 const extractSimpleReps = (val) => {
   if(!val) return null;
@@ -670,6 +663,217 @@ const tryDistributePerSet = (value, plannedSets) => {
   });
   if(stripped.some(v => v === null)) return null;
   return stripped.map(v => unit ? v + ' ' + unit : v);
+};
+
+// ── WeightPicker ──────────────────────────────────────────────────────────────
+const parseWeightValue = (val) => {
+  if (!val && val !== 0) return { intPart: "", decPart: "00" };
+  const s = String(val).trim();
+  if (!s) return { intPart: "", decPart: "00" };
+  if (s === "Pes corporal") return { intPart: "corporal", decPart: "" };
+  if (s.includes('/') || s.includes('+')) return null;
+  const noUnit = s.replace(/\s*kg\s*$/i, "").trim().replace(',', '.');
+  const n = parseFloat(noUnit);
+  if (isNaN(n) || n < 0) return null;
+  if (n === 0) return { intPart: "", decPart: "00" };
+  const integer = Math.floor(n);
+  const dec100 = Math.round((n - integer) * 100);
+  if (dec100 === 0)  return { intPart: String(integer), decPart: "00" };
+  if (dec100 === 25) return { intPart: String(integer), decPart: "25" };
+  if (dec100 === 50) return { intPart: String(integer), decPart: "50" };
+  if (dec100 === 75) return { intPart: String(integer), decPart: "75" };
+  return null;
+};
+
+const buildWeightValue = (intPart, decPart) => {
+  if (!intPart) return "";
+  if (intPart === "corporal") return "Pes corporal";
+  if (decPart === "25") return `${intPart},25 kg`;
+  if (decPart === "50") return `${intPart},5 kg`;
+  if (decPart === "75") return `${intPart},75 kg`;
+  return `${intPart} kg`;
+};
+
+const _WP_INT_OPTS = Array.from({length: 300}, (_, i) => i + 1);
+const _WP_DEC_OPTS = [{v:"00",l:",00"},{v:"25",l:",25"},{v:"50",l:",50"},{v:"75",l:",75"}];
+let _wpSetClose = null;
+
+const WeightPicker = ({ value, onChange, style = {}, placeholder = "kg" }) => {
+  const [open, setOpen] = useState(false);
+  const [panelPos, setPanelPos] = useState({top:0,bottom:undefined,left:0,width:200});
+  const triggerRef = useRef(null);
+  const panelRef = useRef(null);
+  const intListRef = useRef(null);
+
+  const parsed = parseWeightValue(value);
+  const isComplex = parsed === null;
+  const intPart = isComplex ? "" : (parsed.intPart || "");
+  const decPart = isComplex ? "00" : (parsed.decPart || "00");
+  const isCorporal = intPart === "corporal";
+
+  useEffect(() => {
+    if (!open || !intListRef.current || !intPart || isCorporal) return;
+    const el = intListRef.current.querySelector(`[data-val="${intPart}"]`);
+    if (el) el.scrollIntoView({ block: "nearest" });
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e) => {
+      if (!panelRef.current?.contains(e.target) && !triggerRef.current?.contains(e.target))
+        setOpen(false);
+    };
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+    const onScroll = () => setOpen(false);
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("touchstart", onDown, { passive: true });
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("touchstart", onDown);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [open]);
+
+  useEffect(() => () => { if (_wpSetClose === setOpen) _wpSetClose = null; }, []);
+
+  if (isComplex) {
+    return <input style={style} value={value||""} onChange={e=>onChange(e.target.value)} placeholder={placeholder}/>;
+  }
+
+  const openPanel = () => {
+    if (_wpSetClose && _wpSetClose !== setOpen) _wpSetClose(false);
+    _wpSetClose = setOpen;
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (rect) {
+      const w = Math.max(rect.width, 200);
+      const spaceBelow = window.innerHeight - rect.bottom - 4;
+      const spaceAbove = rect.top - 4;
+      const above = spaceBelow < 300 && spaceAbove > spaceBelow;
+      setPanelPos({
+        top: above ? undefined : rect.bottom + 2,
+        bottom: above ? (window.innerHeight - rect.top + 2) : undefined,
+        left: Math.min(Math.max(rect.left, 4), window.innerWidth - w - 4),
+        width: w,
+      });
+    }
+    setOpen(true);
+  };
+
+  const handleInt = (v) => {
+    if (v === "corporal") { onChange("Pes corporal"); setOpen(false); }
+    else onChange(buildWeightValue(v, isCorporal ? "00" : (decPart || "00")));
+  };
+
+  const handleDec = (v) => {
+    if (!intPart || isCorporal) return;
+    onChange(buildWeightValue(intPart, v));
+    setOpen(false);
+  };
+
+  const displayText = !value ? "" : isCorporal ? "Pes corporal" : value;
+
+  const rowSt = (sel) => ({
+    padding:"10px 12px", minHeight:40, display:"flex", alignItems:"center",
+    cursor:"pointer", userSelect:"none",
+    background: sel ? "#fefce8" : "transparent",
+    color: sel ? T.orange : T.textPrimary,
+    fontWeight: sel ? 700 : 400,
+    fontSize:13, borderBottom:`1px solid #f8fafc`,
+  });
+
+  return (
+    <>
+      <div
+        ref={triggerRef}
+        style={{...style, display:"flex", alignItems:"center", cursor:"pointer", userSelect:"none", gap:4}}
+        onClick={openPanel}
+      >
+        <span style={{flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",color:displayText?undefined:T.textSecondary}}>
+          {displayText || placeholder}
+        </span>
+        <span style={{color:T.textSecondary,fontSize:10,flexShrink:0}}>▾</span>
+      </div>
+      {open && (
+        <div
+          ref={panelRef}
+          style={{
+            position:"fixed",
+            top:panelPos.top,
+            bottom:panelPos.bottom,
+            left:panelPos.left,
+            width:panelPos.width,
+            background:"#fff",
+            border:`1.5px solid ${T.border}`,
+            borderRadius:10,
+            boxShadow:"0 8px 24px rgba(26,58,107,0.15)",
+            zIndex:9999,
+            overflow:"hidden",
+            display:"flex",
+            flexDirection:"column",
+          }}
+        >
+          <div style={{display:"flex",flex:1,overflow:"hidden"}}>
+            <div
+              ref={intListRef}
+              style={{flex:1,overflowY:"auto",maxHeight:240,borderRight:`1px solid ${T.border}`,WebkitOverflowScrolling:"touch"}}
+              onTouchMove={e=>e.stopPropagation()}
+              onWheel={e=>e.stopPropagation()}
+            >
+              <div
+                data-val="corporal"
+                style={rowSt(isCorporal)}
+                onMouseDown={e=>{e.preventDefault();handleInt("corporal");}}
+                onTouchEnd={e=>{e.preventDefault();handleInt("corporal");}}
+              >Pes corporal</div>
+              {_WP_INT_OPTS.map(k=>{
+                const sel=intPart===String(k)&&!isCorporal;
+                return (
+                  <div
+                    key={k}
+                    data-val={String(k)}
+                    style={rowSt(sel)}
+                    onMouseDown={e=>{e.preventDefault();handleInt(String(k));}}
+                    onTouchEnd={e=>{e.preventDefault();handleInt(String(k));}}
+                  >{k}</div>
+                );
+              })}
+            </div>
+            <div
+              style={{
+                width:72,overflowY:"auto",maxHeight:240,WebkitOverflowScrolling:"touch",
+                opacity:(!intPart||isCorporal)?0.35:1,
+                pointerEvents:(!intPart||isCorporal)?"none":"auto",
+              }}
+              onTouchMove={e=>e.stopPropagation()}
+              onWheel={e=>e.stopPropagation()}
+            >
+              {_WP_DEC_OPTS.map(o=>{
+                const sel=decPart===o.v&&!isCorporal;
+                return (
+                  <div
+                    key={o.v}
+                    style={rowSt(sel)}
+                    onMouseDown={e=>{e.preventDefault();handleDec(o.v);}}
+                    onTouchEnd={e=>{e.preventDefault();handleDec(o.v);}}
+                  >{o.l}</div>
+                );
+              })}
+            </div>
+          </div>
+          <div style={{borderTop:`1px solid ${T.border}`,padding:"8px 10px",textAlign:"right",background:"#fafafa",flexShrink:0}}>
+            <button
+              style={{background:T.accent,color:T.headerBg,border:"none",borderRadius:8,padding:"6px 16px",cursor:"pointer",fontWeight:700,fontSize:12}}
+              onMouseDown={e=>{e.preventDefault();setOpen(false);}}
+              onTouchEnd={e=>{e.preventDefault();setOpen(false);}}
+            >Fet</button>
+          </div>
+        </div>
+      )}
+    </>
+  );
 };
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1697,7 +1901,7 @@ export default function App() {
               </div>
               <div style={{display:"flex",gap:6,marginBottom:8}}>
                 <div style={{flex:1}}><label style={S.lbl}>Reps plan.</label><input style={S.inp} value={ex.plannedReps||""} onChange={e=>updateEx(ei,"plannedReps",e.target.value)}/></div>
-                <div style={{flex:1}}><label style={S.lbl}>Càrrega plan.</label><input style={S.inp} value={ex.plannedLoad||""} onChange={e=>updateEx(ei,"plannedLoad",e.target.value)}/></div>
+                <div style={{flex:1}}><label style={S.lbl}>Càrrega plan.</label><WeightPicker style={S.inp} value={ex.plannedLoad||""} onChange={v=>updateEx(ei,"plannedLoad",v)}/></div>
                 <div style={{flex:1}}><label style={S.lbl}>Descans plan.</label><input style={S.inp} value={ex.plannedRest||""} onChange={e=>updateEx(ei,"plannedRest",e.target.value)}/></div>
               </div>
               <div style={{marginBottom:8}}><label style={S.lbl}>Observacions</label><input style={S.inp} value={ex.observations||""} onChange={e=>updateEx(ei,"observations",e.target.value)}/></div>
@@ -1713,7 +1917,7 @@ export default function App() {
                   </div>
                   <div style={{display:"flex",gap:5}}>
                     <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} value={st.reps||""} onChange={e=>updateSt(ei,si,"reps",e.target.value)}/></div>
-                    <div style={{flex:1}}><label style={S.lbl}>Càrrega</label><input style={S.inp} value={st.load||""} onChange={e=>updateSt(ei,si,"load",e.target.value)}/></div>
+                    <div style={{flex:1}}><label style={S.lbl}>Càrrega</label><WeightPicker style={S.inp} value={st.load||""} onChange={v=>updateSt(ei,si,"load",v)}/></div>
                     <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={st.rest||""} onChange={e=>updateSt(ei,si,"rest",e.target.value)}/></div>
                   </div>
                 </div>
@@ -1754,7 +1958,7 @@ export default function App() {
                     <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} value={editHistoryNewEx.reps||""} onChange={e=>setEditHistoryNewEx(p=>({...p,reps:e.target.value}))}/></div>
                   </div>
                   <div style={{display:"flex",gap:6,marginBottom:8}}>
-                    <div style={{flex:1}}><label style={S.lbl}>Càrrega</label><input style={S.inp} value={editHistoryNewEx.load||""} onChange={e=>setEditHistoryNewEx(p=>({...p,load:e.target.value}))}/></div>
+                    <div style={{flex:1}}><label style={S.lbl}>Càrrega</label><WeightPicker style={S.inp} value={editHistoryNewEx.load||""} onChange={v=>setEditHistoryNewEx(p=>({...p,load:v}))}/></div>
                     <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={editHistoryNewEx.rest||""} onChange={e=>setEditHistoryNewEx(p=>({...p,rest:e.target.value}))}/></div>
                   </div>
                   <div style={{marginBottom:10}}><label style={S.lbl}>Observacions</label><input style={S.inp} value={editHistoryNewEx.observations||""} onChange={e=>setEditHistoryNewEx(p=>({...p,observations:e.target.value}))}/></div>
@@ -2179,7 +2383,7 @@ export default function App() {
                                 </div>
                                 <div style={{display:"flex",gap:6}}>
                                   <div style={{flex:1}}><label style={S.lbl}>Reps fetes</label>{(()=>{const baseR=extractSimpleReps(ex.plannedReps);if(baseR){const opts=[];for(let r=1;r<=baseR+10;r++)opts.push(r);const curR=st.reps&&!isNaN(parseInt(st.reps))?String(parseInt(st.reps)):"";return(<select style={{...S.inp,appearance:"auto"}} value={curR} onChange={e=>updateSet(i,j,"reps",e.target.value)}><option value="">--</option>{opts.map(r=><option key={r} value={String(r)}>{r}</option>)}</select>);}return<input style={S.inp} value={st.reps} onChange={e=>updateSet(i,j,"reps",e.target.value)} placeholder={ex.plannedReps||"reps"}/>;})()}</div>
-                                  <div style={{flex:1}}><label style={S.lbl}>Kg / càrrega</label>{(()=>{const baseK=extractSimpleKg(ex.plannedLoad);if(baseK){const opts=[];for(let k=Math.max(1,Math.round(baseK)-20);k<=Math.round(baseK)+20;k++)opts.push(k);const rawLoad=st.load||"";const curK=rawLoad?String(parseFloat(rawLoad)||""):"";const selVal=opts.includes(Number(curK))?curK:"";return(<select style={{...S.inp,appearance:"auto"}} value={selVal} onChange={e=>updateSet(i,j,"load",e.target.value?e.target.value+" kg":"")}><option value="">--</option>{opts.map(k=><option key={k} value={String(k)}>{k}</option>)}</select>);}return<input style={S.inp} value={st.load||""} onChange={e=>updateSet(i,j,"load",e.target.value)} placeholder={ex.plannedLoad||"kg"}/>;})()}</div>
+                                  <div style={{flex:1}}><label style={S.lbl}>Kg / càrrega</label><WeightPicker style={S.inp} value={st.load||""} onChange={v=>updateSet(i,j,"load",v)} placeholder={ex.plannedLoad||"kg"}/></div>
                                   <div style={{flex:1}}><label style={S.lbl}>Descans</label><select style={{...S.inp,appearance:"auto"}} value={st.rest||""} onChange={e=>updateSet(i,j,"rest",e.target.value)}><option value="">--</option>{["15s","30s","45s","60s","90s","2'","3'","4'","5'"].map(o=><option key={o} value={o}>{o}</option>)}</select></div>
                                 </div>
                               </div>
@@ -2236,7 +2440,7 @@ export default function App() {
                               <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.inp} value={customExForm.reps} onChange={e=>setCustomExForm(p=>({...p,reps:e.target.value}))} placeholder="10"/></div>
                             </div>
                             <div style={{display:"flex",gap:8,marginBottom:10}}>
-                              <div style={{flex:1}}><label style={S.lbl}>Kg / càrrega</label><input style={S.inp} value={customExForm.load} onChange={e=>setCustomExForm(p=>({...p,load:e.target.value}))} placeholder="kg"/></div>
+                              <div style={{flex:1}}><label style={S.lbl}>Kg / càrrega</label><WeightPicker style={S.inp} value={customExForm.load||""} onChange={v=>setCustomExForm(p=>({...p,load:v}))}/></div>
                               <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.inp} value={customExForm.rest} onChange={e=>setCustomExForm(p=>({...p,rest:e.target.value}))} placeholder="60s"/></div>
                             </div>
                             <div style={{marginBottom:16}}><label style={S.lbl}>Notes (opcional)</label><textarea style={{...S.inp,minHeight:60,resize:"vertical"}} value={customExForm.notes} onChange={e=>setCustomExForm(p=>({...p,notes:e.target.value}))}/></div>
@@ -3091,7 +3295,7 @@ export default function App() {
                             <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                               <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Sèries</label><input style={S.formInp} type="number" value={ex.plannedSets} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedSets:+e.target.value}:ex2)}))}/></div>
                               <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Reps</label><input style={S.formInp} value={ex.plannedReps} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedReps:e.target.value}:ex2)}))}/></div>
-                              <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Càrrega</label><input style={S.formInp} value={ex.plannedLoad} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedLoad:e.target.value}:ex2)}))}/></div>
+                              <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Càrrega</label><WeightPicker style={S.formInp} value={ex.plannedLoad||""} onChange={v=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedLoad:v}:ex2)}))}/></div>
                               <div style={{flex:1,minWidth:60}}><label style={S.lbl}>Descans</label><input style={S.formInp} value={ex.plannedRest} onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,plannedRest:e.target.value}:ex2)}))}/></div>
                             </div>
                             <div style={{marginTop:6}}><label style={S.lbl}>Observacions</label><textarea style={{...S.formInp,minHeight:70,resize:"vertical"}} value={ex.observations||""} placeholder="Indicacions específiques..." onChange={e=>setEditingTemplate(p=>({...p,exercises:p.exercises.map((ex2,j)=>j===i?{...ex2,observations:e.target.value}:ex2)}))}></textarea></div>
@@ -3187,6 +3391,7 @@ export default function App() {
                           <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.formInp} value={editingLibEx.defaultReps} onChange={e=>setEditingLibEx(p=>({...p,defaultReps:e.target.value}))}/></div>
                           <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.formInp} value={editingLibEx.defaultRest} onChange={e=>setEditingLibEx(p=>({...p,defaultRest:e.target.value}))}/></div>
                         </div>
+                        <div style={{marginBottom:8}}><label style={S.lbl}>Càrrega</label><WeightPicker style={S.formInp} value={editingLibEx.defaultLoad||""} onChange={v=>setEditingLibEx(p=>({...p,defaultLoad:v}))}/></div>
                         <div style={{marginBottom:8}}><label style={S.lbl}>Material</label><input style={S.formInp} value={editingLibEx.material} onChange={e=>setEditingLibEx(p=>({...p,material:e.target.value}))}/></div>
                         <div style={{marginBottom:8}}><label style={S.lbl}>Indicacions</label><textarea style={{...S.formInp,minHeight:60,resize:"vertical"}} value={editingLibEx.instructions} onChange={e=>setEditingLibEx(p=>({...p,instructions:e.target.value}))}/></div>
                         <div style={{marginBottom:8}}><label style={S.lbl}>Nivell</label><select style={S.formInp} value={editingLibEx.level} onChange={e=>setEditingLibEx(p=>({...p,level:e.target.value}))}>{["Principiant","Intermedi","Avançat"].map(l=><option key={l} value={l}>{l}</option>)}</select></div>
@@ -3226,6 +3431,7 @@ export default function App() {
                         <div style={{flex:1}}><label style={S.lbl}>Reps</label><input style={S.formInp} value={newLibEx.defaultReps} onChange={e=>setNewLibEx(p=>({...p,defaultReps:e.target.value}))}/></div>
                         <div style={{flex:1}}><label style={S.lbl}>Descans</label><input style={S.formInp} value={newLibEx.defaultRest} onChange={e=>setNewLibEx(p=>({...p,defaultRest:e.target.value}))}/></div>
                       </div>
+                      <div style={{marginBottom:8}}><label style={S.lbl}>Càrrega</label><WeightPicker style={S.formInp} value={newLibEx.defaultLoad||""} onChange={v=>setNewLibEx(p=>({...p,defaultLoad:v}))}/></div>
                       <div style={{marginBottom:8}}><label style={S.lbl}>Material</label><input style={S.formInp} value={newLibEx.material} onChange={e=>setNewLibEx(p=>({...p,material:e.target.value}))}/></div>
                       <div style={{marginBottom:8}}><label style={S.lbl}>Indicacions</label><textarea style={{...S.formInp,minHeight:60,resize:"vertical"}} value={newLibEx.instructions} onChange={e=>setNewLibEx(p=>({...p,instructions:e.target.value}))}/></div>
                       <div style={{marginBottom:8}}><label style={S.lbl}>Nivell</label><select style={S.formInp} value={newLibEx.level} onChange={e=>setNewLibEx(p=>({...p,level:e.target.value}))}>{["Principiant","Intermedi","Avançat"].map(l=><option key={l} value={l}>{l}</option>)}</select></div>
