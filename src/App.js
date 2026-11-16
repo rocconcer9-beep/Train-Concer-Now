@@ -188,9 +188,9 @@ const calGetISOWeek = (d) => { const r=new Date(d); r.setHours(0,0,0,0); r.setDa
 const calDayName = (d) => { const w=d.getDay(); return DAYS[w===0?6:w-1]; };
 const isoLocal = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const calSameDate = (a,b) => isoLocal(a)===isoLocal(b);
-const calGetOvEntry = (ov,iso) => { const e=ov[iso]; if(!e) return {ids:[],edits:{}}; if(Array.isArray(e)) return {ids:e,edits:{}}; return {ids:e.ids||[],edits:e.edits||{}}; };
+const calGetOvEntry = (ov,iso) => { const e=ov[iso]; if(!e) return {ids:[],edits:{},excludedIds:[]}; if(Array.isArray(e)) return {ids:e,edits:{},excludedIds:[]}; return {ids:e.ids||[],edits:e.edits||{},excludedIds:e.excludedIds||[]}; };
 
-const CalendarComp = ({clientIdx,schedule,scheduleOverrides,templates,history,calView,setCalView,calBase,setCalBase,calDetail,setCalDetail,onStartSession,isAdmin,onAddTemplate,onRemoveTemplate,onAddTemplateOverride,onRemoveTemplateOverride,onEditTemplateOverride,onSetDateIds,onDeleteHistoryForDate}) => {
+const CalendarComp = ({clientIdx,schedule,scheduleOverrides,templates,history,calView,setCalView,calBase,setCalBase,calDetail,setCalDetail,onStartSession,isAdmin,onAddTemplate,onRemoveTemplate,onAddTemplateOverride,onRemoveTemplateOverride,onEditTemplateOverride,onSetDateIds,onExcludeTemplateFromDate,onRemoveExclusionFromDate,onDeleteHistoryForDate}) => {
   const [showAddModal,setShowAddModal] = useState(false);
   const [selectedTpl,setSelectedTpl] = useState(null);
   const [editModalTpl,setEditModalTpl] = useState(null);
@@ -204,7 +204,9 @@ const CalendarComp = ({clientIdx,schedule,scheduleOverrides,templates,history,ca
     const iso=isoLocal(date);
     const recurring=schedule[n]||[];
     const ovEntry=calGetOvEntry(ov,iso);
-    const allIds=[...new Set([...recurring,...ovEntry.ids])];
+    const excluded=ovEntry.excludedIds||[];
+    const filteredRecurring=recurring.filter(id=>!excluded.includes(id));
+    const allIds=[...new Set([...filteredRecurring,...ovEntry.ids])];
     return allIds.map(id=>{
       const tpl=templates.find(t=>t.id===id);
       if(!tpl) return null;
@@ -244,10 +246,11 @@ const CalendarComp = ({clientIdx,schedule,scheduleOverrides,templates,history,ca
     const recurringIds=schedule[dayName]||[];
     const ovEntryDay=calGetOvEntry(ov,iso);
     const overrideIdsDay=ovEntryDay.ids;
-    const assignedIds=[...new Set([...recurringIds,...overrideIdsDay])];
-    const availableTpls=templates.filter(t=>!assignedIds.includes(t.id));
+    const availableTpls=templates.filter(t=>!dayTpls.some(dt=>dt.id===t.id));
+    const dayPlural=dayFull.endsWith('s')?dayFull:dayFull+'s';
     const handleRemove=(tpl)=>setRemoveModalTpl(tpl);
     const openEditModal=(tpl)=>{ setEditExercises(JSON.parse(JSON.stringify(tpl.exercises||[]))); setEditModalTpl(tpl); };
+    const isOnlyOverrideTpl=removeModalTpl?overrideIdsDay.includes(removeModalTpl.id)&&!recurringIds.includes(removeModalTpl.id):false;
 
     return (
       <div>
@@ -334,11 +337,25 @@ const CalendarComp = ({clientIdx,schedule,scheduleOverrides,templates,history,ca
                   <div style={{fontWeight:700,fontSize:16,color:"#1a3a6b",marginBottom:4}}>Com vols afegir-la?</div>
                   <div style={{fontSize:13,color:"#64748b",marginBottom:20}}>Plantilla: <strong>{selectedTpl.name}</strong></div>
                   <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                    <button style={{background:"#e8d800",color:"#1a3a6b",border:"none",borderRadius:12,padding:"14px 16px",cursor:"pointer",textAlign:"left"}} onClick={()=>{ onAddTemplate&&onAddTemplate(dayName,selectedTpl.id); closeModal(); }}>
-                      <div style={{fontWeight:700,fontSize:14,marginBottom:3}}>🔁 Tots els {dayFull}s</div>
+                    <button style={{background:"#e8d800",color:"#1a3a6b",border:"none",borderRadius:12,padding:"14px 16px",cursor:"pointer",textAlign:"left"}} onClick={()=>{
+                      const tplId=selectedTpl.id;
+                      const isExcl=ovEntryDay.excludedIds.includes(tplId);
+                      if(isExcl) onRemoveExclusionFromDate&&onRemoveExclusionFromDate(iso,tplId);
+                      if(!recurringIds.includes(tplId)) onAddTemplate&&onAddTemplate(dayName,tplId);
+                      closeModal();
+                    }}>
+                      <div style={{fontWeight:700,fontSize:14,marginBottom:3}}>🔁 Tots els {dayPlural}</div>
                       <div style={{fontSize:12,opacity:0.8}}>S'assignarà de manera recurrent cada {dayFull.toLowerCase()}</div>
                     </button>
-                    <button style={{background:"#f0f4ff",color:"#1a3a6b",border:"1.5px solid #c7d2fe",borderRadius:12,padding:"14px 16px",cursor:"pointer",textAlign:"left"}} onClick={()=>{ onAddTemplateOverride&&onAddTemplateOverride(iso,selectedTpl.id); closeModal(); }}>
+                    <button style={{background:"#f0f4ff",color:"#1a3a6b",border:"1.5px solid #c7d2fe",borderRadius:12,padding:"14px 16px",cursor:"pointer",textAlign:"left"}} onClick={()=>{
+                      const tplId=selectedTpl.id;
+                      if(ovEntryDay.excludedIds.includes(tplId)){
+                        onRemoveExclusionFromDate&&onRemoveExclusionFromDate(iso,tplId);
+                      } else {
+                        onAddTemplateOverride&&onAddTemplateOverride(iso,tplId);
+                      }
+                      closeModal();
+                    }}>
                       <div style={{fontWeight:700,fontSize:14,marginBottom:3}}>📅 Només el {dateLabel}</div>
                       <div style={{fontSize:12,color:"#64748b"}}>S'afegirà únicament per a aquesta data concreta</div>
                     </button>
@@ -371,23 +388,36 @@ const CalendarComp = ({clientIdx,schedule,scheduleOverrides,templates,history,ca
               <div style={{fontWeight:700,fontSize:16,color:"#1a3a6b",marginBottom:4}}>Eliminar "{removeModalTpl.name}"</div>
               <div style={{fontSize:13,color:"#64748b",marginBottom:20}}>{dayFull}, {dateLabel}</div>
               <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                <button style={{background:"#fef2f2",color:"#dc2626",border:"1.5px solid #fca5a5",borderRadius:12,padding:"14px 16px",cursor:"pointer",textAlign:"left"}} onClick={()=>{
-                  if(overrideIdsDay.includes(removeModalTpl.id)){onRemoveTemplateOverride&&onRemoveTemplateOverride(iso,removeModalTpl.id);}
-                  else{onRemoveTemplate&&onRemoveTemplate(dayName,removeModalTpl.id);}
-                  onDeleteHistoryForDate&&onDeleteHistoryForDate(iso,dayName,true);
-                  setRemoveModalTpl(null);
-                }}>
-                  <div style={{fontWeight:700,fontSize:14,marginBottom:3}}>🔁 Eliminar de tots els {dayFull}s</div>
-                  <div style={{fontSize:12,opacity:0.8}}>Elimina la plantilla del calendari recurrent</div>
-                </button>
-                <button style={{background:"#f0f4ff",color:"#1a3a6b",border:"1.5px solid #c7d2fe",borderRadius:12,padding:"14px 16px",cursor:"pointer",textAlign:"left"}} onClick={()=>{
-                  onSetDateIds&&onSetDateIds(iso,[]);
-                  onDeleteHistoryForDate&&onDeleteHistoryForDate(iso,dayName,false);
-                  setRemoveModalTpl(null);
-                }}>
-                  <div style={{fontWeight:700,fontSize:14,marginBottom:3}}>📅 Eliminar només el {dateLabel}</div>
-                  <div style={{fontSize:12,color:"#64748b"}}>Manté la plantilla els altres {dayFull}s</div>
-                </button>
+                {isOnlyOverrideTpl?(
+                  <button style={{background:"#fef2f2",color:"#dc2626",border:"1.5px solid #fca5a5",borderRadius:12,padding:"14px 16px",cursor:"pointer",textAlign:"left"}} onClick={()=>{
+                    onRemoveTemplateOverride&&onRemoveTemplateOverride(iso,removeModalTpl.id);
+                    onDeleteHistoryForDate&&onDeleteHistoryForDate(iso,dayName,false);
+                    setRemoveModalTpl(null);
+                  }}>
+                    <div style={{fontWeight:700,fontSize:14,marginBottom:3}}>📅 Eliminar del {dateLabel}</div>
+                    <div style={{fontSize:12,opacity:0.8}}>Treu la plantilla d'aquest dia concret</div>
+                  </button>
+                ):(
+                  <>
+                    <button style={{background:"#fef2f2",color:"#dc2626",border:"1.5px solid #fca5a5",borderRadius:12,padding:"14px 16px",cursor:"pointer",textAlign:"left"}} onClick={()=>{
+                      onRemoveTemplate&&onRemoveTemplate(dayName,removeModalTpl.id);
+                      onDeleteHistoryForDate&&onDeleteHistoryForDate(iso,dayName,true);
+                      setRemoveModalTpl(null);
+                    }}>
+                      <div style={{fontWeight:700,fontSize:14,marginBottom:3}}>🔁 Eliminar de tots els {dayPlural}</div>
+                      <div style={{fontSize:12,opacity:0.8}}>Elimina la plantilla del calendari recurrent</div>
+                    </button>
+                    <button style={{background:"#f0f4ff",color:"#1a3a6b",border:"1.5px solid #c7d2fe",borderRadius:12,padding:"14px 16px",cursor:"pointer",textAlign:"left"}} onClick={()=>{
+                      onExcludeTemplateFromDate&&onExcludeTemplateFromDate(iso,removeModalTpl.id);
+                      if(overrideIdsDay.includes(removeModalTpl.id)){onRemoveTemplateOverride&&onRemoveTemplateOverride(iso,removeModalTpl.id);}
+                      onDeleteHistoryForDate&&onDeleteHistoryForDate(iso,dayName,false);
+                      setRemoveModalTpl(null);
+                    }}>
+                      <div style={{fontWeight:700,fontSize:14,marginBottom:3}}>📅 Eliminar només el {dateLabel}</div>
+                      <div style={{fontSize:12,color:"#64748b"}}>Manté la plantilla els altres {dayPlural}</div>
+                    </button>
+                  </>
+                )}
               </div>
               <button style={{background:"#f1f5f9",color:"#374151",border:"none",borderRadius:10,padding:"10px 16px",width:"100%",cursor:"pointer",fontWeight:500,fontSize:13,marginTop:14}} onClick={()=>setRemoveModalTpl(null)}>Cancel·lar</button>
             </div>
@@ -2493,6 +2523,8 @@ export default function App() {
               onRemoveTemplateOverride={(dateIso,tplId)=>{const e=calGetOvEntry(clientOv,dateIso);const nd={...e,ids:e.ids.filter(id=>id!==tplId),edits:{...e.edits}};delete nd.edits[tplId];updateClientScheduleOverrides(selClient,{...clientOv,[dateIso]:nd});}}
               onEditTemplateOverride={(dateIso,tplId,exercises)=>{const e=calGetOvEntry(clientOv,dateIso);updateClientScheduleOverrides(selClient,{...clientOv,[dateIso]:{...e,edits:{...e.edits,[tplId]:{exercises}}}});}}
               onSetDateIds={(dateIso,ids)=>{const e=calGetOvEntry(clientOv,dateIso);updateClientScheduleOverrides(selClient,{...clientOv,[dateIso]:{...e,ids}});}}
+              onExcludeTemplateFromDate={(dateIso,tplId)=>{const e=calGetOvEntry(clientOv,dateIso);const excl=[...new Set([...(e.excludedIds||[]),tplId])];updateClientScheduleOverrides(selClient,{...clientOv,[dateIso]:{...e,excludedIds:excl}});}}
+              onRemoveExclusionFromDate={(dateIso,tplId)=>{const e=calGetOvEntry(clientOv,dateIso);const excl=(e.excludedIds||[]).filter(id=>id!==tplId);updateClientScheduleOverrides(selClient,{...clientOv,[dateIso]:{...e,excludedIds:excl}});}}
               onDeleteHistoryForDate={(iso,dayName,allWeekday)=>{const id=normalizeClientId(selClient);const current=clientHistories[id]||[];const updated=allWeekday?current.filter(s=>s.day!==dayName):current.filter(s=>!s.createdAt||s.createdAt.slice(0,10)!==iso);setClientHistories(p=>({...p,[id]:updated}));persistClientHistory(id,updated);}}
             />
           );
@@ -3257,6 +3289,8 @@ export default function App() {
                   onRemoveTemplateOverride={(dateIso,tplId)=>{const e=calGetOvEntry(adminOv,dateIso);const nd={...e,ids:e.ids.filter(id=>id!==tplId),edits:{...e.edits}};delete nd.edits[tplId];updateClientScheduleOverrides(adminClient,{...adminOv,[dateIso]:nd});}}
                   onEditTemplateOverride={(dateIso,tplId,exercises)=>{const e=calGetOvEntry(adminOv,dateIso);updateClientScheduleOverrides(adminClient,{...adminOv,[dateIso]:{...e,edits:{...e.edits,[tplId]:{exercises}}}});}}
                   onSetDateIds={(dateIso,ids)=>{const e=calGetOvEntry(adminOv,dateIso);updateClientScheduleOverrides(adminClient,{...adminOv,[dateIso]:{...e,ids}});}}
+                  onExcludeTemplateFromDate={(dateIso,tplId)=>{const e=calGetOvEntry(adminOv,dateIso);const excl=[...new Set([...(e.excludedIds||[]),tplId])];updateClientScheduleOverrides(adminClient,{...adminOv,[dateIso]:{...e,excludedIds:excl}});}}
+                  onRemoveExclusionFromDate={(dateIso,tplId)=>{const e=calGetOvEntry(adminOv,dateIso);const excl=(e.excludedIds||[]).filter(id=>id!==tplId);updateClientScheduleOverrides(adminClient,{...adminOv,[dateIso]:{...e,excludedIds:excl}});}}
                   onDeleteHistoryForDate={(iso,dayName,allWeekday)=>{const id=normalizeClientId(adminClient);const current=clientHistories[id]||[];const updated=allWeekday?current.filter(s=>s.day!==dayName):current.filter(s=>!s.createdAt||s.createdAt.slice(0,10)!==iso);setClientHistories(p=>({...p,[id]:updated}));persistClientHistory(id,updated);}}
                 />
               );
