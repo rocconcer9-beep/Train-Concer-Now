@@ -650,6 +650,28 @@ const extractSimpleReps = (val) => {
   return (!isNaN(n) && n > 0) ? n : null;
 };
 
+// Reparteix valors separats per / a cada sèrie si tots els trossos son numèrics i el
+// recompte coincideix amb plannedSets. Retorna null si no es compleix la condició
+// (ex. "10/c", "6 a 8/c", "20''/costat" retornen null perquè "c"/"costat" no son numèrics).
+const tryDistributePerSet = (value, plannedSets) => {
+  if(!value || !plannedSets || plannedSets < 2) return null;
+  const str = String(value).trim();
+  const rawParts = str.split('/');
+  if(rawParts.length !== plannedSets) return null;
+  const lastRaw = rawParts[rawParts.length - 1].trim();
+  const lastMatch = lastRaw.match(/^([\d.,]+)(.*)/);
+  if(!lastMatch) return null;
+  const unit = lastMatch[2].trim();
+  const stripped = rawParts.map(p => {
+    const t = p.trim();
+    const withoutUnit = (unit && t.endsWith(unit)) ? t.slice(0, -unit.length).trim() : t;
+    const n = parseFloat(withoutUnit.replace(',', '.'));
+    return (!isNaN(n) && withoutUnit.length > 0) ? withoutUnit : null;
+  });
+  if(stripped.some(v => v === null)) return null;
+  return stripped.map(v => unit ? v + ' ' + unit : v);
+};
+
 // ══════════════════════════════════════════════════════════════════════════════
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -1206,7 +1228,6 @@ export default function App() {
         const obj = history.reduce((a,s,i)=>({...a,[i]:s}),{});
         await set(ref(db,path),obj);
       }
-      console.log("Historial guardat OK per client", id, "sessions:", history.length);
     } catch(err) {
       console.error("Error guardant historial per client", id, err);
       throw err;
@@ -1228,7 +1249,6 @@ export default function App() {
       const h = await get(ref(db,`history-${id}`));
       const val = h.exists() ? h.val() : null;
       const arr = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
-      console.log("Historial carregat per client", id, "sessions:", arr.length);
       setClientHistories(p=>({...p,[id]:arr}));
     } catch(err) {
       console.error("Error carregant historial per client", id, err);
@@ -1967,7 +1987,7 @@ export default function App() {
             const ovEntryStart=calGetOvEntry(clientOvForStart,dateIso||"");
             const editedExs=ovEntryStart.edits?.[tpl.id]?.exercises;
             const exsSource=editedExs||tpl.exercises;
-            const exs=exsSource.map(ex=>({...ex,sets:Array.from({length:ex.plannedSets},()=>({reps:ex.plannedReps||"",load:ex.plannedLoad||"",rest:ex.plannedRest||"",completed:false}))}));
+            const exs=exsSource.map(ex=>{const rD=tryDistributePerSet(ex.plannedReps,ex.plannedSets);const lD=tryDistributePerSet(ex.plannedLoad,ex.plannedSets);return{...ex,sets:Array.from({length:ex.plannedSets},(_,si)=>({reps:rD?rD[si]:(ex.plannedReps||""),load:lD?lD[si]:(ex.plannedLoad||""),rest:ex.plannedRest||"",completed:false}))};});
             const now=new Date().toISOString();
             const newSession={id:`active_${selClient}_${new Date().toISOString().slice(0,10)}_${selDay}`,clientId:selClient,date:dateIso||new Date().toISOString().slice(0,10),day:selDay,templateId:tpl.id,templateName:tpl.name,exercises:exs,status:"in_progress",checkIn:{energy:"",sleep:"",stress:"",fatigue:"",pain:"",painZone:"",notes:"",completedAt:""},createdAt:now,updatedAt:now};
             setCheckInForm({energy:"",sleep:"",stress:"",fatigue:"",pain:"",painZone:"",notes:""});
@@ -2117,10 +2137,12 @@ export default function App() {
                     const isExpanded=expandedExercises[`${sessionKey}-${i}`]!==false;
                     const _prevEx=_prevSameTpl?.exercises?.find(e=>e.name===ex.name||(ex.exerciseId&&e.exerciseId===ex.exerciseId))||null;
                     const _prevDateStr=(()=>{if(!_prevSameTpl)return "";const d=new Date(_prevSameTpl.createdAt||"");if(isNaN(d))return "";return `${DAYS[d.getDay()===0?6:d.getDay()-1].slice(0,3)} ${d.getDate()}/${d.getMonth()+1}`;})();
-                    const _prevSetsStr=_prevEx?.sets?.length?_prevEx.sets.map((s,idx)=>`S${idx+1}: ${s.reps||'?'}r${s.load?` ${s.load}`:''}`).join(' · '):"";
+                    const _prevRawSets=_prevEx?.sets||[];
+                    const _prevSetsExpanded=_prevRawSets.map((st,idx)=>{const rD=tryDistributePerSet(st.reps,_prevRawSets.length);const lD=tryDistributePerSet(st.load,_prevRawSets.length);return{...st,reps:rD?rD[idx]:st.reps,load:lD?lD[idx]:st.load};});
+                    const _prevSetsStr=_prevSetsExpanded.length?_prevSetsExpanded.map((s,idx)=>`S${idx+1}: ${s.reps||'?'}r${s.load?` ${s.load}`:''}`).join(' · '):"";
                     const _prevRpe=(_prevSameTpl&&_prevSameTpl.rpe!=null&&_prevSameTpl.rpe!=="")?Number(_prevSameTpl.rpe):null;
-                    const _prevLoadVal=(()=>{const ls=_prevEx?.sets?.map(s=>parseFloat(String(s.load||""))).filter(v=>!isNaN(v)&&v>0);return ls?.length?ls.reduce((a,b)=>a+b,0)/ls.length:null;})();
-                    const _loadSug=(()=>{if(_prevRpe==null||_prevLoadVal==null)return null;if(_prevRpe<=6)return{type:'up',kg:Math.round(_prevLoadVal*1.05*2)/2};if(_prevRpe>=9)return{type:'down',kg:Math.round(_prevLoadVal*0.95*2)/2};return null;})();
+                    const _loadSugPerSet=(_prevRpe!=null&&_prevSetsExpanded.length)?_prevSetsExpanded.map(st=>{const raw=String(st.load||"");const unit=raw.replace(/[\d.,\s]+/,'').trim()||'kg';const n=parseFloat(raw.replace(',','.'));if(isNaN(n)||n<=0)return null;if(_prevRpe<=6)return{kg:Math.round(n*1.05*2)/2,unit};if(_prevRpe>=9)return{kg:Math.round(n*0.95*2)/2,unit};return null;}):null;
+                    const _loadSugStr=(()=>{if(!_loadSugPerSet||_loadSugPerSet.every(v=>v===null))return null;const groups=[];let gi=0;while(gi<_loadSugPerSet.length){if(_loadSugPerSet[gi]===null){gi++;continue;}let gj=gi+1;while(gj<_loadSugPerSet.length&&_loadSugPerSet[gj]!==null&&_loadSugPerSet[gj].kg===_loadSugPerSet[gi].kg)gj++;const lbl=gj-gi===1?`S${gi+1}`:`S${gi+1}-S${gj}`;groups.push(`${lbl} ${String(_loadSugPerSet[gi].kg).replace('.',',')} ${_loadSugPerSet[gi].unit}`);gi=gj;}return groups.length?groups.join(' · '):null;})();
                     return (
                       <div key={i} style={{...S.card,opacity:allSetsCompleted?0.6:1}}>
                         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:isExpanded?10:0}}>
@@ -2145,7 +2167,7 @@ export default function App() {
                             {ex.videoUrl&&<button style={{background:"#eef2ff",color:"#1d4ed8",border:"1.5px solid #c7d2fe",borderRadius:8,padding:"4px 10px",fontSize:11,cursor:"pointer",marginBottom:8}} onClick={()=>window.open(ex.videoUrl,'_blank')}>▶ Vídeo</button>}
                             {ex.observations&&<div style={{background:"#eef2ff",border:"1.5px solid #c7d2fe",borderRadius:8,padding:"8px 12px",marginBottom:8,display:"flex",alignItems:"flex-start",gap:8,fontSize:12,lineHeight:1.5}}><span style={{color:"#4338ca",fontSize:15,flexShrink:0}}>ℹ</span><span style={{color:"#1e1b4b"}}>{ex.observations}</span></div>}
                             {_prevSameTpl&&_prevEx&&_prevSetsStr&&<div style={{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:6,padding:"5px 8px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><div style={{fontSize:11,color:"#475569"}}>{_prevDateStr} · {_prevSetsStr}</div><span style={{fontSize:10,color:"#94a3b8"}}>▼</span></div>}
-                            {_loadSug&&<div style={{background:"#f0fdf4",border:"1.5px solid #86efac",borderRadius:6,padding:"6px 8px",marginBottom:8,display:"flex",alignItems:"center",justifyContent:"space-between"}}><div style={{fontSize:11,color:"#166534"}}>{_loadSug.type==='up'?`Progressió suggerida: prova amb ${_loadSug.kg} kg`:`Considera baixar a ${_loadSug.kg} kg`}</div><button style={{background:"#4ade80",color:"#166534",border:"none",borderRadius:6,padding:"3px 8px",fontSize:10,fontWeight:600,cursor:"pointer"}} onClick={()=>{setSessionExercises(p=>{const s={...p[sessionKey]};s.exercises=s.exercises.map((e,ei)=>ei===i?{...e,sets:e.sets.map(st=>({...st,load:`${_loadSug.kg} kg`}))}:e);saveActiveSession(selClient,selDay,s);return{...p,[sessionKey]:s};});}}>Aplicar</button></div>}
+                            {_loadSugStr&&<div style={{background:"#f0fdf4",border:"1.5px solid #86efac",borderRadius:6,padding:"6px 8px",marginBottom:8,display:"flex",alignItems:"center",justifyContent:"space-between"}}><div style={{fontSize:11,color:"#166534"}}>Progressió suggerida: {_loadSugStr}</div><button style={{background:"#4ade80",color:"#166534",border:"none",borderRadius:6,padding:"3px 8px",fontSize:10,fontWeight:600,cursor:"pointer"}} onClick={()=>{setSessionExercises(p=>{const s={...p[sessionKey]};s.exercises=s.exercises.map((e,ei)=>ei!==i?e:{...e,sets:e.sets.map((st,si)=>{const sug=_loadSugPerSet?.[si];return sug?{...st,load:`${String(sug.kg).replace('.',',')} ${sug.unit}`}:st;})});saveActiveSession(selClient,selDay,s);return{...p,[sessionKey]:s};});}}>Aplicar</button></div>}
                             {(ex.sets||[]).map((st,j)=>(
                               <div key={j} style={{background:T.card2,borderRadius:10,padding:"10px 12px",marginBottom:6,border:`1.5px solid ${st.completed?T.accent:T.border}`}}>
                                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
